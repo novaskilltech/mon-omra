@@ -34,7 +34,7 @@ export async function uploadDocument(formData: FormData) {
     });
 
     if (!validation.success) {
-        return { error: validation.error.errors[0].message };
+        return { error: validation.error.issues[0]?.message || 'Données invalides' };
     }
 
     try {
@@ -51,7 +51,7 @@ export async function uploadDocument(formData: FormData) {
         // 3. Record in DB
         const { error: dbError } = await supabase
             .from('user_documents')
-            .upsert({
+            .insert({
                 user_id: user.id,
                 type: type,
                 storage_path: filePath,
