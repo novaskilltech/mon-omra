@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 250, 252, 251;
+  --background-end-rgb: 240, 245, 243;
+  --accent-emerald: #10b981;
+  --accent-gold: #d97706;
+  /* Darker gold for better contrast on light */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+}
+
+/* Forcé par le ThemeSwitcher JS ou Préférence Système au mount */
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 10, 25, 20;
+  --background-end-rgb: 5, 10, 8;
+  --accent-gold: #fbbf24;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+}
+
+body {
+  color: var(--text-primary);
+  background: linear-gradient(to bottom,
+      rgb(var(--background-start-rgb)),
+      rgb(var(--background-end-rgb)));
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--card-shadow);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  }
+
+  .btn-premium {
+    @apply px-8 py-4 rounded-full font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 text-white;
+    background: linear-gradient(135deg, var(--accent-emerald), #059669);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Atomic Utility for theme cross-compatibility */
+  .text-main {
+    color: var(--text-primary);
+  }
+
+  .text-sub {
+    color: var(--text-secondary);
+  }
+
+  .text-dim {
+    color: var(--text-muted);
+  }
+}
+
+.hero-gradient {
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s ease-out forwards;
+}
