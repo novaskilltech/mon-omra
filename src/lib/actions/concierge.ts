@@ -222,6 +222,57 @@ export async function requestRegistration(data: {
             }
             throw error;
         }
+
+        // Notification par e-mail à l'agence
+        const resendKey = process.env.RESEND_API_KEY;
+        if (resendKey) {
+            try {
+                await fetch('https://api.resend.com/emails', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${resendKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        from: 'OMRAYANAIR <onboarding@resend.dev>',
+                        to: 'omrayanair@gmail.com',
+                        subject: '🚨 Nouvelle demande d\'inscription - OMRAYANAIR',
+                        html: `
+                            <div style="font-family: sans-serif; padding: 20px; color: #1f2937;">
+                                <h2 style="color: #059669; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Nouvelle demande d'inscription</h2>
+                                <p style="font-size: 14px;">Un nouveau pèlerin a soumis une demande d'accès au portail <strong>OMRAYANAIR</strong> :</p>
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold; width: 120px;">Nom complet :</td>
+                                        <td style="padding: 8px 0;">${data.firstName} ${data.familyName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">E-mail :</td>
+                                        <td style="padding: 8px 0;"><a href="mailto:${data.email}">${data.email}</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">Téléphone :</td>
+                                        <td style="padding: 8px 0;">${data.phone || 'Non renseigné'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">Genre :</td>
+                                        <td style="padding: 8px 0;">${data.gender === 'M' ? 'Homme' : 'Femme'}</td>
+                                    </tr>
+                                </table>
+                                <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                                    <a href="https://omrayanair.vercel.app/backoffice/concierge" style="background-color: #059669; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Accéder au Backoffice</a>
+                                </div>
+                            </div>
+                        `,
+                    }),
+                });
+            } catch (emailErr) {
+                console.error("Erreur lors de l'envoi de la notification par e-mail:", emailErr);
+            }
+        } else {
+            console.log(`[Notification Email Simulée] Nouvelle demande d'inscription pour ${data.firstName} ${data.familyName} (${data.email}) envoyée à omrayanair@gmail.com`);
+        }
+
         return { success: true };
     } catch (e: any) {
         console.error("Error submitting registration request:", e);
