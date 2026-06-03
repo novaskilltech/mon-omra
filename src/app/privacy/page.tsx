@@ -14,7 +14,7 @@ export default function PrivacyPage() {
                     <section>
                         <h2 className="text-xl font-black text-main mb-4 uppercase tracking-widest">1. Introduction</h2>
                         <p className="opacity-80">
-                            Chez Mon Omra (édité par OMRAYANAIR LLC), nous accordons une importance capitale à la protection de vos données personnelles.
+                            Chez OMRAYANAIR (édité par OMRAYANAIR LLC), nous accordons une importance capitale à la protection de vos données personnelles.
                             Cette politique de confidentialité vous informe sur la manière dont nous collectons, utilisons et protégeons vos informations
                             conformément au Règlement Général sur la Protection des Données (RGPD).
                         </p>
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
                         <p className="opacity-80">
                             Vous disposez d'un droit d'accès, de rectification, de suppression (droit à l'oubli) et de portage de vos données.
                             Vous pouvez exercer ces droits directement depuis votre Dashboard dans l'onglet "Confidentialité" ou en contactant
-                            notre DPO à <strong className="text-emerald-600 dark:text-emerald-500">dpo@mon-omra.com</strong>.
+                            notre DPO à <strong className="text-emerald-600 dark:text-emerald-500">dpo@omrayanair.com</strong>.
                         </p>
                     </section>
 

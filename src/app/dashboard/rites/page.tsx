@@ -1,6 +1,7 @@
 import RitualGuideContent from './_components/RitualGuideContent';
 import { getRitualProgress } from '@/lib/actions/rituals';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
 
 export default async function RitualGuidePage() {
@@ -15,8 +16,9 @@ export default async function RitualGuidePage() {
                     <Link href="/dashboard" className="text-dim hover:text-emerald-500 transition-colors">
                         <ChevronLeft className="w-6 h-6" />
                     </Link>
-                    <div className="text-xl font-black tracking-tighter text-main">
-                        MON <span className="text-emerald-500">OMRA</span>
+                    <div className="flex items-center gap-2.5 text-xl font-black tracking-tighter text-main uppercase">
+                        <Image src="/logo.png" alt="OMRAYANAIR Logo" width={28} height={28} className="rounded-lg object-contain" />
+                        OMRA<span className="text-emerald-500">YANAIR</span>
                     </div>
                 </div>
             </nav>

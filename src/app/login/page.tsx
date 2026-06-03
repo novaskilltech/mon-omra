@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Mail, ArrowRight, ShieldCheck, Timer, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -41,8 +42,9 @@ export default function LoginPage() {
 
             <div className="w-full max-w-[440px] relative z-10">
                 <div className="text-center mb-10">
-                    <Link href="/" className="text-2xl font-black tracking-tighter mb-2 inline-block text-main uppercase">
-                        MON <span className="text-emerald-500">OMRA</span>
+                    <Link href="/" className="inline-flex items-center gap-2 text-2xl font-black tracking-tighter mb-2 text-main uppercase">
+                        <Image src="/logo.png" alt="OMRAYANAIR Logo" width={32} height={32} className="rounded-lg object-contain" />
+                        OMRA<span className="text-emerald-500">YANAIR</span>
                     </Link>
                     <div className="h-1 w-12 bg-emerald-500 mx-auto rounded-full" />
                 </div>

@@ -26,8 +26,11 @@ export default async function Dashboard() {
         <div className="min-h-screen">
             {/* Header */}
             <nav className="glass px-6 py-4 flex justify-between items-center sticky top-0 z-50 border-emerald-500/5">
-                <div className="text-xl font-bold tracking-tighter text-main">
-                    MON <span className="text-emerald-500">OMRA</span>
+                <div className="flex items-center gap-2.5">
+                    <Image src="/logo.png" alt="OMRAYANAIR Logo" width={28} height={28} className="rounded-lg object-contain" />
+                    <div className="text-xl font-black tracking-tighter text-main uppercase">
+                        OMRA<span className="text-emerald-500">YANAIR</span>
+                    </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-bold text-emerald-600 dark:text-emerald-400">

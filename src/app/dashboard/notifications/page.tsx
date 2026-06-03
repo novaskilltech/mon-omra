@@ -9,7 +9,7 @@ export default function NotificationsPage() {
         { id: 1, type: 'URGENT', title: 'Changement de Point de RDV', content: 'Le bus pour le Ziyarat partira finalement devant la porte 79 du Haram à 08h30 précises.', time: 'Il y a 10 min', is_read: false },
         { id: 2, type: 'RITUAL', title: 'Rappel Rites : Ihram', content: 'N\'oubliez pas de revêtir votre Ihram avant l\'atterrissage à Jeddah. Le Miqat est Juhfah.', time: 'Il y a 2h', is_read: false },
         { id: 3, type: 'LOGISTICS', title: 'Bagages Étiquetés', content: 'Vos bagages ont été récupérés et sont en cours de transfert vers l\'hôtel à Madinah.', time: 'Hier', is_read: true },
-        { id: 4, type: 'INFO', title: 'Bienvenue en Arabie', content: 'L\'équipe Mon Omra vous souhaite un excellent séjour spirituel.', time: 'Hier', is_read: true },
+        { id: 4, type: 'INFO', title: 'Bienvenue en Arabie', content: 'L\'équipe OMRAYANAIR vous souhaite un excellent séjour spirituel.', time: 'Hier', is_read: true },
     ]);
 
     const markAllAsRead = () => {

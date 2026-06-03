@@ -13,8 +13,11 @@ export default function Home() {
 
             {/* Navbar */}
             <nav className="relative z-50 flex justify-between items-center px-6 py-6 max-w-7xl mx-auto">
-                <div className="text-2xl font-black tracking-tighter uppercase">
-                    MON <span className="text-emerald-500">OMRA</span>
+                <div className="flex items-center gap-3">
+                    <Image src="/logo.png" alt="OMRAYANAIR Logo" width={36} height={36} className="rounded-xl object-contain shadow-md border border-white/10" />
+                    <div className="text-2xl font-black tracking-tighter uppercase">
+                        OMRA<span className="text-emerald-500">YANAIR</span>
+                    </div>
                 </div>
                 <div className="flex items-center gap-6">
                     <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-dim hover:text-emerald-500 transition-colors hidden sm:block">
@@ -159,13 +162,16 @@ export default function Home() {
             {/* Footer */}
             <footer className="py-12 border-t border-white/5 px-6">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="text-xl font-black uppercase tracking-tighter">
-                        MON <span className="text-emerald-500">OMRA</span>
+                    <div className="flex items-center gap-3">
+                        <Image src="/logo.png" alt="OMRAYANAIR Logo" width={28} height={28} className="rounded-lg object-contain opacity-80" />
+                        <div className="text-xl font-black uppercase tracking-tighter">
+                            OMRA<span className="text-emerald-500">YANAIR</span>
+                        </div>
                     </div>
                     <div className="flex gap-8 text-[9px] font-black uppercase tracking-widest text-dim">
                         <Link href="/privacy" className="hover:text-emerald-500 transition-colors">Confidentialité</Link>
                         <Link href="/legal" className="hover:text-emerald-500 transition-colors">Mentions Légales</Link>
-                        <span className="opacity-30">© 2025 MON OMRA</span>
+                        <span className="opacity-30">© 2025 OMRAYANAIR</span>
                     </div>
                 </div>
             </footer>

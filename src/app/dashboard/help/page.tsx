@@ -36,7 +36,7 @@ export default function TutorialsPage() {
             id: 4,
             title: "Utilisation de l'App",
             duration: "4:20",
-            desc: "Découvez toutes les fonctionnalités de votre compagnon Mon Omra.",
+            desc: "Découvez toutes les fonctionnalités de votre compagnon OMRAYANAIR.",
             icon: CheckCircle2,
             color: "text-purple-600 dark:text-purple-400",
             bg: "bg-purple-500/10"

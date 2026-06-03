@@ -1,6 +1,7 @@
 'use client';
 import { Users, Plane, Hotel, LayoutDashboard, Settings, Bell, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { logoutAdmin } from '@/lib/actions/auth';
 
 export default function BackofficeLayout({
@@ -12,8 +13,13 @@ export default function BackofficeLayout({
         <div className="flex min-h-screen bg-main transition-colors duration-300">
             {/* Sidebar */}
             <aside className="w-64 border-r border-emerald-500/10 dark:border-white/5 bg-emerald-500/[0.02] dark:bg-[#050a08] p-6 hidden lg:block backdrop-blur-3xl">
-                <div className="text-xl font-bold tracking-tighter mb-12 flex flex-col">
-                    <span className="text-main">MON <span className="text-amber-500">OMRA</span></span>
+                <div className="mb-12 flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                        <Image src="/logo.png" alt="OMRAYANAIR Logo" width={28} height={28} className="rounded-lg object-contain" />
+                        <span className="text-lg font-black tracking-tighter text-main uppercase">
+                            OMRA<span className="text-amber-500">YANAIR</span>
+                        </span>
+                    </div>
                     <span className="text-[10px] text-dim tracking-widest uppercase font-black opacity-40">Back-Office</span>
                 </div>
 

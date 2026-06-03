@@ -75,7 +75,7 @@ export default async function PreparationGuide() {
                         <p className="text-sub leading-relaxed font-medium">
                             Depuis 2024, le processus de visa a été simplifié avec l'E-Visa. Cependant, la vigilance reste de mise.
                             Assurez-vous que votre passeport a une validité d'au moins 6 mois à la date de retour.
-                            Numérisez tous vos documents dans votre espace "Mon Omra". En cas de perte physique, votre Dashboard sera
+                            Numérisez tous vos documents dans votre espace "OMRAYANAIR". En cas de perte physique, votre Dashboard sera
                             votre bouée de sauvetage.
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

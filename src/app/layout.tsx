@@ -6,21 +6,21 @@ import ThemeSwitcher from "@/components/ThemeSwitcher";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Mon Omra — Plateforme Premium de Gestion de Voyage spirituel",
+  title: "OMRAYANAIR — Plateforme Premium de Gestion de Voyage spirituel",
   description: "Simplifiez votre voyage en Terre Sainte. Centralisez vos documents, suivez votre programme en temps réel et accédez à une assistance 24/7. Excellence et sérénité pour votre Omra.",
   keywords: ["Omra", "Mequel", "Voyage Spirituel", "Hajj", "Guide Omra", "Pèlerinage"],
-  authors: [{ name: "Mon Omra Team" }],
+  authors: [{ name: "OMRAYANAIR Team" }],
   openGraph: {
-    title: "Mon Omra — Votre Compagnon en Terre Sainte",
+    title: "OMRAYANAIR — Votre Compagnon en Terre Sainte",
     description: "L'application tout-en-un pour un voyage Omra parfaitement organisé.",
-    url: "https://mon-omra.com",
-    siteName: "Mon Omra",
+    url: "https://omrayanair.com",
+    siteName: "OMRAYANAIR",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Mon Omra Dashboard Preview",
+        alt: "OMRAYANAIR Dashboard Preview",
       },
     ],
     locale: "fr_FR",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mon Omra — Votre Compagnon en Terre Sainte",
+    title: "OMRAYANAIR — Votre Compagnon en Terre Sainte",
     description: "L'excellence technologique au service de votre foi.",
     images: ["/og-image.png"],
   },

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Lock, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 import { loginAdmin } from '@/lib/actions/auth';
 import { useRouter } from 'next/navigation';
 
@@ -20,13 +21,12 @@ export default function AdminLoginPage() {
             const result = await loginAdmin(formData);
             if (result?.error) {
                 setError(result.error);
+                setLoading(false);
             } else {
-                router.refresh(); // Pour rafraîchir le middleware
                 router.push('/backoffice');
             }
         } catch (err) {
-            setError("Une erreur est survenue.");
-        } finally {
+            setError("Erreur d'authentification");
             setLoading(false);
         }
     }
@@ -38,14 +38,15 @@ export default function AdminLoginPage() {
 
             <div className="w-full max-w-md relative">
                 <div className="text-center mb-10">
-                    <div className="inline-flex p-4 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 mb-6">
+                    <div className="inline-flex p-4 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 mb-6 gap-3 items-center">
+                        <Image src="/logo.png" alt="OMRAYANAIR Logo" width={40} height={40} className="rounded-xl object-contain animate-pulse" />
                         <ShieldCheck className="w-10 h-10 text-emerald-500" />
                     </div>
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-main mb-2">
                         Accès <span className="text-emerald-500">Admin</span>
                     </h1>
                     <p className="text-dim text-xs uppercase tracking-widest font-bold opacity-60">
-                        Backoffice Agence Mon Omra
+                        Backoffice OMRAYANAIR
                     </p>
                 </div>
 
