@@ -23,6 +23,7 @@ export default function AdminLoginPage() {
                 setError(result.error);
                 setLoading(false);
             } else {
+                router.refresh();
                 router.push('/backoffice');
             }
         } catch (err) {
