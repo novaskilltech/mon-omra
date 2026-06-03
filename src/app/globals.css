@@ -2,34 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 250, 252, 251;
-  --background-end-rgb: 240, 245, 243;
+:root, html[data-theme="theme-2"] {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 70, 67;
+  --background-end-rgb: 0, 30, 28;
   --accent-emerald: #10b981;
-  --accent-gold: #d97706;
-  /* Darker gold for better contrast on light */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(0, 0, 0, 0.05);
-  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  --text-primary: #1a1a1a;
-  --text-secondary: #666666;
-  --text-muted: #999999;
+  --accent-gold: #fbbf24;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted: rgba(255, 255, 255, 0.45);
 }
 
-/* Forcé par le ThemeSwitcher JS ou Préférence Système au mount */
-.dark {
+html[data-theme="theme-1"] {
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 10, 25, 20;
-  --background-end-rgb: 5, 10, 8;
-  --accent-gold: #fbbf24;
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --background-start-rgb: 0, 15, 8;
+  --background-end-rgb: 0, 5, 3;
+  --accent-emerald: #fb3640;
+  --accent-gold: #fb3640;
+  --glass-bg: rgba(251, 54, 64, 0.03);
+  --glass-border: rgba(251, 54, 64, 0.12);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted: rgba(255, 255, 255, 0.45);
 }
+
+html[data-theme="theme-3"] {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 34, 34, 34;
+  --background-end-rgb: 15, 15, 15;
+  --accent-emerald: #89e900;
+  --accent-gold: #89e900;
+  --glass-bg: rgba(137, 233, 0, 0.03);
+  --glass-border: rgba(137, 233, 0, 0.12);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted: rgba(255, 255, 255, 0.45);
+}
+
+html[data-theme="theme-4"] {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 39, 24, 126;
+  --background-end-rgb: 15, 8, 50;
+  --accent-emerald: #4f46e5;
+  --accent-gold: #f7f7ff;
+  --glass-bg: rgba(247, 247, 255, 0.03);
+  --glass-border: rgba(247, 247, 255, 0.12);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted: rgba(255, 255, 255, 0.45);
+}
+
+html[data-theme="theme-5"] {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 56, 25, 50;
+  --background-end-rgb: 25, 10, 22;
+  --accent-emerald: #db2777;
+  --accent-gold: #fff3e6;
+  --glass-bg: rgba(255, 243, 230, 0.03);
+  --glass-border: rgba(255, 243, 230, 0.12);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted: rgba(255, 255, 255, 0.45);
+}
+
 
 body {
   color: var(--text-primary);

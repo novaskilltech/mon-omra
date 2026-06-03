@@ -1,10 +1,11 @@
 import Image from 'next/image';
 import { Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, MessageSquare, Heart, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import ThemeSelector from '@/components/ThemeSelector';
 
 export default function Home() {
     return (
-        <main className="min-h-screen bg-[#050605] text-white selection:bg-emerald-500/30">
+        <main className="min-h-screen text-white selection:bg-emerald-500/30">
             {/* Background Glows */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full" />
@@ -12,14 +13,19 @@ export default function Home() {
             </div>
 
             {/* Navbar */}
-            <nav className="relative z-50 flex justify-between items-center px-6 py-6 max-w-7xl mx-auto">
+            <nav className="relative z-50 flex justify-between items-center px-6 py-6 max-w-7xl mx-auto flex-wrap gap-4">
                 <div className="flex items-center gap-3">
                     <Image src="/logo.png" alt="OMRAYANAIR Logo" width={36} height={36} className="rounded-xl object-contain shadow-md border border-white/10" />
                     <div className="text-2xl font-black tracking-tighter uppercase">
                         OMRA<span className="text-emerald-500">YANAIR</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-6">
+                
+                <div className="order-3 md:order-2">
+                    <ThemeSelector />
+                </div>
+
+                <div className="flex items-center gap-6 order-2 md:order-3">
                     <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-dim hover:text-emerald-500 transition-colors hidden sm:block">
                         Connexion
                     </Link>
@@ -28,6 +34,7 @@ export default function Home() {
                     </Link>
                 </div>
             </nav>
+
 
             {/* Hero Section */}
             <header className="relative z-10 pt-20 pb-16 px-6 text-center max-w-5xl mx-auto">
