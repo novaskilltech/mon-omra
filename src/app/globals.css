@@ -4,72 +4,92 @@
 
 :root, html[data-theme="theme-2"] {
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 70, 67;
+  --background-start-rgb: 0, 70, 67; /* #004643 */
   --background-end-rgb: 0, 30, 28;
-  --accent-emerald: #10b981;
-  --accent-gold: #fbbf24;
+  --accent-emerald: #F0EDE5; /* Crème from Combo #2 */
+  --accent-emerald-600: #dcd9d1;
+  --accent-emerald-700: #c9c6be;
+  --accent-text: #004643; /* Teal background color for button text */
+  --accent-shadow: rgba(240, 237, 229, 0.25);
+  --accent-gold: #F0EDE5;
   --glass-bg: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(255, 255, 255, 0.08);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
 }
 
 html[data-theme="theme-1"] {
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 15, 8;
+  --background-start-rgb: 0, 15, 8; /* #000F08 */
   --background-end-rgb: 0, 5, 3;
-  --accent-emerald: #fb3640;
-  --accent-gold: #fb3640;
+  --accent-emerald: #FB3640; /* Rouge from Combo #1 */
+  --accent-emerald-600: #e02f38;
+  --accent-emerald-700: #c62831;
+  --accent-text: #ffffff;
+  --accent-shadow: rgba(251, 54, 64, 0.3);
+  --accent-gold: #FB3640;
   --glass-bg: rgba(251, 54, 64, 0.03);
   --glass-border: rgba(251, 54, 64, 0.12);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
 }
 
 html[data-theme="theme-3"] {
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 34, 34, 34;
+  --background-start-rgb: 34, 34, 34; /* #222222 */
   --background-end-rgb: 15, 15, 15;
-  --accent-emerald: #89e900;
-  --accent-gold: #89e900;
+  --accent-emerald: #89E900; /* Lime green from Combo #3 */
+  --accent-emerald-600: #7bd100;
+  --accent-emerald-700: #6db800;
+  --accent-text: #222222;
+  --accent-shadow: rgba(137, 233, 0, 0.3);
+  --accent-gold: #89E900;
   --glass-bg: rgba(137, 233, 0, 0.03);
   --glass-border: rgba(137, 233, 0, 0.12);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
 }
 
 html[data-theme="theme-4"] {
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 39, 24, 126;
+  --background-start-rgb: 39, 24, 126; /* #27187E */
   --background-end-rgb: 15, 8, 50;
-  --accent-emerald: #4f46e5;
-  --accent-gold: #f7f7ff;
+  --accent-emerald: #F7F7FF; /* Soft Lavender from Combo #4 */
+  --accent-emerald-600: #dedeff;
+  --accent-emerald-700: #c6c6ff;
+  --accent-text: #27187e;
+  --accent-shadow: rgba(247, 247, 255, 0.25);
+  --accent-gold: #F7F7FF;
   --glass-bg: rgba(247, 247, 255, 0.03);
   --glass-border: rgba(247, 247, 255, 0.12);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
 }
 
 html[data-theme="theme-5"] {
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 56, 25, 50;
+  --background-start-rgb: 56, 25, 50; /* #381932 */
   --background-end-rgb: 25, 10, 22;
-  --accent-emerald: #db2777;
-  --accent-gold: #fff3e6;
+  --accent-emerald: #FFF3E6; /* Cream from Combo #5 */
+  --accent-emerald-600: #e6dacd;
+  --accent-emerald-700: #ccbfb3;
+  --accent-text: #381932;
+  --accent-shadow: rgba(255, 243, 230, 0.25);
+  --accent-gold: #FFF3E6;
   --glass-bg: rgba(255, 243, 230, 0.03);
   --glass-border: rgba(255, 243, 230, 0.12);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
 }
 
 
@@ -92,13 +112,14 @@ body {
   }
 
   .text-glow {
-    text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    text-shadow: 0 0 20px var(--accent-shadow);
   }
 
   .btn-premium {
-    @apply px-8 py-4 rounded-full font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 text-white;
-    background: linear-gradient(135deg, var(--accent-emerald), #059669);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    @apply px-8 py-4 rounded-full font-bold transition-all duration-300 transform hover:scale-105 active:scale-95;
+    color: var(--accent-text);
+    background: linear-gradient(135deg, var(--accent-emerald), var(--accent-emerald-600));
+    box-shadow: 0 4px 15px var(--accent-shadow);
   }
 
   /* Atomic Utility for theme cross-compatibility */
