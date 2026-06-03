@@ -2,12 +2,13 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { isAdminAuthenticated } from './auth';
 
 export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?: string }) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Non autorisé");
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
 
+    const supabase = createClient();
     let query = supabase
         .from('profiles')
         .select(`
@@ -53,10 +54,10 @@ export async function createPilgrim(data: {
     gender: 'M' | 'F';
     groupId?: string;
 }) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Non autorisé" };
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
 
+    const supabase = createClient();
     try {
         // Enregistrement d'un utilisateur factice dans profiles pour la démonstration locale
         // (Dans une vraie app, on utiliserait supabase.auth.admin.createUser)
@@ -100,10 +101,10 @@ export async function updateVisaStatus(
     status: 'PENDING' | 'APPROVED' | 'REJECTED',
     visaUrl?: string
 ) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Non autorisé" };
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
 
+    const supabase = createClient();
     try {
         const { error } = await supabase
             .from('profiles')
@@ -130,15 +131,25 @@ export async function addPayment(
     method: 'CASH' | 'TRANSFER' | 'CARD' | 'CHECK',
     reference?: string
 ) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Non autorisé" };
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
 
+    const supabase = createClient();
     try {
+        // Résolution de l'ID administrateur
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'SUPER_ADMIN')
+            .limit(1)
+            .single();
+
+        const agencyId = adminProfile?.id || crypto.randomUUID();
+
         const { error } = await supabase
             .from('payments')
             .insert({
-                agency_id: user.id,
+                agency_id: agencyId,
                 pilgrim_id: pilgrimId,
                 amount: amount,
                 method: method,
