@@ -3,6 +3,23 @@
 import { createClient } from '@/utils/supabase/server';
 import { FlightSchema, Flight } from '@/types/logistics';
 import { revalidatePath } from 'next/cache';
+import { isAdminAuthenticated } from './auth';
+
+
+async function getAuthUserId(supabase: any): Promise<string> {
+    const isAdmin = await isAdminAuthenticated();
+    if (isAdmin) {
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'SUPER_ADMIN')
+            .limit(1)
+            .single();
+        if (adminProfile) return adminProfile.id;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || '';
+}
 
 /**
  * LOGISTICS ACTIONS (LOT 2)
@@ -13,8 +30,8 @@ export async function createFlight(data: Flight) {
     const supabase = createClient();
 
     // 1. Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) throw new Error("Non autorisé");
+    const userId = await getAuthUserId(supabase);
+    if (!userId) throw new Error("Non autorisé");
 
     // 2. Validation logic
     const validated = FlightSchema.parse(data);
@@ -23,7 +40,7 @@ export async function createFlight(data: Flight) {
     const { data: flight, error: flightError } = await supabase
         .from('flights')
         .insert({
-            agency_id: user.id, // Secure: never trust client provided ID
+            agency_id: userId, // Secure: never trust client provided ID
             type: validated.type,
         })
         .select()
@@ -55,8 +72,8 @@ export async function createFlight(data: Flight) {
 
 export async function getAgencyFlights() {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Non autorisé");
+    const userId = await getAuthUserId(supabase);
+    if (!userId) throw new Error("Non autorisé");
 
     const { data, error } = await supabase
         .from('flights')
@@ -64,7 +81,7 @@ export async function getAgencyFlights() {
             *,
             flight_segments (*)
         `)
-        .eq('agency_id', user.id)
+        .eq('agency_id', userId)
         .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
@@ -73,8 +90,8 @@ export async function getAgencyFlights() {
 
 export async function getAgencyHotels() {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Non autorisé");
+    const userId = await getAuthUserId(supabase);
+    if (!userId) throw new Error("Non autorisé");
 
     const { data, error } = await supabase
         .from('hotels')
@@ -82,7 +99,7 @@ export async function getAgencyHotels() {
             *,
             rooms (*)
         `)
-        .eq('agency_id', user.id);
+        .eq('agency_id', userId);
 
     if (error) throw new Error(error.message);
     return data;
@@ -90,8 +107,8 @@ export async function getAgencyHotels() {
 
 export async function createHotel(formData: FormData) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Non autorisé");
+    const userId = await getAuthUserId(supabase);
+    if (!userId) throw new Error("Non autorisé");
 
     const rawData = {
         name: formData.get('name') as string,
@@ -109,7 +126,7 @@ export async function createHotel(formData: FormData) {
         const { data: hotel, error: hotelError } = await supabase
             .from('hotels')
             .insert({
-                agency_id: user.id,
+                agency_id: userId,
                 name: rawData.name,
                 city: rawData.city,
                 stars: rawData.stars,
@@ -155,8 +172,8 @@ export async function createHotel(formData: FormData) {
 
 export async function deleteHotel(hotelId: string) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Non autorisé");
+    const userId = await getAuthUserId(supabase);
+    if (!userId) throw new Error("Non autorisé");
 
     try {
         // 1. Get room IDs for this hotel
@@ -184,7 +201,7 @@ export async function deleteHotel(hotelId: string) {
             .from('hotels')
             .delete()
             .eq('id', hotelId)
-            .eq('agency_id', user.id);
+            .eq('agency_id', userId);
 
         if (deleteError) throw deleteError;
 
@@ -199,8 +216,8 @@ export async function deleteHotel(hotelId: string) {
 
 export async function deleteFlight(flightId: string) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Non autorisé");
+    const userId = await getAuthUserId(supabase);
+    if (!userId) throw new Error("Non autorisé");
 
     try {
         // 1. Check if pilgrims are linked to this flight (simulated or real table check)
@@ -225,7 +242,7 @@ export async function deleteFlight(flightId: string) {
             .from('flights')
             .delete()
             .eq('id', flightId)
-            .eq('agency_id', user.id);
+            .eq('agency_id', userId);
 
         if (deleteError) throw deleteError;
 
@@ -240,8 +257,8 @@ export async function deleteFlight(flightId: string) {
 
 export async function assignPilgrimToRoom(pilgrimId: string, roomId: string, groupId: string) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Non autorisé");
+    const userId = await getAuthUserId(supabase);
+    if (!userId) throw new Error("Non autorisé");
 
     try {
         // 1. Get Pilgrim Profile
@@ -311,8 +328,8 @@ export async function assignPilgrimToRoom(pilgrimId: string, roomId: string, gro
 
 export async function unassignPilgrimFromRoom(pilgrimId: string, roomId: string, groupId: string) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Non autorisé" };
+    const userId = await getAuthUserId(supabase);
+    if (!userId) return { error: "Non autorisé" };
 
     try {
         const { error } = await supabase

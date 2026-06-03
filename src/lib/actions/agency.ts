@@ -3,17 +3,33 @@
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { AgencySettingsSchema, PricingMode } from '@/types/agency';
+import { isAdminAuthenticated } from './auth';
+
+async function getAuthUserId(supabase: any): Promise<string> {
+    const isAdmin = await isAdminAuthenticated();
+    if (isAdmin) {
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'SUPER_ADMIN')
+            .limit(1)
+            .single();
+        if (adminProfile) return adminProfile.id;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || '';
+}
 
 export async function getAgencySettings() {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const userId = await getAuthUserId(supabase);
 
-    if (!user) return null;
+    if (!userId) return null;
 
     const { data, error } = await supabase
         .from('agency_settings')
         .select('*')
-        .eq('agency_id', user.id)
+        .eq('agency_id', userId)
         .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
@@ -26,14 +42,14 @@ export async function getAgencySettings() {
 
 export async function updateAgencySettings(pricingMode: PricingMode) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const userId = await getAuthUserId(supabase);
 
-    if (!user) throw new Error('Non autorisé');
+    if (!userId) throw new Error('Non autorisé');
 
     const { error } = await supabase
         .from('agency_settings')
         .upsert({
-            agency_id: user.id,
+            agency_id: userId,
             pricing_mode: pricingMode,
             updated_at: new Date().toISOString(),
         });
@@ -46,3 +62,4 @@ export async function updateAgencySettings(pricingMode: PricingMode) {
     revalidatePath('/backoffice/settings');
     return { success: true };
 }
+
