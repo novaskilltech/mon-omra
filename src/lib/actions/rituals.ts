@@ -21,7 +21,7 @@ export async function getRitualProgress() {
     const supabase = createClient();
     
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) throw new Error("Non autorisé");
+    if (authError || !user) return [];
 
     const { data, error } = await supabase
         .from('ritual_progress')

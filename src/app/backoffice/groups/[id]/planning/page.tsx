@@ -4,7 +4,12 @@ import { useState } from 'react';
 import ProgramEditor from './_components/ProgramEditor';
 import { ChevronLeft, Calendar } from 'lucide-react';
 import Link from 'next/link';
-import DownloadJournalButton from '../_components/DownloadJournalButton';
+import dynamic from 'next/dynamic';
+
+const DownloadJournalButton = dynamic(
+    () => import('../_components/DownloadJournalButton'),
+    { ssr: false }
+);
 
 export default function GroupPlanningPage({ params }: { params: { id: string } }) {
     const [selectedDay, setSelectedDay] = useState(1);

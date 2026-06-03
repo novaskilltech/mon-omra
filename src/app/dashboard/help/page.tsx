@@ -66,7 +66,7 @@ export default function TutorialsPage() {
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-4 block">Vidéo à la une</span>
                         <h2 className="text-3xl font-black uppercase tracking-tighter mb-4 leading-none text-main uppercase">Guide Complet de votre Voyage</h2>
                         <p className="text-sub text-sm leading-relaxed mb-8 font-light italic pr-4">
-                            Une présentation de 10 minutes couvrant le départ, l'arrivée, les transferts et les conseils de sécurité essentiels pour votre Omra 2025.
+                            Une présentation de 10 minutes couvrant le départ, l'arrivée, les transferts et les conseils de sécurité essentiels pour votre Omra 2026.
                         </p>
                         <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-main">
                             <span className="flex items-center gap-2"><FileText className="w-4 h-4 text-emerald-500" /> 12 Pages PDF</span>

@@ -1,12 +1,15 @@
 'use client';
-
 import { useState } from 'react';
-import { AlertTriangle, ShieldAlert, HeartPulse, Luggage, Users, HelpCircle, Send, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, HeartPulse, Luggage, Users, HelpCircle, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { createAssistanceRequest } from '@/lib/actions/logistics';
 
 export default function AssistancePage() {
     const [step, setStep] = useState<'category' | 'form' | 'success'>('category');
     const [category, setCategory] = useState<string | null>(null);
+    const [message, setMessage] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const categories = [
         { id: 'SANTE', label: 'Urgence Santé', icon: HeartPulse, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-500/10' },
@@ -18,12 +21,36 @@ export default function AssistancePage() {
 
     const handleSelectCategory = (id: string) => {
         setCategory(id);
+        setError(null);
         setStep('form');
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setStep('success');
+        if (!category || !message.trim()) return;
+
+        setLoading(true);
+        setError(null);
+
+        const priority = category === 'SANTE' || category === 'GROUPE_PERDU' ? 'CRITIQUE' : 'NORMAL';
+
+        try {
+            const res = await createAssistanceRequest({
+                category,
+                priority,
+                message,
+            });
+
+            if (res.error) {
+                setError(res.error);
+            } else {
+                setStep('success');
+            }
+        } catch (err: any) {
+            setError("Une erreur inattendue est survenue.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -74,13 +101,22 @@ export default function AssistancePage() {
                             </div>
                         </div>
 
+                        {error && (
+                            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold">
+                                {error}
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-[10px] font-black uppercase tracking-widest text-dim mb-2 ml-4">Expliquez brièvement</label>
                             <textarea
                                 required
                                 rows={4}
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                disabled={loading}
                                 placeholder="Décrivez votre situation ici..."
-                                className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 rounded-[2rem] p-6 text-sm focus:border-red-500/50 outline-none transition-all resize-none text-main dark:text-white placeholder:text-dim"
+                                className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 rounded-[2rem] p-6 text-sm focus:border-red-500/50 outline-none transition-all resize-none text-main dark:text-white placeholder:text-dim disabled:opacity-50"
                             />
                         </div>
 
@@ -88,15 +124,25 @@ export default function AssistancePage() {
                             <button
                                 type="button"
                                 onClick={() => setStep('category')}
-                                className="flex-1 py-5 bg-emerald-500/5 dark:bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-main hover:bg-emerald-500/10 transition-all border border-emerald-500/10"
+                                disabled={loading}
+                                className="flex-1 py-5 bg-emerald-500/5 dark:bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-main hover:bg-emerald-500/10 transition-all border border-emerald-500/10 disabled:opacity-50"
                             >
                                 Annuler
                             </button>
                             <button
                                 type="submit"
-                                className="flex-[2] py-5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
+                                disabled={loading}
+                                className="flex-[2] py-5 bg-red-600 hover:bg-red-700 disabled:bg-red-800/80 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-                                Envoyer l'alerte <Send className="w-3 h-3" />
+                                {loading ? (
+                                    <>
+                                        Envoi en cours... <Loader2 className="w-3 h-3 animate-spin" />
+                                    </>
+                                ) : (
+                                    <>
+                                        Envoyer l'alerte <Send className="w-3 h-3" />
+                                    </>
+                                )}
                             </button>
                         </div>
                     </form>

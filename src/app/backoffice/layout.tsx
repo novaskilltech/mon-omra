@@ -20,6 +20,7 @@ export default function BackofficeLayout({
                 <nav className="space-y-2">
                     {[
                         { icon: LayoutDashboard, label: 'Dashboard', href: '/backoffice' },
+                        { icon: Users, label: 'Conciergerie', href: '/backoffice/concierge' },
                         { icon: Users, label: 'Groupes', href: '/backoffice/groups' },
                         { icon: Plane, label: 'Vols', href: '/backoffice/logistics/flights' },
                         { icon: Hotel, label: 'Hôtels', href: '/backoffice/logistics/hotels' },

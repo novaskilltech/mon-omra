@@ -1,9 +1,38 @@
-'use client';
-
 import Link from 'next/link';
-import { Luggage, CheckCircle2, Info, Plane } from 'lucide-react';
+import { Luggage, CheckCircle2, Info, Plane, Clock, AlertTriangle } from 'lucide-react';
+import { createClient } from '@/utils/supabase/server';
+import { getPilgrimDashboardData } from '@/lib/actions/logistics';
 
-export default function PreparationGuide() {
+export default async function PreparationGuide() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Récupère les données dynamiques du pèlerin (ou les données de démo par défaut)
+    const data = await getPilgrimDashboardData(user?.id || 'demo-pilgrim-id');
+    
+    const segments = data.segments || [];
+    const hasEscale = segments.length > 1;
+    
+    let escaleDetails = null;
+    if (hasEscale && segments.length >= 2) {
+        const firstSegment = segments[0];
+        const secondSegment = segments[1];
+        
+        const arrTime = new Date(firstSegment.arrival_time).getTime();
+        const depTime = new Date(secondSegment.departure_time).getTime();
+        const diffMs = depTime - arrTime;
+        
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        
+        escaleDetails = {
+            airport: firstSegment.arrival_airport,
+            duration: `${diffHours}h${diffMinutes > 0 ? `${diffMinutes}m` : ''}`,
+            nextFlightNum: secondSegment.flight_number,
+            airline: secondSegment.airline
+        };
+    }
+
     return (
         <div className="min-h-screen">
             {/* Hero */}
@@ -58,7 +87,7 @@ export default function PreparationGuide() {
                             <div className="bg-emerald-500/5 dark:bg-emerald-500/5 p-8 rounded-[2rem] border border-emerald-500/10 dark:border-emerald-500/10 shadow-sm">
                                 <CheckCircle2 className="w-8 h-8 text-emerald-500 mb-4" />
                                 <h4 className="font-black text-emerald-600 dark:text-emerald-500 mb-2 uppercase tracking-tighter">Checklist Rapide</h4>
-                                <p className="text-[11px] text-sub leading-relaxed font-medium opacity-70 uppercase tracking-widest leading-loose">Certificat de vaccination,<br />Assurance voyage active,<br />Contrat agence signé.</p>
+                                <p className="text-[11px] text-sub leading-relaxed font-medium opacity-70 uppercase tracking-widest leading-loose">Passeport,<br />Titre de séjour,<br />Visa,<br />Espèces en euros,<br />Carte bancaire internationale.</p>
                             </div>
                         </div>
                     </section>
@@ -68,13 +97,46 @@ export default function PreparationGuide() {
                             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
                                 <Plane className="w-6 h-6 text-blue-500" />
                             </div>
-                            <h2 className="text-3xl font-black uppercase tracking-tighter m-0 text-main">3. Le Départ : CDG vers JED</h2>
+                            <h2 className="text-3xl font-black uppercase tracking-tighter m-0 text-main">3. Le Départ : {data.departureAirport} vers {data.arrivalAirport}</h2>
                         </div>
-                        <p className="text-sub leading-relaxed font-medium opacity-80">
-                            Le voyage dure environ 6h30 depuis Paris. Si vous voyagez avec Saudi Airlines, l'annonce du Miqat se fait
-                            environ 30 minutes avant l'atterrissage. Soyez prêt. Nous recommandons de vous mettre en Ihram au départ
-                            de Paris ou lors de l'escale pour éviter le stress dans les toilettes exigües de l'avion.
-                        </p>
+                        <div className="space-y-6">
+                            <p className="text-sub leading-relaxed font-medium opacity-80">
+                                Votre plan de vol est planifié au départ de l'aéroport de <strong>{data.departureCity} ({data.departureAirport})</strong> à destination de <strong>{data.arrivalCity} ({data.arrivalAirport})</strong>, sous le transporteur principal <strong>{data.carrier}</strong>.
+                            </p>
+
+                            {/* Affichage des détails d'escale si nécessaire */}
+                            {hasEscale && escaleDetails ? (
+                                <div className="bg-emerald-500/5 dark:bg-emerald-500/10 p-6 rounded-[2rem] border border-emerald-500/10 space-y-3 shadow-inner">
+                                    <h4 className="font-black text-main text-xs uppercase tracking-wider flex items-center gap-2 m-0 text-emerald-600 dark:text-emerald-500">
+                                        <Clock className="w-4 h-4" /> Escale de Voyage Détectée
+                                    </h4>
+                                    <p className="text-[11px] text-sub leading-relaxed font-semibold m-0">
+                                        Votre itinéraire comprend une correspondance à l'aéroport de <strong>{escaleDetails.airport}</strong> d'une durée de <strong>{escaleDetails.duration}</strong>.
+                                    </p>
+                                    <p className="text-[11px] text-dim leading-relaxed m-0 italic">
+                                        À {escaleDetails.airport}, veuillez suivre la signalétique "Transit / Transferts" pour rejoindre directement la zone d'embarquement du vol <strong>{escaleDetails.nextFlightNum}</strong> ({escaleDetails.airline}) sans repasser par le contrôle d'immigration principal de l'escale.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="bg-blue-500/5 p-6 rounded-[2rem] border border-blue-500/10 text-[11px] text-sub leading-relaxed font-semibold italic">
+                                    Votre itinéraire est direct sans escale intermédiaire.
+                                </div>
+                            )}
+
+                            {/* Conseil Miqat dynamique selon transporteur ou aéroport d'arrivée */}
+                            <div className="bg-amber-500/5 p-6 rounded-[2rem] border border-amber-500/10 space-y-2">
+                                <h4 className="font-black text-main text-xs uppercase tracking-wider flex items-center gap-2 m-0 text-amber-600 dark:text-amber-500">
+                                    <AlertTriangle className="w-4 h-4" /> Entrée en état d'Ihram & Miqat
+                                </h4>
+                                <p className="text-[11px] text-sub leading-relaxed font-semibold m-0">
+                                    {data.carrier.toLowerCase().includes('saudi') || data.carrier.toLowerCase().includes('sv') || data.arrivalAirport === 'JED' ? (
+                                        `Si vous voyagez avec Saudi Airlines (ou un vol direct vers Jeddah), l'annonce du Miqat se fera en plein vol environ 30 minutes avant l'atterrissage. Soyez prêt dans votre siège. Nous vous recommandons fortement de revêtir votre Ihram avant le départ de ${data.departureCity} ou lors de votre transit pour voyager sereinement.`
+                                    ) : (
+                                        `Puisque votre itinéraire se fait avec escale ou via une autre compagnie, restez attentif à l'annonce du pilote durant le vol de liaison vers Jeddah. Veillez à revêtir votre Ihram à l'aéroport de départ de ${data.departureCity} ou pendant l'escale à ${escaleDetails?.airport || 'l\'aéroport de transit'} afin d'éviter le stress avant le franchissement du Miqat.`
+                                    )}
+                                </p>
+                            </div>
+                        </div>
                     </section>
                 </div>
             </div>

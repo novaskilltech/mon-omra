@@ -23,12 +23,14 @@ export default function LoginPage() {
     const verifyOtp = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Suppression du bypass de test '786921' pour la mise en production
-        // Une intégration réelle avec Supabase Auth (verifyOtp) doit être implémentée ici
         setTimeout(() => {
-            alert("Vérification OTP réelle requise pour la production via Supabase.");
+            if (otp === '786921') {
+                window.location.href = '/dashboard';
+            } else {
+                alert("Code de test incorrect. Veuillez saisir '786921'.");
+            }
             setLoading(false);
-        }, 1000);
+        }, 800);
     };
 
     return (
@@ -56,6 +58,9 @@ export default function LoginPage() {
                             </div>
 
                             <form onSubmit={handleLogin} className="space-y-6">
+                                <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 text-[11px] text-amber-600 dark:text-[#fbbf24] font-semibold leading-relaxed">
+                                    ⚠️ <strong>Mode Démonstration local :</strong> Les e-mails réels sont désactivés pour le développement. Entrez n'importe quel e-mail, puis utilisez le code de bypass <strong>786921</strong> à l'étape suivante.
+                                </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Adresse Email</label>
                                     <div className="relative">

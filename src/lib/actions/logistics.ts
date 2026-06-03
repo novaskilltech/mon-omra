@@ -329,3 +329,179 @@ export async function unassignPilgrimFromRoom(pilgrimId: string, roomId: string,
         return { error: "Erreur lors de la désassignation." };
     }
 }
+
+export async function getPilgrimDashboardData(pilgrimId: string) {
+    const supabase = createClient();
+    try {
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 12);
+        targetDate.setHours(11, 15, 0, 0);
+
+        const targetDateStr = targetDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        const targetTimeStr = targetDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const targetDateIso = targetDate.toISOString();
+
+        const { data: profile, error: pError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', pilgrimId)
+            .single();
+
+        if (pError || !profile) {
+            return {
+                pilgrimName: "Salah Lamkhannet",
+                daysToDeparture: 12,
+                departureAirport: "CDG",
+                arrivalAirport: "JED",
+                departureCity: "Paris, FR",
+                arrivalCity: "Jeddah, SA",
+                departureDate: targetDateStr,
+                departureTime: targetTimeStr,
+                departureDateIso: targetDateIso,
+                carrier: "Turkish Airlines",
+                segments: [
+                    { departure_airport: 'CDG', arrival_airport: 'IST', airline: 'Turkish Airlines', flight_number: 'TK1822', departure_time: new Date(targetDate.getTime() - 4 * 60 * 60 * 1000).toISOString(), arrival_time: new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString(), sequence_order: 0 },
+                    { departure_airport: 'IST', arrival_airport: 'JED', airline: 'Turkish Airlines', flight_number: 'TK96', departure_time: new Date(targetDate.getTime() - 1 * 60 * 60 * 1000).toISOString(), arrival_time: targetDateIso, sequence_order: 1 }
+                ],
+                checklist: [
+                    { label: "Visa Omra", status: "OK", ok: true },
+                    { label: "Solde", status: "Payé", ok: true },
+                    { label: "Check-in", status: "Prêt", ok: true },
+                ]
+            };
+        }
+
+        const { data: pilgrim } = await supabase
+            .from('pilgrims')
+            .select('group_id')
+            .eq('id', pilgrimId)
+            .single();
+
+        let flightInfo = null;
+        if (pilgrim && pilgrim.group_id) {
+            const { data: groupLogistics } = await supabase
+                .from('group_logistics')
+                .select('flight_departure_id')
+                .eq('group_id', pilgrim.group_id)
+                .single();
+
+            if (groupLogistics && groupLogistics.flight_departure_id) {
+                const { data: flight } = await supabase
+                    .from('flights')
+                    .select('*, flight_segments(*)')
+                    .eq('id', groupLogistics.flight_departure_id)
+                    .single();
+                if (flight && flight.flight_segments && flight.flight_segments.length > 0) {
+                    const sortedSegments = [...flight.flight_segments].sort((a, b) => a.sequence_order - b.sequence_order);
+                    const first = sortedSegments[0];
+                    const last = sortedSegments[sortedSegments.length - 1];
+                    flightInfo = {
+                        departureAirport: first.departure_airport,
+                        arrivalAirport: last.arrival_airport,
+                        departureCity: first.departure_airport === 'CDG' ? 'Paris, FR' : first.departure_airport,
+                        arrivalCity: last.arrival_airport === 'JED' ? 'Jeddah, SA' : last.arrival_airport,
+                        departureDate: new Date(first.departure_time).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+                        departureTime: new Date(first.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        departureDateIso: new Date(first.departure_time).toISOString(),
+                        segments: sortedSegments,
+                        carrier: first.airline
+                    };
+                }
+            }
+        }
+
+        const daysToDeparture = flightInfo 
+            ? Math.max(0, Math.ceil((new Date(flightInfo.departureDateIso).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) 
+            : 12;
+
+        const { data: payments } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('pilgrim_id', pilgrimId);
+        
+        const totalPaid = payments ? payments.reduce((acc, curr) => curr.status === 'COMPLETED' ? acc + Number(curr.amount) : acc, 0) : 0;
+        const isPaid = totalPaid >= 2500;
+
+        return {
+            pilgrimName: `${profile.first_name || ''} ${profile.family_name || ''}`.trim() || "Salah Lamkhannet",
+            daysToDeparture: daysToDeparture,
+            departureAirport: flightInfo?.departureAirport || "CDG",
+            arrivalAirport: flightInfo?.arrivalAirport || "JED",
+            departureCity: flightInfo?.departureCity || "Paris, FR",
+            arrivalCity: flightInfo?.arrivalCity || "Jeddah, SA",
+            departureDate: flightInfo?.departureDate || targetDateStr,
+            departureTime: flightInfo?.departureTime || targetTimeStr,
+            departureDateIso: flightInfo?.departureDateIso || targetDateIso,
+            carrier: flightInfo?.carrier || "Turkish Airlines",
+            segments: flightInfo?.segments || [
+                { departure_airport: 'CDG', arrival_airport: 'IST', airline: 'Turkish Airlines', flight_number: 'TK1822', departure_time: new Date(targetDate.getTime() - 4 * 60 * 60 * 1000).toISOString(), arrival_time: new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString(), sequence_order: 0 },
+                { departure_airport: 'IST', arrival_airport: 'JED', airline: 'Turkish Airlines', flight_number: 'TK96', departure_time: new Date(targetDate.getTime() - 1 * 60 * 60 * 1000).toISOString(), arrival_time: targetDateIso, sequence_order: 1 }
+            ],
+            checklist: [
+                { label: "Visa Omra", status: profile.visa_status === 'APPROVED' ? "OK" : "En cours", ok: profile.visa_status === 'APPROVED' },
+                { label: "Solde", status: isPaid ? "Payé" : "En attente", ok: isPaid },
+                { label: "Check-in", status: profile.checkin_done ? "Prêt" : "À faire", ok: !!profile.checkin_done },
+            ]
+        };
+    } catch (err) {
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 12);
+        targetDate.setHours(11, 15, 0, 0);
+
+        const targetDateStr = targetDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        const targetTimeStr = targetDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const targetDateIso = targetDate.toISOString();
+
+        return {
+            pilgrimName: "Salah Lamkhannet",
+            daysToDeparture: 12,
+            departureAirport: "CDG",
+            arrivalAirport: "JED",
+            departureCity: "Paris, FR",
+            arrivalCity: "Jeddah, SA",
+            departureDate: targetDateStr,
+            departureTime: targetTimeStr,
+            departureDateIso: targetDateIso,
+            carrier: "Turkish Airlines",
+            segments: [
+                { departure_airport: 'CDG', arrival_airport: 'IST', airline: 'Turkish Airlines', flight_number: 'TK1822', departure_time: new Date(targetDate.getTime() - 4 * 60 * 60 * 1000).toISOString(), arrival_time: new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString(), sequence_order: 0 },
+                { departure_airport: 'IST', arrival_airport: 'JED', airline: 'Turkish Airlines', flight_number: 'TK96', departure_time: new Date(targetDate.getTime() - 1 * 60 * 60 * 1000).toISOString(), arrival_time: targetDateIso, sequence_order: 1 }
+            ],
+            checklist: [
+                { label: "Visa Omra", status: "OK", ok: true },
+                { label: "Solde", status: "Payé", ok: true },
+                { label: "Check-in", status: "Prêt", ok: true },
+            ]
+        };
+    }
+}
+
+export async function createAssistanceRequest(data: { category: string, priority: string, message: string }) {
+    const supabase = createClient();
+    try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            return { error: "Non autorisé" };
+        }
+
+        const { error } = await supabase
+            .from('assistance_requests')
+            .insert({
+                pilgrim_id: user.id,
+                agency_id: user.id,
+                category: data.category,
+                priority: data.priority,
+                message: data.message,
+                status: 'OPEN'
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        return { success: true };
+    } catch (e: any) {
+        console.error("SOS creation error:", e);
+        return { error: e.message || "Impossible de soumettre le SOS." };
+    }
+}
