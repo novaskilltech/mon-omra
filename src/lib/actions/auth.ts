@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'omra2024';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'OmraRyanair2026!';
 const SESSION_COOKIE = 'omra_admin_session';
 
 // Pour la démo, on utilise un secret simple. En prod, ce serait une variable d'env.
