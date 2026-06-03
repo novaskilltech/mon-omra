@@ -1,21 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, ArrowRight, ShieldCheck, Timer, AlertCircle, Phone, User, Users, CheckCircle } from 'lucide-react';
+import { Mail, ArrowRight, ShieldCheck, AlertCircle, CheckCircle, Lock, Users, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { checkEmailRegistration } from '@/lib/actions/auth';
+import { checkEmailRegistration, loginAdmin } from '@/lib/actions/auth';
 import { requestRegistration } from '@/lib/actions/concierge';
 
 export default function LoginPage() {
+    const [role, setRole] = useState<'pilgrim' | 'agency'>('pilgrim');
     const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
     
-    // Login State
+    // Pilgrim Login State
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<'email' | 'otp'>('email');
     const [otp, setOtp] = useState('');
     const [error, setError] = useState<string | null>(null);
+
+    // Agency Login State
+    const [adminPassword, setAdminPassword] = useState('');
 
     // Register Request State
     const [regForm, setRegForm] = useState({
@@ -66,6 +70,28 @@ export default function LoginPage() {
         }, 800);
     };
 
+    const handleAgencyLoginSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        const formData = new FormData();
+        formData.append('password', adminPassword);
+
+        try {
+            const result = await loginAdmin(formData);
+            if (result?.error) {
+                setError(result.error);
+                setLoading(false);
+            } else {
+                window.location.href = '/backoffice';
+            }
+        } catch (err) {
+            setError("Erreur d'authentification");
+            setLoading(false);
+        }
+    };
+
     const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -92,7 +118,7 @@ export default function LoginPage() {
             <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="w-full max-w-[460px] relative z-10">
-                <div className="text-center mb-8">
+                <div className="text-center mb-6">
                     <Link href="/" className="inline-flex items-center gap-2 text-2xl font-black tracking-tighter mb-2 text-main uppercase">
                         <Image src="/logo.png" alt="OMRAYANAIR Logo" width={32} height={32} className="rounded-lg object-contain" />
                         OMRA<span className="text-emerald-500">YANAIR</span>
@@ -100,18 +126,38 @@ export default function LoginPage() {
                     <div className="h-1 w-12 bg-emerald-500 mx-auto rounded-full" />
                 </div>
 
-                {/* Tabs */}
+                {/* Role Switcher */}
                 {step === 'email' && !regSuccess && (
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl mb-4">
+                        <button
+                            onClick={() => { setRole('pilgrim'); setError(null); }}
+                            className={`flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${role === 'pilgrim' ? 'bg-emerald-500 text-[#050605] shadow font-bold' : 'text-dim hover:text-main'}`}
+                        >
+                            <User className="w-3.5 h-3.5" />
+                            Pèlerin
+                        </button>
+                        <button
+                            onClick={() => { setRole('agency'); setError(null); }}
+                            className={`flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${role === 'agency' ? 'bg-emerald-500 text-[#050605] shadow font-bold' : 'text-dim hover:text-main'}`}
+                        >
+                            <Users className="w-3.5 h-3.5" />
+                            Agence
+                        </button>
+                    </div>
+                )}
+
+                {/* Pilgrim Sub-Tabs */}
+                {role === 'pilgrim' && step === 'email' && !regSuccess && (
                     <div className="flex gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl mb-6">
                         <button
                             onClick={() => { setActiveTab('login'); setError(null); }}
-                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'login' ? 'bg-emerald-500 text-[#050605] shadow' : 'text-dim hover:text-main'}`}
+                            className={`flex-1 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'login' ? 'bg-white/10 text-main shadow' : 'text-dim hover:text-main'}`}
                         >
                             Connexion
                         </button>
                         <button
                             onClick={() => { setActiveTab('register'); setError(null); }}
-                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'register' ? 'bg-emerald-500 text-[#050605] shadow' : 'text-dim hover:text-main'}`}
+                            className={`flex-1 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'register' ? 'bg-white/10 text-main shadow' : 'text-dim hover:text-main'}`}
                         >
                             Demande d'accès
                         </button>
@@ -126,7 +172,41 @@ export default function LoginPage() {
                         </div>
                     )}
 
-                    {activeTab === 'login' ? (
+                    {role === 'agency' ? (
+                        <div>
+                            <div className="mb-8">
+                                <h1 className="text-2xl font-black mb-2 text-main uppercase tracking-tighter">Espace Agence</h1>
+                                <p className="text-sub text-xs leading-relaxed font-light">
+                                    Accédez au backoffice d'administration de l'agence OMRAYANAIR.
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleAgencyLoginSubmit} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Mot de passe</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/30" />
+                                        <input
+                                            required
+                                            type="password"
+                                            value={adminPassword}
+                                            onChange={(e) => setAdminPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                            className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    disabled={loading}
+                                    className="w-full bg-emerald-500 hover:bg-emerald-600 dark:hover:bg-emerald-400 text-[#050605] py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                >
+                                    {loading ? "Connexion..." : "Se connecter"}
+                                    {!loading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
+                                </button>
+                            </form>
+                        </div>
+                    ) : activeTab === 'login' ? (
                         step === 'email' ? (
                             <>
                                 <div className="mb-8">
@@ -309,9 +389,9 @@ export default function LoginPage() {
                     )}
                 </div>
 
-                <div className="mt-8 text-center">
+                <div className="mt-6 text-center">
                     <p className="text-[9px] text-dim font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                        <AlertCircle className="w-3 h-3 text-amber-500" /> Accès validé par le secrétariat de l'agence
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> PROTECTION PAR SUPABASE AUTH & MFA
                     </p>
                 </div>
             </div>
