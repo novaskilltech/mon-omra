@@ -73,7 +73,8 @@ export async function createPilgrim(data: {
                 gender: data.gender,
                 role: 'PILGRIM',
                 visa_status: 'PENDING',
-                checkin_done: false
+                checkin_done: false,
+                email: data.email
             });
 
         if (profileError) throw profileError;
@@ -194,3 +195,137 @@ export async function getGroups() {
     }
     return data;
 }
+
+export async function requestRegistration(data: {
+    email: string;
+    firstName: string;
+    familyName: string;
+    gender: 'M' | 'F';
+    phone?: string;
+}) {
+    const supabase = createClient();
+    try {
+        const { error } = await supabase
+            .from('registration_requests')
+            .insert({
+                email: data.email,
+                first_name: data.firstName,
+                family_name: data.familyName,
+                gender: data.gender,
+                phone: data.phone || null,
+                status: 'PENDING'
+            });
+
+        if (error) {
+            if (error.code === '23505') {
+                return { error: "Une demande pour cette adresse e-mail a déjà été soumise." };
+            }
+            throw error;
+        }
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error submitting registration request:", e);
+        return { error: e.message || "Erreur lors de la soumission de la demande." };
+    }
+}
+
+export async function getRegistrationRequests() {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
+
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('registration_requests')
+        .select('*')
+        .eq('status', 'PENDING')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Error fetching registration requests:", error);
+        return [];
+    }
+    return data;
+}
+
+export async function approveRegistrationRequest(requestId: string, groupId?: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        // 1. Get request details
+        const { data: request, error: fetchError } = await supabase
+            .from('registration_requests')
+            .select('*')
+            .eq('id', requestId)
+            .single();
+
+        if (fetchError || !request) {
+            throw new Error("Demande introuvable");
+        }
+
+        const pilgrimId = crypto.randomUUID();
+
+        // 2. Insert into profiles
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+                id: pilgrimId,
+                full_name: `${request.first_name} ${request.family_name}`,
+                family_name: request.family_name,
+                gender: request.gender,
+                role: 'PILGRIM',
+                visa_status: 'PENDING',
+                checkin_done: false,
+                email: request.email
+            });
+
+        if (profileError) throw profileError;
+
+        // 3. Insert into pilgrims
+        const { error: pilgrimError } = await supabase
+            .from('pilgrims')
+            .insert({
+                id: pilgrimId,
+                group_id: groupId || null
+            });
+
+        if (pilgrimError) throw pilgrimError;
+
+        // 4. Update request status
+        const { error: updateError } = await supabase
+            .from('registration_requests')
+            .update({ status: 'APPROVED' })
+            .eq('id', requestId);
+
+        if (updateError) throw updateError;
+
+        revalidatePath('/backoffice/concierge');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error approving registration request:", e);
+        return { error: e.message || "Erreur lors de la validation." };
+    }
+}
+
+export async function rejectRegistrationRequest(requestId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        const { error } = await supabase
+            .from('registration_requests')
+            .update({ status: 'REJECTED' })
+            .eq('id', requestId);
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/concierge');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error rejecting registration request:", e);
+        return { error: e.message || "Erreur lors du rejet de la demande." };
+    }
+}
+

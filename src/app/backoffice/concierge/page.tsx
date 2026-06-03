@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, 
-    addPayment, getPilgrimPayments, getGroups 
+    addPayment, getPilgrimPayments, getGroups,
+    getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest
 } from '@/lib/actions/concierge';
 
 export default function ConciergeDashboard() {
@@ -19,6 +20,15 @@ export default function ConciergeDashboard() {
     const [selectedPilgrim, setSelectedPilgrim] = useState<any>(null);
     const [payments, setPayments] = useState<any[]>([]);
     
+    // Tab active view
+    const [activeView, setActiveView] = useState<'pilgrims' | 'requests'>('pilgrims');
+    const [requests, setRequests] = useState<any[]>([]);
+    const [selectedRequest, setSelectedRequest] = useState<any>(null);
+    const [showApproveModal, setShowApproveModal] = useState(false);
+    const [approveForm, setApproveForm] = useState({
+        groupId: ''
+    });
+
     // Filters
     const [search, setSearch] = useState('');
     const [groupFilter, setGroupFilter] = useState('');
@@ -62,6 +72,10 @@ export default function ConciergeDashboard() {
 
             const grps = await getGroups();
             setGroups(grps);
+
+            // Load registration requests
+            const reqs = await getRegistrationRequests();
+            setRequests(reqs);
         } catch (e) {
             console.error(e);
         } finally {
@@ -151,6 +165,43 @@ export default function ConciergeDashboard() {
         }
     };
 
+    const handleApproveSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedRequest) return;
+        setLoading(true);
+        try {
+            const res = await approveRegistrationRequest(selectedRequest.id, approveForm.groupId || undefined);
+            if (res.success) {
+                setShowApproveModal(false);
+                setSelectedRequest(null);
+                await loadData();
+            } else {
+                alert(res.error || "Erreur lors de l'approbation");
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRejectRequest = async (requestId: string) => {
+        if (!confirm("Voulez-vous vraiment rejeter cette demande d'inscription ?")) return;
+        setLoading(true);
+        try {
+            const res = await rejectRegistrationRequest(requestId);
+            if (res.success) {
+                await loadData();
+            } else {
+                alert(res.error || "Erreur lors du rejet");
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Calculation
     const totalPaid = payments.reduce((acc, p) => p.status === 'COMPLETED' ? acc + parseFloat(p.amount) : acc, 0);
     const tripPrice = 2500;
@@ -176,217 +227,344 @@ export default function ConciergeDashboard() {
                 </button>
             </header>
 
-            {/* Filters Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="glass flex items-center px-4 rounded-2xl border-emerald-500/5">
-                    <Search className="w-5 h-5 text-dim mr-2" />
-                    <input 
-                        type="text" 
-                        placeholder="Rechercher un pèlerin..." 
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="bg-transparent border-0 outline-none w-full py-3 text-sm text-main"
-                    />
-                </div>
-                <select 
-                    value={groupFilter}
-                    onChange={(e) => setGroupFilter(e.target.value)}
-                    className="glass px-4 py-3 rounded-2xl border border-emerald-500/5 text-sm text-main outline-none"
+            {/* Navigation Tabs */}
+            <div className="flex gap-6 border-b border-emerald-500/10 pb-1">
+                <button
+                    onClick={() => setActiveView('pilgrims')}
+                    className={`pb-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${activeView === 'pilgrims' ? 'border-emerald-500 text-main' : 'border-transparent text-dim hover:text-main'}`}
                 >
-                    <option value="" className="bg-[#0b0e0c] text-main">Tous les groupes</option>
-                    {groups.map(g => (
-                        <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
-                    ))}
-                </select>
-                <select 
-                    value={visaFilter}
-                    onChange={(e) => setVisaFilter(e.target.value)}
-                    className="glass px-4 py-3 rounded-2xl border border-emerald-500/5 text-sm text-main outline-none"
+                    Pèlerins Actifs ({pilgrims.length})
+                </button>
+                <button
+                    onClick={() => setActiveView('requests')}
+                    className={`pb-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 relative ${activeView === 'requests' ? 'border-emerald-500 text-main' : 'border-transparent text-dim hover:text-main'}`}
                 >
-                    <option value="" className="bg-[#0b0e0c] text-main">Tous les statuts de Visa</option>
-                    <option value="PENDING" className="bg-[#0b0e0c] text-main">En attente / En cours</option>
-                    <option value="APPROVED" className="bg-[#0b0e0c] text-main">Approuvé</option>
-                    <option value="REJECTED" className="bg-[#0b0e0c] text-main">Rejeté</option>
-                </select>
+                    Demandes d'inscription ({requests.length})
+                    {requests.length > 0 && (
+                        <span className="absolute -top-1 -right-4 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">
+                            {requests.length}
+                        </span>
+                    )}
+                </button>
             </div>
 
-            {/* Split Screen Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left Side: Pilgrims List */}
-                <div className="lg:col-span-5 glass p-6 rounded-[2.5rem] border-emerald-500/5 flex flex-col">
-                    <h3 className="text-sm font-black uppercase tracking-wider text-main mb-4 flex items-center gap-2">
-                        <Users className="w-4 h-4 text-emerald-500" /> Pèlerins enregistrés ({filteredPilgrims.length})
+            {activeView === 'pilgrims' ? (
+                <>
+                    {/* Filters Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="glass flex items-center px-4 rounded-2xl border-emerald-500/5">
+                            <Search className="w-5 h-5 text-dim mr-2" />
+                            <input 
+                                type="text" 
+                                placeholder="Rechercher un pèlerin..." 
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="bg-transparent border-0 outline-none w-full py-3 text-sm text-main"
+                            />
+                        </div>
+                        <select 
+                            value={groupFilter}
+                            onChange={(e) => setGroupFilter(e.target.value)}
+                            className="glass px-4 py-3 rounded-2xl border border-emerald-500/5 text-sm text-main outline-none"
+                        >
+                            <option value="" className="bg-[#0b0e0c] text-main">Tous les groupes</option>
+                            {groups.map(g => (
+                                <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
+                            ))}
+                        </select>
+                        <select 
+                            value={visaFilter}
+                            onChange={(e) => setVisaFilter(e.target.value)}
+                            className="glass px-4 py-3 rounded-2xl border border-emerald-500/5 text-sm text-main outline-none"
+                        >
+                            <option value="" className="bg-[#0b0e0c] text-main">Tous les statuts de Visa</option>
+                            <option value="PENDING" className="bg-[#0b0e0c] text-main">En attente / En cours</option>
+                            <option value="APPROVED" className="bg-[#0b0e0c] text-main">Approuvé</option>
+                            <option value="REJECTED" className="bg-[#0b0e0c] text-main">Rejeté</option>
+                        </select>
+                    </div>
+
+                    {/* Split Screen Layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Left Side: Pilgrims List */}
+                        <div className="lg:col-span-5 glass p-6 rounded-[2.5rem] border-emerald-500/5 flex flex-col">
+                            <h3 className="text-sm font-black uppercase tracking-wider text-main mb-4 flex items-center gap-2">
+                                <Users className="w-4 h-4 text-emerald-500" /> Pèlerins enregistrés ({filteredPilgrims.length})
+                            </h3>
+                            
+                            {loading ? (
+                                <div className="flex justify-center items-center py-12">
+                                    <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                                </div>
+                            ) : filteredPilgrims.length === 0 ? (
+                                <p className="text-center text-dim text-sm italic py-12">Aucun pèlerin trouvé.</p>
+                            ) : (
+                                <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-2">
+                                    {filteredPilgrims.map((p) => (
+                                        <div 
+                                            key={p.id}
+                                            onClick={() => handleSelectPilgrim(p)}
+                                            className={`p-4 rounded-2xl cursor-pointer border transition-all ${
+                                                selectedPilgrim?.id === p.id 
+                                                    ? 'bg-emerald-500/10 border-emerald-500/30 shadow-inner' 
+                                                    : 'glass border-emerald-500/5 hover:bg-emerald-500/5'
+                                            }`}
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-bold text-sm text-main uppercase">{p.first_name} {p.family_name}</h4>
+                                                    <p className="text-[10px] text-dim font-bold uppercase tracking-widest mt-1">{p.group_name}</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    {p.visa_status === 'APPROVED' ? (
+                                                        <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-emerald-500/20">Visa OK</span>
+                                                    ) : p.visa_status === 'REJECTED' ? (
+                                                        <span className="bg-red-500/10 text-red-500 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-red-500/20">Visa Rejeté</span>
+                                                    ) : (
+                                                        <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-amber-500/20">Visa En Cours</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right Side: Detail Panel */}
+                        <div className="lg:col-span-7 space-y-6">
+                            {selectedPilgrim ? (
+                                <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 space-y-8">
+                                    {/* Summary Card */}
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-emerald-500/10">
+                                        <div>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500">FICHE DÉTAILLÉE</span>
+                                            <h2 className="text-3xl font-black uppercase tracking-tighter text-main mt-1">{selectedPilgrim.first_name} {selectedPilgrim.family_name}</h2>
+                                            <p className="text-xs text-dim italic mt-0.5">Groupe : {selectedPilgrim.group_name}</p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => setShowVisaModal(true)}
+                                                className="btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-emerald-500/10 hover:bg-emerald-500/5 transition-all text-main"
+                                            >
+                                                Gérer le Visa
+                                            </button>
+                                            <button 
+                                                onClick={() => setShowPaymentModal(true)}
+                                                className="btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-emerald-500/10 hover:bg-emerald-500/5 transition-all text-main"
+                                            >
+                                                Encaisser Règlement
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Two-Column Detail Blocks */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Visa Status Block */}
+                                        <div className="bg-emerald-500/5 p-6 rounded-3xl border border-emerald-500/10 space-y-4">
+                                            <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                                                <FileCheck className="w-4 h-4 text-emerald-500" /> Dossier & Documents
+                                            </h4>
+                                            <div className="space-y-2 text-xs">
+                                                <div className="flex justify-between">
+                                                    <span className="text-dim">Statut Visa :</span>
+                                                    <span className="font-bold text-main">{selectedPilgrim.visa_status}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-dim">Check-in Pèlerin :</span>
+                                                    <span className="font-bold text-main">{selectedPilgrim.checkin_done ? 'Prêt' : 'Non validé'}</span>
+                                                </div>
+                                                {selectedPilgrim.visa_url && (
+                                                    <div className="mt-3">
+                                                        <a 
+                                                            href={selectedPilgrim.visa_url} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="text-emerald-500 font-bold hover:underline"
+                                                        >
+                                                            Visualiser le document Visa →
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Financial Calculator Block */}
+                                        <div className="bg-emerald-500/5 p-6 rounded-3xl border border-emerald-500/10 space-y-4">
+                                            <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                                                <DollarSign className="w-4 h-4 text-emerald-500" /> Comptabilité Client
+                                            </h4>
+                                            <div className="space-y-2 text-xs">
+                                                <div className="flex justify-between">
+                                                    <span className="text-dim">Total du Pack :</span>
+                                                    <span className="font-bold text-main">{tripPrice} €</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-dim">Montant encaissé :</span>
+                                                    <span className="font-bold text-emerald-500">{totalPaid} €</span>
+                                                </div>
+                                                <div className="flex justify-between border-t border-emerald-500/10 pt-2 font-bold text-sm">
+                                                    <span className="text-main">Solde Restant :</span>
+                                                    <span className={remainingBalance <= 0 ? "text-emerald-500" : "text-amber-500"}>
+                                                        {remainingBalance} €
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Ledger Registry / Payments Table */}
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                                            <CreditCard className="w-4 h-4 text-emerald-500" /> Registre Ledger des Règlements
+                                        </h4>
+                                        {payments.length === 0 ? (
+                                            <p className="text-xs text-dim italic">Aucune transaction enregistrée pour ce pèlerin.</p>
+                                        ) : (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left border-collapse text-xs">
+                                                    <thead>
+                                                        <tr className="border-b border-emerald-500/10 text-dim">
+                                                            <th className="pb-2 font-bold uppercase tracking-wider">Date</th>
+                                                            <th className="pb-2 font-bold uppercase tracking-wider">Montant</th>
+                                                            <th className="pb-2 font-bold uppercase tracking-wider">Méthode</th>
+                                                            <th className="pb-2 font-bold uppercase tracking-wider">Référence</th>
+                                                            <th className="pb-2 font-bold uppercase tracking-wider">Statut</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {payments.map((pay) => (
+                                                            <tr key={pay.id} className="border-b border-emerald-500/5 text-main">
+                                                                <td className="py-2.5">{new Date(pay.created_at).toLocaleDateString('fr-FR')}</td>
+                                                                <td className="py-2.5 font-bold">{pay.amount} €</td>
+                                                                <td className="py-2.5 font-mono">{pay.method}</td>
+                                                                <td className="py-2.5 text-dim">{pay.reference || '-'}</td>
+                                                                <td className="py-2.5">
+                                                                    <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-black uppercase">
+                                                                        {pay.status}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="glass p-12 rounded-[2.5rem] border-emerald-500/5 text-center flex flex-col items-center justify-center min-h-[40vh]">
+                                    <User className="w-12 h-12 text-dim opacity-30 mb-4" />
+                                    <h3 className="font-bold text-main uppercase">Aucun Pèlerin Sélectionné</h3>
+                                    <p className="text-xs text-dim max-w-xs mt-1">Choisissez un pèlerin dans la liste latérale pour consulter sa fiche comptable, ses vols et gérer son dossier visa.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 space-y-6">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                        <Users className="w-4 h-4 text-emerald-500 animate-pulse" /> Demandes d'inscription en attente ({requests.length})
                     </h3>
                     
                     {loading ? (
                         <div className="flex justify-center items-center py-12">
                             <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
                         </div>
-                    ) : filteredPilgrims.length === 0 ? (
-                        <p className="text-center text-dim text-sm italic py-12">Aucun pèlerin trouvé.</p>
+                    ) : requests.length === 0 ? (
+                        <p className="text-center text-dim text-sm italic py-12">Aucune demande en attente.</p>
                     ) : (
-                        <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-2">
-                            {filteredPilgrims.map((p) => (
-                                <div 
-                                    key={p.id}
-                                    onClick={() => handleSelectPilgrim(p)}
-                                    className={`p-4 rounded-2xl cursor-pointer border transition-all ${
-                                        selectedPilgrim?.id === p.id 
-                                            ? 'bg-emerald-500/10 border-emerald-500/30 shadow-inner' 
-                                            : 'glass border-emerald-500/5 hover:bg-emerald-500/5'
-                                    }`}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="font-bold text-sm text-main uppercase">{p.first_name} {p.family_name}</h4>
-                                            <p className="text-[10px] text-dim font-bold uppercase tracking-widest mt-1">{p.group_name}</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            {p.visa_status === 'APPROVED' ? (
-                                                <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-emerald-500/20">Visa OK</span>
-                                            ) : p.visa_status === 'REJECTED' ? (
-                                                <span className="bg-red-500/10 text-red-500 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-red-500/20">Visa Rejeté</span>
-                                            ) : (
-                                                <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-amber-500/20">Visa En Cours</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Right Side: Detail Panel */}
-                <div className="lg:col-span-7 space-y-6">
-                    {selectedPilgrim ? (
-                        <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 space-y-8">
-                            {/* Summary Card */}
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-emerald-500/10">
-                                <div>
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500">FICHE DÉTAILLÉE</span>
-                                    <h2 className="text-3xl font-black uppercase tracking-tighter text-main mt-1">{selectedPilgrim.first_name} {selectedPilgrim.family_name}</h2>
-                                    <p className="text-xs text-dim italic mt-0.5">Groupe : {selectedPilgrim.group_name}</p>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button 
-                                        onClick={() => setShowVisaModal(true)}
-                                        className="btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-emerald-500/10 hover:bg-emerald-500/5 transition-all text-main"
-                                    >
-                                        Gérer le Visa
-                                    </button>
-                                    <button 
-                                        onClick={() => setShowPaymentModal(true)}
-                                        className="btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-emerald-500/10 hover:bg-emerald-500/5 transition-all text-main"
-                                    >
-                                        Encaisser Règlement
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Two-Column Detail Blocks */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Visa Status Block */}
-                                <div className="bg-emerald-500/5 p-6 rounded-3xl border border-emerald-500/10 space-y-4">
-                                    <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
-                                        <FileCheck className="w-4 h-4 text-emerald-500" /> Dossier & Documents
-                                    </h4>
-                                    <div className="space-y-2 text-xs">
-                                        <div className="flex justify-between">
-                                            <span className="text-dim">Statut Visa :</span>
-                                            <span className="font-bold text-main">{selectedPilgrim.visa_status}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-dim">Check-in Pèlerin :</span>
-                                            <span className="font-bold text-main">{selectedPilgrim.checkin_done ? 'Prêt' : 'Non validé'}</span>
-                                        </div>
-                                        {selectedPilgrim.visa_url && (
-                                            <div className="mt-3">
-                                                <a 
-                                                    href={selectedPilgrim.visa_url} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    className="text-emerald-500 font-bold hover:underline"
+                        <div className="overflow-x-auto animate-in fade-in duration-500">
+                            <table className="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr className="border-b border-emerald-500/10 text-dim">
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Date</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Nom & Prénom</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">E-mail</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Téléphone</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Genre</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {requests.map((req) => (
+                                        <tr key={req.id} className="border-b border-emerald-500/5 text-main hover:bg-emerald-500/[0.02] transition-colors">
+                                            <td className="py-4">{new Date(req.created_at).toLocaleDateString('fr-FR')}</td>
+                                            <td className="py-4 font-bold uppercase">{req.family_name} {req.first_name}</td>
+                                            <td className="py-4 font-mono text-dim">{req.email}</td>
+                                            <td className="py-4">{req.phone || '-'}</td>
+                                            <td className="py-4">{req.gender === 'M' ? 'Homme' : 'Femme'}</td>
+                                            <td className="py-4 text-right flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => { setSelectedRequest(req); setShowApproveModal(true); }}
+                                                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-[#050605] rounded-xl text-[9px] font-black uppercase tracking-wider shadow transition-all"
                                                 >
-                                                    Visualiser le document Visa →
-                                                </a>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Financial Calculator Block */}
-                                <div className="bg-emerald-500/5 p-6 rounded-3xl border border-emerald-500/10 space-y-4">
-                                    <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
-                                        <DollarSign className="w-4 h-4 text-emerald-500" /> Comptabilité Client
-                                    </h4>
-                                    <div className="space-y-2 text-xs">
-                                        <div className="flex justify-between">
-                                            <span className="text-dim">Total du Pack :</span>
-                                            <span className="font-bold text-main">{tripPrice} €</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-dim">Montant encaissé :</span>
-                                            <span className="font-bold text-emerald-500">{totalPaid} €</span>
-                                        </div>
-                                        <div className="flex justify-between border-t border-emerald-500/10 pt-2 font-bold text-sm">
-                                            <span className="text-main">Solde Restant :</span>
-                                            <span className={remainingBalance <= 0 ? "text-emerald-500" : "text-amber-500"}>
-                                                {remainingBalance} €
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Ledger Registry / Payments Table */}
-                            <div className="space-y-4">
-                                <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
-                                    <CreditCard className="w-4 h-4 text-emerald-500" /> Registre Ledger des Règlements
-                                </h4>
-                                {payments.length === 0 ? (
-                                    <p className="text-xs text-dim italic">Aucune transaction enregistrée pour ce pèlerin.</p>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left border-collapse text-xs">
-                                            <thead>
-                                                <tr className="border-b border-emerald-500/10 text-dim">
-                                                    <th className="pb-2 font-bold uppercase tracking-wider">Date</th>
-                                                    <th className="pb-2 font-bold uppercase tracking-wider">Montant</th>
-                                                    <th className="pb-2 font-bold uppercase tracking-wider">Méthode</th>
-                                                    <th className="pb-2 font-bold uppercase tracking-wider">Référence</th>
-                                                    <th className="pb-2 font-bold uppercase tracking-wider">Statut</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {payments.map((pay) => (
-                                                    <tr key={pay.id} className="border-b border-emerald-500/5 text-main">
-                                                        <td className="py-2.5">{new Date(pay.created_at).toLocaleDateString('fr-FR')}</td>
-                                                        <td className="py-2.5 font-bold">{pay.amount} €</td>
-                                                        <td className="py-2.5 font-mono">{pay.method}</td>
-                                                        <td className="py-2.5 text-dim">{pay.reference || '-'}</td>
-                                                        <td className="py-2.5">
-                                                            <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-black uppercase">
-                                                                {pay.status}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="glass p-12 rounded-[2.5rem] border-emerald-500/5 text-center flex flex-col items-center justify-center min-h-[40vh]">
-                            <User className="w-12 h-12 text-dim opacity-30 mb-4" />
-                            <h3 className="font-bold text-main uppercase">Aucun Pèlerin Sélectionné</h3>
-                            <p className="text-xs text-dim max-w-xs mt-1">Choisissez un pèlerin dans la liste latérale pour consulter sa fiche comptable, ses vols et gérer son dossier visa.</p>
+                                                    Approuver
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRejectRequest(req.id)}
+                                                    className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[9px] font-black uppercase tracking-wider border border-red-500/15 transition-all"
+                                                >
+                                                    Rejeter
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </div>
-            </div>
+            )}
+
+            {/* Modal: Approve Registration Request */}
+            {showApproveModal && selectedRequest && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+                    <form onSubmit={handleApproveSubmit} className="glass w-full max-w-md p-8 rounded-[2.5rem] border-emerald-500/10 space-y-6">
+                        <div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 font-black">MODÉRATION D'ACCÈS</span>
+                            <h3 className="text-xl font-black uppercase tracking-tighter text-main mt-1">Approuver l'inscription</h3>
+                            <p className="text-xs text-dim mt-2">
+                                Vous allez valider le dossier de <strong className="text-main uppercase">{selectedRequest.family_name} {selectedRequest.first_name}</strong> ({selectedRequest.email}).
+                            </p>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Associer à un Groupe de Voyage</label>
+                                <select 
+                                    value={approveForm.groupId}
+                                    onChange={(e) => setApproveForm({ ...approveForm, groupId: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
+                                    required
+                                >
+                                    <option value="" className="bg-[#0b0e0c] text-main">Choisir un groupe</option>
+                                    {groups.map(g => (
+                                        <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button 
+                                type="button"
+                                onClick={() => { setShowApproveModal(false); setSelectedRequest(null); }}
+                                className="w-1/2 btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/10 text-main"
+                            >
+                                Annuler
+                            </button>
+                            <button 
+                                type="submit"
+                                className="w-1/2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-[#050605] rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-emerald-500/20"
+                            >
+                                Valider & Créer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             {/* Modal: Add Pilgrim */}
             {showAddModal && (

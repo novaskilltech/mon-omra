@@ -2,6 +2,22 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { createClient } from '@/utils/supabase/server';
+
+export async function checkEmailRegistration(email: string) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('email', email)
+        .single();
+    
+    if (error || !data) {
+        return { allowed: false };
+    }
+    return { allowed: true, role: data.role };
+}
+
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'OmraRyanair2026!';
 const SESSION_COOKIE = 'omra_admin_session';
