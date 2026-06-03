@@ -158,3 +158,10 @@ body {
 .animate-slide-up {
   animation: slideUp 0.8s ease-out forwards;
 }
+
+/* Force high-contrast dynamic text color on accent backgrounds across the application */
+.bg-emerald-500,
+.bg-emerald-600,
+.btn-premium {
+  color: var(--accent-text) !important;
+}
