@@ -96,7 +96,7 @@ export default function FlightWizard({ agencyId }: { agencyId: string }) {
                                     value={segment.flight_number}
                                     onChange={(e) => updateSegment(index, 'flight_number', e.target.value)}
                                     placeholder="ex: TK1822"
-                                    className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
                                 />
                             </div>
                             <div>
@@ -106,7 +106,7 @@ export default function FlightWizard({ agencyId }: { agencyId: string }) {
                                     value={segment.airline}
                                     onChange={(e) => updateSegment(index, 'airline', e.target.value)}
                                     placeholder="Turkish Airlines"
-                                    className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
                                 />
                             </div>
                             <div>
@@ -117,7 +117,7 @@ export default function FlightWizard({ agencyId }: { agencyId: string }) {
                                     value={segment.departure_airport}
                                     onChange={(e) => updateSegment(index, 'departure_airport', e.target.value.toUpperCase())}
                                     placeholder="CDG"
-                                    className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
                                 />
                             </div>
                             <div>
@@ -128,7 +128,7 @@ export default function FlightWizard({ agencyId }: { agencyId: string }) {
                                     value={segment.arrival_airport}
                                     onChange={(e) => updateSegment(index, 'arrival_airport', e.target.value.toUpperCase())}
                                     placeholder="JED"
-                                    className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
                                 />
                             </div>
                             <div>
@@ -137,7 +137,7 @@ export default function FlightWizard({ agencyId }: { agencyId: string }) {
                                     type="datetime-local"
                                     value={segment.departure_time}
                                     onChange={(e) => updateSegment(index, 'departure_time', e.target.value)}
-                                    className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-4 py-3 text-[11px] font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-[11px] font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner [color-scheme:dark]"
                                 />
                             </div>
                             <div className="flex items-end gap-3">
@@ -147,7 +147,7 @@ export default function FlightWizard({ agencyId }: { agencyId: string }) {
                                         type="datetime-local"
                                         value={segment.arrival_time}
                                         onChange={(e) => updateSegment(index, 'arrival_time', e.target.value)}
-                                        className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-4 py-3 text-[11px] font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-[11px] font-black text-main outline-none focus:border-emerald-500 transition-all shadow-inner [color-scheme:dark]"
                                     />
                                 </div>
                                 {segments.length > 1 && (

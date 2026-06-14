@@ -2,6 +2,7 @@ import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, H
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
 import { getPilgrimDashboardData } from '@/lib/actions/logistics';
 import Countdown from '@/components/Countdown';
@@ -14,9 +15,10 @@ const DownloadJournalButton = dynamic(
 export default async function Dashboard() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
     
     // Rapatriement des données réelles ou de démo via l'action
-    const data = await getPilgrimDashboardData(user?.id || 'demo-pilgrim-id');
+    const data = await getPilgrimDashboardData(pilgrimCookieId || user?.id || 'demo-pilgrim-id', user?.email || undefined);
 
     // Calcul du pourcentage de préparation pour l'UI
     const completedTasksCount = data.checklist.filter(item => item.ok).length;
@@ -85,14 +87,22 @@ export default async function Dashboard() {
                                     <p className="text-dim text-[11px] uppercase tracking-[0.1em] font-semibold">{data.arrivalCity}</p>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 text-[11px] font-bold uppercase tracking-widest">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[11px] font-bold uppercase tracking-widest">
                                 <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
                                     <p className="text-dim mb-1 opacity-70">Date de départ</p>
                                     <p className="text-main">{data.departureDate}</p>
                                 </div>
                                 <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
-                                    <p className="text-dim mb-1 opacity-70">Heure locale de départ</p>
+                                    <p className="text-dim mb-1 opacity-70">Heure locale</p>
                                     <p className="text-main">{data.departureTime}</p>
+                                </div>
+                                <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
+                                    <p className="text-dim mb-1 opacity-70">Compagnie</p>
+                                    <p className="text-main">{data.carrier}</p>
+                                </div>
+                                <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 col-span-2 md:col-span-1">
+                                    <p className="text-dim mb-1 opacity-70">Bagages Autorisés</p>
+                                    <p className="text-emerald-500 font-black normal-case">{(data as any).baggage_policy || "2 x 23kg inclus"}</p>
                                 </div>
                             </div>
                         </div>

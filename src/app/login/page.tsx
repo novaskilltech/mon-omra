@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Mail, ArrowRight, ShieldCheck, AlertCircle, CheckCircle, Lock, Users, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { checkEmailRegistration, loginAdmin } from '@/lib/actions/auth';
+import { checkEmailRegistration, loginAdmin, loginPilgrim } from '@/lib/actions/auth';
 import { requestRegistration } from '@/lib/actions/concierge';
 
 export default function LoginPage() {
@@ -56,18 +56,27 @@ export default function LoginPage() {
         }
     };
 
-    const verifyOtp = (e: React.FormEvent) => {
+    const verifyOtp = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        setTimeout(() => {
-            if (otp === '786921') {
-                window.location.href = '/dashboard';
-            } else {
-                setError("Code de sécurité incorrect. Utilisez le code '786921'.");
+        if (otp === '786921') {
+            try {
+                const res = await loginPilgrim(email);
+                if (res.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    setError(res.error || "Erreur de connexion.");
+                    setLoading(false);
+                }
+            } catch (err) {
+                setError("Une erreur est survenue lors de la connexion.");
                 setLoading(false);
             }
-        }, 800);
+        } else {
+            setError("Code de sécurité incorrect. Utilisez le code '786921'.");
+            setLoading(false);
+        }
     };
 
     const handleAgencyLoginSubmit = async (e: React.FormEvent) => {

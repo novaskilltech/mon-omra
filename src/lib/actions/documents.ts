@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { UserDocumentSchema, DocumentType } from '@/types/documents';
+import { resolvePilgrimIdByEmail } from './logistics';
 
 /**
  * Uploads a pilgrim document to Supabase Storage and records it in the database.
@@ -23,9 +24,11 @@ export async function uploadDocument(formData: FormData) {
         throw new Error('Fichier ou type manquant');
     }
 
+    const resolvedId = await resolvePilgrimIdByEmail(user.id, user.email || undefined);
+
     // 1. Validate with Zod (Contract Enforcement)
     const validation = UserDocumentSchema.safeParse({
-        user_id: user.id,
+        user_id: resolvedId,
         type: type,
         file_name: file.name,
         file_size: file.size,
@@ -40,7 +43,7 @@ export async function uploadDocument(formData: FormData) {
     try {
         // 2. Upload to Supabase Storage (Private Bucket)
         const fileExt = file.name.split('.').pop();
-        const filePath = `${user.id}/${type}_${Date.now()}.${fileExt}`;
+        const filePath = `${resolvedId}/${type}_${Date.now()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
             .from('pelerin-documents')
@@ -52,7 +55,7 @@ export async function uploadDocument(formData: FormData) {
         const { error: dbError } = await supabase
             .from('user_documents')
             .insert({
-                user_id: user.id,
+                user_id: resolvedId,
                 type: type,
                 storage_path: filePath,
                 file_name: file.name,

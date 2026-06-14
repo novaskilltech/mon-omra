@@ -9,13 +9,18 @@ import { isAdminAuthenticated } from './auth';
 async function getAuthUserId(supabase: any): Promise<string> {
     const isAdmin = await isAdminAuthenticated();
     if (isAdmin) {
-        const { data: adminProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('role', 'SUPER_ADMIN')
-            .limit(1)
-            .single();
-        if (adminProfile) return adminProfile.id;
+        try {
+            const { data: adminProfile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('role', 'SUPER_ADMIN')
+                .limit(1)
+                .single();
+            if (adminProfile) return adminProfile.id;
+        } catch (e) {
+            console.error("Error fetching admin profile:", e);
+        }
+        return '00000000-0000-0000-0000-000000000000';
     }
     const { data: { user } } = await supabase.auth.getUser();
     return user?.id || '';
@@ -347,7 +352,7 @@ export async function unassignPilgrimFromRoom(pilgrimId: string, roomId: string,
     }
 }
 
-export async function getPilgrimDashboardData(pilgrimId: string) {
+export async function getPilgrimDashboardData(pilgrimId: string, email?: string) {
     const supabase = createClient();
     try {
         const targetDate = new Date();
@@ -358,10 +363,12 @@ export async function getPilgrimDashboardData(pilgrimId: string) {
         const targetTimeStr = targetDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const targetDateIso = targetDate.toISOString();
 
+        const resolvedId = await resolvePilgrimIdByEmail(pilgrimId, email);
+
         const { data: profile, error: pError } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', pilgrimId)
+            .eq('id', resolvedId)
             .single();
 
         if (pError || !profile) {
@@ -390,12 +397,53 @@ export async function getPilgrimDashboardData(pilgrimId: string) {
 
         const { data: pilgrim } = await supabase
             .from('pilgrims')
-            .select('group_id')
-            .eq('id', pilgrimId)
+            .select('group_id, individual_flight_info, package_price')
+            .eq('id', resolvedId)
             .single();
 
         let flightInfo = null;
-        if (pilgrim && pilgrim.group_id) {
+        if (pilgrim && pilgrim.individual_flight_info) {
+            const indFlight = pilgrim.individual_flight_info as any;
+            
+            const rawSegments = indFlight.flights && Array.isArray(indFlight.flights) && indFlight.flights.length > 0
+                ? indFlight.flights
+                : [
+                    {
+                        departure_airport: indFlight.departure_airport,
+                        arrival_airport: indFlight.arrival_airport,
+                        airline: indFlight.airline,
+                        flight_number: indFlight.flight_number,
+                        departure_time: indFlight.departure_time,
+                        arrival_time: indFlight.arrival_time
+                    }
+                ];
+
+            const segments = rawSegments.map((s: any, idx: number) => ({
+                departure_airport: s.departure_airport || '',
+                arrival_airport: s.arrival_airport || '',
+                airline: s.airline || '',
+                flight_number: s.flight_number || '',
+                departure_time: s.departure_time ? new Date(s.departure_time).toISOString() : '',
+                arrival_time: s.arrival_time ? new Date(s.arrival_time).toISOString() : '',
+                sequence_order: idx
+            }));
+
+            const first = segments[0];
+            const last = segments[segments.length - 1];
+
+            flightInfo = {
+                departureAirport: first.departure_airport,
+                arrivalAirport: last.arrival_airport,
+                departureCity: first.departure_airport === 'CDG' || first.departure_airport === 'ORY' ? 'Paris, FR' : first.departure_airport,
+                arrivalCity: last.arrival_airport === 'JED' ? 'Jeddah, SA' : last.arrival_airport === 'MED' ? 'Médine, SA' : last.arrival_airport,
+                departureDate: first.departure_time ? new Date(first.departure_time).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+                departureTime: first.departure_time ? new Date(first.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+                departureDateIso: first.departure_time ? new Date(first.departure_time).toISOString() : '',
+                carrier: first.airline,
+                baggage_policy: indFlight.baggage_policy,
+                segments
+            };
+        } else if (pilgrim && pilgrim.group_id) {
             const { data: groupLogistics } = await supabase
                 .from('group_logistics')
                 .select('flight_departure_id')
@@ -421,7 +469,8 @@ export async function getPilgrimDashboardData(pilgrimId: string) {
                         departureTime: new Date(first.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                         departureDateIso: new Date(first.departure_time).toISOString(),
                         segments: sortedSegments,
-                        carrier: first.airline
+                        carrier: first.airline,
+                        baggage_policy: "2 x 23kg inclus"
                     };
                 }
             }
@@ -434,13 +483,14 @@ export async function getPilgrimDashboardData(pilgrimId: string) {
         const { data: payments } = await supabase
             .from('payments')
             .select('*')
-            .eq('pilgrim_id', pilgrimId);
+            .eq('pilgrim_id', resolvedId);
         
         const totalPaid = payments ? payments.reduce((acc, curr) => curr.status === 'COMPLETED' ? acc + Number(curr.amount) : acc, 0) : 0;
-        const isPaid = totalPaid >= 2500;
+        const pilgrimPrice = pilgrim?.package_price !== undefined && pilgrim?.package_price !== null ? Number(pilgrim.package_price) : 2500;
+        const isPaid = totalPaid >= pilgrimPrice;
 
         return {
-            pilgrimName: `${profile.first_name || ''} ${profile.family_name || ''}`.trim() || "Salah Lamkhannet",
+            pilgrimName: `${profile.full_name || ''}`.trim() || "Salah Lamkhannet",
             daysToDeparture: daysToDeparture,
             departureAirport: flightInfo?.departureAirport || "CDG",
             arrivalAirport: flightInfo?.arrivalAirport || "JED",
@@ -450,6 +500,7 @@ export async function getPilgrimDashboardData(pilgrimId: string) {
             departureTime: flightInfo?.departureTime || targetTimeStr,
             departureDateIso: flightInfo?.departureDateIso || targetDateIso,
             carrier: flightInfo?.carrier || "Turkish Airlines",
+            baggage_policy: flightInfo?.baggage_policy || "2 x 23kg inclus",
             segments: flightInfo?.segments || [
                 { departure_airport: 'CDG', arrival_airport: 'IST', airline: 'Turkish Airlines', flight_number: 'TK1822', departure_time: new Date(targetDate.getTime() - 4 * 60 * 60 * 1000).toISOString(), arrival_time: new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString(), sequence_order: 0 },
                 { departure_airport: 'IST', arrival_airport: 'JED', airline: 'Turkish Airlines', flight_number: 'TK96', departure_time: new Date(targetDate.getTime() - 1 * 60 * 60 * 1000).toISOString(), arrival_time: targetDateIso, sequence_order: 1 }
@@ -521,4 +572,17 @@ export async function createAssistanceRequest(data: { category: string, priority
         console.error("SOS creation error:", e);
         return { error: e.message || "Impossible de soumettre le SOS." };
     }
+}
+
+export async function resolvePilgrimIdByEmail(userId: string, email?: string): Promise<string> {
+    const supabase = createClient();
+    if (email) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .maybeSingle();
+        if (profile) return profile.id;
+    }
+    return userId;
 }

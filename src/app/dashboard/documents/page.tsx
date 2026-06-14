@@ -2,16 +2,19 @@ import { Compass, ShieldCheck, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import DocumentUpload from '@/components/documents/DocumentUpload';
 import { createClient } from '@/utils/supabase/server';
+import { resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
 
 export default async function DocumentsPage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    const resolvedId = user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : undefined;
+
     // Fetch existing docs if any
     const { data: documents } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', user?.id);
+        .eq('user_id', resolvedId);
 
     const getDoc = (type: string) => documents?.find(d => d.type === type);
 

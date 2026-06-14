@@ -1,6 +1,7 @@
 import { ChevronLeft, Hotel, Star, MapPin, Compass, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
+import { resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
 
 export default async function PilgrimHotelsPage() {
     const supabase = createClient();
@@ -10,11 +11,12 @@ export default async function PilgrimHotelsPage() {
     let hotelsData: any[] = [];
     try {
         if (user) {
+            const resolvedId = await resolvePilgrimIdByEmail(user.id, user.email || undefined);
             // Get stays for the pilgrim's group
             const { data: pilgrim } = await supabase
                 .from('pilgrims')
                 .select('group_id')
-                .eq('id', user.id)
+                .eq('id', resolvedId)
                 .single();
 
             if (pilgrim && pilgrim.group_id) {

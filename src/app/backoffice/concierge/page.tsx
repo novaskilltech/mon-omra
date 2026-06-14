@@ -5,12 +5,14 @@ import {
     Users, Plus, Search, User, CreditCard, 
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
     CheckCircle, XCircle, Clock, CheckCircle2,
-    DollarSign, BookOpen
+    DollarSign, BookOpen, Plane, Upload, Brain
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, 
     addPayment, getPilgrimPayments, getGroups,
-    getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest
+    getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
+    extractFlightTicketOCR, saveIndividualFlightInfo, updatePilgrimPackagePrice,
+    linkFamilyMember, unlinkFamilyMember
 } from '@/lib/actions/concierge';
 
 export default function ConciergeDashboard() {
@@ -19,6 +21,18 @@ export default function ConciergeDashboard() {
     const [loading, setLoading] = useState(true);
     const [selectedPilgrim, setSelectedPilgrim] = useState<any>(null);
     const [payments, setPayments] = useState<any[]>([]);
+    
+    // Flight & Baggage Form State
+    const [flights, setFlights] = useState<any[]>([
+        { flight_number: '', airline: '', departure_airport: '', arrival_airport: '', departure_time: '', arrival_time: '' }
+    ]);
+    const [baggageSoute, setBaggageSoute] = useState<string>('');
+    const [baggageCabine, setBaggageCabine] = useState<string>('');
+    const [baggageMain, setBaggageMain] = useState<string>('');
+    
+    // Family Link State
+    const [familySearchText, setFamilySearchText] = useState('');
+    const [selectedFamilyMemberId, setSelectedFamilyMemberId] = useState('');
     
     // Tab active view
     const [activeView, setActiveView] = useState<'pilgrims' | 'requests'>('pilgrims');
@@ -85,6 +99,31 @@ export default function ConciergeDashboard() {
 
     const handleSelectPilgrim = async (pilgrim: any) => {
         setSelectedPilgrim(pilgrim);
+        const flightInfo = pilgrim.individual_flight_info || {};
+        let flightsList = flightInfo.flights;
+        if (!flightsList || !Array.isArray(flightsList) || flightsList.length === 0) {
+            flightsList = [
+                {
+                    flight_number: flightInfo.flight_number || '',
+                    airline: flightInfo.airline || '',
+                    departure_airport: flightInfo.departure_airport || '',
+                    arrival_airport: flightInfo.arrival_airport || '',
+                    departure_time: flightInfo.departure_time || '',
+                    arrival_time: flightInfo.arrival_time || ''
+                }
+            ];
+        }
+        setFlights(flightsList);
+
+        // Parse baggage policy
+        const policy = flightInfo.baggage_policy || '';
+        const souteMatch = policy.match(/Soute:\s*([^|]+)/i);
+        const cabineMatch = policy.match(/Cabine:\s*([^|]+)/i);
+        const mainMatch = policy.match(/Sac:\s*([^|]+)/i);
+        setBaggageSoute(souteMatch ? souteMatch[1].trim() : '');
+        setBaggageCabine(cabineMatch ? cabineMatch[1].trim() : '');
+        setBaggageMain(mainMatch ? mainMatch[1].trim() : '');
+
         try {
             const payList = await getPilgrimPayments(pilgrim.id);
             setPayments(payList);
@@ -202,13 +241,135 @@ export default function ConciergeDashboard() {
         }
     };
 
-    // Calculation
+    const handleAddFlightSegment = () => {
+        setFlights((prev) => [
+            ...prev,
+            { flight_number: '', airline: '', departure_airport: '', arrival_airport: '', departure_time: '', arrival_time: '' }
+        ]);
+    };
+
+    const handleRemoveFlightSegment = (index: number) => {
+        if (flights.length <= 1) {
+            alert("Vous devez avoir au moins un segment de vol.");
+            return;
+        }
+        setFlights((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleFlightSegmentChange = (index: number, key: string, value: string) => {
+        setFlights((prev) => prev.map((f, i) => i === index ? { ...f, [key]: value } : f));
+    };
+
+    const handleSaveFlightInfo = async () => {
+        if (!selectedPilgrim) return;
+        setLoading(true);
+
+        const finalBaggagePolicy = [
+            baggageSoute ? `Soute: ${baggageSoute}` : '',
+            baggageCabine ? `Cabine: ${baggageCabine}` : '',
+            baggageMain ? `Sac: ${baggageMain}` : ''
+        ].filter(Boolean).join(' | ');
+
+        const flightInfoToSave = {
+            flights,
+            baggage_policy: finalBaggagePolicy || 'Aucun bagage'
+        };
+
+        try {
+            const res = await saveIndividualFlightInfo(selectedPilgrim.id, flightInfoToSave);
+            if (res.success) {
+                alert("Informations de vol enregistrées avec succès !");
+                setSelectedPilgrim((prev: any) => ({
+                    ...prev,
+                    individual_flight_info: flightInfoToSave
+                }));
+                // Reload list to update local database states
+                const list = await getPilgrimsList({
+                    groupId: groupFilter || undefined,
+                    visaStatus: visaFilter || undefined
+                });
+                setPilgrims(list);
+            } else {
+                alert(res.error || "Erreur lors de la sauvegarde.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors de la sauvegarde.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLinkFamilyMember = async () => {
+        if (!selectedPilgrim || !selectedFamilyMemberId) return;
+        setLoading(true);
+        try {
+            const res = await linkFamilyMember(selectedPilgrim.id, selectedFamilyMemberId);
+            if (res.success) {
+                alert("Membre de la famille lié avec succès !");
+                setSelectedFamilyMemberId('');
+                setFamilySearchText('');
+                // Reload list to update local state
+                const list = await getPilgrimsList({
+                    groupId: groupFilter || undefined,
+                    visaStatus: visaFilter || undefined
+                });
+                setPilgrims(list);
+                // Refresh selected pilgrim reference in UI
+                const updatedSelected = list.find((p: any) => p.id === selectedPilgrim.id);
+                if (updatedSelected) setSelectedPilgrim(updatedSelected);
+            } else {
+                alert(res.error || "Erreur lors de la liaison.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors de la liaison.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUnlinkFamilyMember = async (memberId: string) => {
+        if (!confirm("Voulez-vous vraiment retirer ce membre de la famille ?")) return;
+        setLoading(true);
+        try {
+            const res = await unlinkFamilyMember(memberId);
+            if (res.success) {
+                alert("Membre de la famille détaché !");
+                // Reload list
+                const list = await getPilgrimsList({
+                    groupId: groupFilter || undefined,
+                    visaStatus: visaFilter || undefined
+                });
+                setPilgrims(list);
+                // Refresh selected pilgrim reference in UI
+                const updatedSelected = list.find((p: any) => p.id === selectedPilgrim.id);
+                if (updatedSelected) setSelectedPilgrim(updatedSelected);
+            } else {
+                alert(res.error || "Erreur lors de la suppression du lien.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors de la suppression.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const totalPaid = payments.reduce((acc, p) => p.status === 'COMPLETED' ? acc + parseFloat(p.amount) : acc, 0);
-    const tripPrice = 2500;
+    const tripPrice = selectedPilgrim?.package_price !== undefined && selectedPilgrim?.package_price !== null ? Number(selectedPilgrim.package_price) : 2500;
     const remainingBalance = tripPrice - totalPaid;
 
     const filteredPilgrims = pilgrims.filter(p => 
         `${p.first_name} ${p.family_name}`.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const linkedFamilyMembers = pilgrims.filter(p => p.family_head_id === selectedPilgrim?.id);
+    const eligiblePilgrimsToLink = pilgrims.filter(p => 
+        p.id !== selectedPilgrim?.id && 
+        !p.family_head_id &&
+        p.id !== selectedPilgrim?.family_head_id &&
+        p.family_head_id !== selectedPilgrim?.id
     );
 
     return (
@@ -312,7 +473,15 @@ export default function ConciergeDashboard() {
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <h4 className="font-bold text-sm text-main uppercase">{p.first_name} {p.family_name}</h4>
+                                                    <h4 className="font-bold text-sm text-main uppercase flex items-center gap-2">
+                                                        {p.gender === 'F' && (
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block shrink-0 shadow-[0_0_8px_rgba(236,72,153,0.4)]" title="Féminin"></span>
+                                                        )}
+                                                        {p.gender === 'M' && (
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block shrink-0 shadow-[0_0_8px_rgba(96,165,250,0.4)]" title="Masculin"></span>
+                                                        )}
+                                                        <span>{p.first_name} {p.family_name}</span>
+                                                    </h4>
                                                     <p className="text-[10px] text-dim font-bold uppercase tracking-widest mt-1">{p.group_name}</p>
                                                 </div>
                                                 <div className="flex gap-2">
@@ -339,7 +508,15 @@ export default function ConciergeDashboard() {
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-emerald-500/10">
                                         <div>
                                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500">FICHE DÉTAILLÉE</span>
-                                            <h2 className="text-3xl font-black uppercase tracking-tighter text-main mt-1">{selectedPilgrim.first_name} {selectedPilgrim.family_name}</h2>
+                                            <h2 className="text-3xl font-black uppercase tracking-tighter text-main mt-1 flex items-center gap-3">
+                                                {selectedPilgrim.gender === 'F' && (
+                                                    <span className="w-4 h-4 rounded-full bg-pink-500 inline-block shrink-0 shadow-[0_0_12px_rgba(236,72,153,0.5)]" title="Féminin"></span>
+                                                )}
+                                                {selectedPilgrim.gender === 'M' && (
+                                                    <span className="w-4 h-4 rounded-full bg-blue-400 inline-block shrink-0 shadow-[0_0_12px_rgba(96,165,250,0.5)]" title="Masculin"></span>
+                                                )}
+                                                <span>{selectedPilgrim.first_name} {selectedPilgrim.family_name}</span>
+                                            </h2>
                                             <p className="text-xs text-dim italic mt-0.5">Groupe : {selectedPilgrim.group_name}</p>
                                         </div>
                                         <div className="flex gap-2">
@@ -395,9 +572,33 @@ export default function ConciergeDashboard() {
                                                 <DollarSign className="w-4 h-4 text-emerald-500" /> Comptabilité Client
                                             </h4>
                                             <div className="space-y-2 text-xs">
-                                                <div className="flex justify-between">
+                                                <div className="flex justify-between items-center gap-2">
                                                     <span className="text-dim">Total du Pack :</span>
-                                                    <span className="font-bold text-main">{tripPrice} €</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <input 
+                                                            type="number" 
+                                                            key={selectedPilgrim.id + '-' + tripPrice}
+                                                            defaultValue={tripPrice} 
+                                                            onBlur={async (e) => {
+                                                                const val = parseFloat(e.target.value);
+                                                                if (!isNaN(val) && val !== tripPrice) {
+                                                                    const res = await updatePilgrimPackagePrice(selectedPilgrim.id, val);
+                                                                    if (res.success) {
+                                                                        setSelectedPilgrim((prev: any) => ({ ...prev, package_price: val }));
+                                                                        const list = await getPilgrimsList({
+                                                                            groupId: groupFilter || undefined,
+                                                                            visaStatus: visaFilter || undefined
+                                                                        });
+                                                                        setPilgrims(list);
+                                                                    } else {
+                                                                        alert(res.error || "Erreur de mise à jour");
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="w-16 bg-[#0b0f0d]/40 border border-emerald-500/10 rounded px-1.5 py-0.5 text-right font-bold text-main focus:outline-none focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                        />
+                                                        <span className="font-bold text-main">€</span>
+                                                    </div>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-dim">Montant encaissé :</span>
@@ -450,6 +651,273 @@ export default function ConciergeDashboard() {
                                                 </table>
                                             </div>
                                         )}
+                                    </div>
+
+                                    {/* Membres de la Famille & Accompagnateurs */}
+                                    <div className="space-y-4 pt-6 border-t border-emerald-500/10">
+                                        <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                                            <Users className="w-4 h-4 text-emerald-500" /> Famille & Accompagnateurs
+                                        </h4>
+                                        <div className="bg-emerald-500/[0.02] border border-emerald-500/10 rounded-3xl p-6 space-y-6">
+                                            <p className="text-xs text-dim m-0">
+                                                Liez d'autres pèlerins à ce dossier pour regrouper les membres d'une même famille ou les accompagnateurs.
+                                            </p>
+
+                                            {/* Linked Family Members */}
+                                            {linkedFamilyMembers.length === 0 ? (
+                                                <p className="text-xs text-dim italic m-0">Aucun membre de la famille lié à ce pèlerin.</p>
+                                            ) : (
+                                                <div className="space-y-2.5">
+                                                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-500">Membres rattachés</span>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                        {linkedFamilyMembers.map((member: any) => (
+                                                            <div key={member.id} className="flex justify-between items-center bg-white/5 border border-emerald-500/10 rounded-2xl p-4">
+                                                                <div>
+                                                                    <p className="text-xs font-bold text-main uppercase">{member.first_name} {member.family_name}</p>
+                                                                    <p className="text-[9px] text-dim uppercase tracking-wider mt-0.5">{member.group_name}</p>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleUnlinkFamilyMember(member.id)}
+                                                                    className="text-red-500 hover:text-red-600 font-bold text-[10px] uppercase tracking-wider"
+                                                                >
+                                                                    Retirer
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Link Form */}
+                                            <div className="space-y-3 pt-4 border-t border-emerald-500/10">
+                                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-500">Lier un nouveau membre</span>
+                                                <div className="flex flex-col sm:flex-row gap-3 items-end">
+                                                    <div className="flex-1 w-full space-y-1">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="Rechercher par nom..." 
+                                                            value={familySearchText}
+                                                            onChange={(e) => setFamilySearchText(e.target.value)}
+                                                            className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                        />
+                                                        {familySearchText && (
+                                                            <select
+                                                                value={selectedFamilyMemberId}
+                                                                onChange={(e) => setSelectedFamilyMemberId(e.target.value)}
+                                                                className="w-full bg-[#0b0f0d]/90 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500 mt-1"
+                                                            >
+                                                                <option value="">-- Choisir un pèlerin à lier --</option>
+                                                                {eligiblePilgrimsToLink
+                                                                    .filter((p: any) => `${p.first_name} ${p.family_name}`.toLowerCase().includes(familySearchText.toLowerCase()))
+                                                                    .map((p: any) => (
+                                                                        <option key={p.id} value={p.id}>
+                                                                            {p.first_name.toUpperCase()} {p.family_name.toUpperCase()} ({p.group_name})
+                                                                        </option>
+                                                                    ))
+                                                                }
+                                                            </select>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleLinkFamilyMember}
+                                                        disabled={!selectedFamilyMemberId}
+                                                        className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-2xl transition-all"
+                                                    >
+                                                        Lier au dossier
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Détails du Vol & Bagages */}
+                                    <div className="space-y-4 pt-6 border-t border-emerald-500/10">
+                                        <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                                            <Plane className="w-4 h-4 text-emerald-500" /> Détails des Vols & Bagages
+                                        </h4>
+                                        <div className="bg-emerald-500/[0.02] border border-emerald-500/10 rounded-3xl p-6 space-y-6">
+                                            <p className="text-xs text-dim m-0">
+                                                Renseignez manuellement les différents segments de vol (escales) du pèlerin ainsi que les options de bagages allouées.
+                                            </p>
+
+                                            {/* Flight Segments List */}
+                                            <div className="space-y-6">
+                                                {flights.map((flight, idx) => (
+                                                    <div key={idx} className="bg-white/[0.02] border border-emerald-500/5 rounded-2xl p-4 space-y-4 relative">
+                                                        <div className="flex justify-between items-center pb-2 border-b border-emerald-500/5">
+                                                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">
+                                                                Segment #{idx + 1} {idx === 0 ? "(Départ principal)" : `(Escale #${idx})`}
+                                                            </span>
+                                                            {flights.length > 1 && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRemoveFlightSegment(idx)}
+                                                                    className="text-red-400 hover:text-red-500 text-[10px] font-bold uppercase tracking-wider"
+                                                                >
+                                                                    Supprimer
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Compagnie Aérienne</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    placeholder="Ex: Turkish Airlines, Pegasus..."
+                                                                    value={flight.airline || ''} 
+                                                                    onChange={(e) => handleFlightSegmentChange(idx, 'airline', e.target.value)}
+                                                                    className="w-full bg-white/5 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Numéro de Vol</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    placeholder="Ex: TK1822, PC1130..."
+                                                                    value={flight.flight_number || ''} 
+                                                                    onChange={(e) => handleFlightSegmentChange(idx, 'flight_number', e.target.value)}
+                                                                    className="w-full bg-white/5 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Aéroport de Départ (IATA)</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    placeholder="Ex: CDG, IST..."
+                                                                    value={flight.departure_airport || ''} 
+                                                                    onChange={(e) => handleFlightSegmentChange(idx, 'departure_airport', e.target.value)}
+                                                                    className="w-full bg-white/5 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Aéroport d'Arrivée (IATA)</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    placeholder="Ex: IST, JED..."
+                                                                    value={flight.arrival_airport || ''} 
+                                                                    onChange={(e) => handleFlightSegmentChange(idx, 'arrival_airport', e.target.value)}
+                                                                    className="w-full bg-white/5 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Date & Heure Départ</label>
+                                                                <input 
+                                                                    type="datetime-local" 
+                                                                    value={flight.departure_time ? flight.departure_time.slice(0, 16) : ''} 
+                                                                    onChange={(e) => handleFlightSegmentChange(idx, 'departure_time', e.target.value)}
+                                                                    className="w-full bg-white/5 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Date & Heure Arrivée</label>
+                                                                <input 
+                                                                    type="datetime-local" 
+                                                                    value={flight.arrival_time ? flight.arrival_time.slice(0, 16) : ''} 
+                                                                    onChange={(e) => handleFlightSegmentChange(idx, 'arrival_time', e.target.value)}
+                                                                    className="w-full bg-white/5 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                                <div className="flex justify-start">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleAddFlightSegment}
+                                                        className="flex items-center gap-1.5 px-4 py-2 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
+                                                    >
+                                                        + Ajouter une escale / vol
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Politique de Bagages */}
+                                            <div className="space-y-4 pt-6 border-t border-emerald-500/10">
+                                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-500">Politique de Bagages</span>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    {/* Soute */}
+                                                    <div className="bg-[#0b0f0d]/30 border border-emerald-500/5 rounded-2xl p-4 space-y-3">
+                                                        <label className="block text-[10px] font-bold uppercase tracking-wider text-emerald-400">Bagage en Soute</label>
+                                                        <p className="text-[9px] text-dim m-0 leading-relaxed italic">Grande valise voyageant en soute d'avion.</p>
+                                                        <div className="grid grid-cols-3 gap-1">
+                                                            {['Aucun', '10kg', '12kg', '15kg', '20kg', '23kg', '25kg'].map((w) => (
+                                                                <button
+                                                                    key={w}
+                                                                    type="button"
+                                                                    onClick={() => setBaggageSoute(w === 'Aucun' ? '' : w)}
+                                                                    className={`py-1.5 text-[9px] font-bold rounded-lg border text-center transition-all ${
+                                                                        (w === 'Aucun' && !baggageSoute) || baggageSoute === w
+                                                                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                                                                            : 'bg-white/5 border-white/5 text-dim hover:bg-white/10 hover:text-main'
+                                                                    }`}
+                                                                >
+                                                                    {w}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Cabine (Petite valise) */}
+                                                    <div className="bg-[#0b0f0d]/30 border border-emerald-500/5 rounded-2xl p-4 space-y-3">
+                                                        <label className="block text-[10px] font-bold uppercase tracking-wider text-emerald-400">Bagage Cabine (Petite Valise)</label>
+                                                        <p className="text-[9px] text-dim m-0 leading-relaxed italic">Petite valise trolley autorisée dans les coffres cabines.</p>
+                                                        <div className="grid grid-cols-2 gap-1">
+                                                            {['Aucun', '7kg', '8kg', '10kg'].map((w) => (
+                                                                <button
+                                                                    key={w}
+                                                                    type="button"
+                                                                    onClick={() => setBaggageCabine(w === 'Aucun' ? '' : w)}
+                                                                    className={`py-1.5 text-[9px] font-bold rounded-lg border text-center transition-all ${
+                                                                        (w === 'Aucun' && !baggageCabine) || baggageCabine === w
+                                                                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                                                                            : 'bg-white/5 border-white/5 text-dim hover:bg-white/10 hover:text-main'
+                                                                    }`}
+                                                                >
+                                                                    {w}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Bagage à main (Simple sac) */}
+                                                    <div className="bg-[#0b0f0d]/30 border border-emerald-500/5 rounded-2xl p-4 space-y-3">
+                                                        <label className="block text-[10px] font-bold uppercase tracking-wider text-emerald-400">Sac à Main (Sous le siège)</label>
+                                                        <p className="text-[9px] text-dim m-0 leading-relaxed italic">Sac à dos ou sac à main voyageant sous le siège.</p>
+                                                        <div className="grid grid-cols-2 gap-1">
+                                                            {['Aucun', '3kg', '10kg'].map((w) => (
+                                                                <button
+                                                                    key={w}
+                                                                    type="button"
+                                                                    onClick={() => setBaggageMain(w === 'Aucun' ? '' : w)}
+                                                                    className={`py-1.5 text-[9px] font-bold rounded-lg border text-center transition-all ${
+                                                                        (w === 'Aucun' && !baggageMain) || baggageMain === w
+                                                                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                                                                            : 'bg-white/5 border-white/5 text-dim hover:bg-white/10 hover:text-main'
+                                                                    }`}
+                                                                >
+                                                                    {w}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-end pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleSaveFlightInfo}
+                                                    className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-2xl transition-all shadow-lg hover:shadow-emerald-500/20"
+                                                >
+                                                    Enregistrer le Vol et Bagages
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
@@ -594,10 +1062,9 @@ export default function ConciergeDashboard() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Adresse Email</label>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Adresse Email (Optionnel)</label>
                                 <input 
                                     type="email" 
-                                    required
                                     value={addForm.email}
                                     onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
                                     className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"

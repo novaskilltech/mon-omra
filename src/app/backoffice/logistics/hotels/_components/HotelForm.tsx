@@ -62,17 +62,17 @@ export default function HotelForm({ agencyId }: { agencyId: string }) {
                         <Hotel className="w-5 h-5 text-emerald-500" /> Informations Générales
                     </h3>
                     <div className="space-y-4">
-                        <input name="name" required type="text" placeholder="Nom de l'hôtel" className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-emerald-500 transition-all text-main placeholder:text-dim" />
+                        <input name="name" required type="text" placeholder="Nom de l'hôtel" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-emerald-500 transition-all text-main placeholder:text-dim" />
                         <div className="grid grid-cols-2 gap-4">
-                            <select name="city" className="bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-emerald-500 transition-all text-sub appearance-none font-medium">
-                                <option value="MAKKAH" className="bg-white dark:bg-[#050605]">Makkah</option>
-                                <option value="MADINAH" className="bg-white dark:bg-[#050605]">Madinah</option>
-                                <option value="JEDDAH" className="bg-white dark:bg-[#050605]">Jeddah</option>
+                            <select name="city" className="bg-[#0b0f0d] border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-emerald-500 transition-all text-sub appearance-none font-medium">
+                                <option value="MAKKAH" className="bg-[#050605] text-main">Makkah</option>
+                                <option value="MADINAH" className="bg-[#050605] text-main">Madinah</option>
+                                <option value="JEDDAH" className="bg-[#050605] text-main">Jeddah</option>
                             </select>
-                            <select name="stars" className="bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-emerald-500 transition-all text-amber-500 font-medium">
-                                <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-                                <option value="4">⭐⭐⭐⭐ (4)</option>
-                                <option value="3">⭐⭐⭐ (3)</option>
+                            <select name="stars" className="bg-[#0b0f0d] border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-emerald-500 transition-all text-amber-500 font-medium">
+                                <option value="5" className="bg-[#050605] text-main">⭐⭐⭐⭐⭐ (5)</option>
+                                <option value="4" className="bg-[#050605] text-main">⭐⭐⭐⭐ (4)</option>
+                                <option value="3" className="bg-[#050605] text-main">⭐⭐⭐ (3)</option>
                             </select>
                         </div>
                     </div>
@@ -94,7 +94,7 @@ export default function HotelForm({ agencyId }: { agencyId: string }) {
                                         value={room.quantity === 0 ? '' : room.quantity}
                                         onChange={(e) => handleRoomChange(idx, e.target.value)}
                                         placeholder="Qté"
-                                        className="w-20 bg-emerald-500/10 dark:bg-white/10 border-none rounded-xl px-3 py-3 text-center text-sm outline-none font-black text-main placeholder:text-dim"
+                                        className="w-20 bg-white/10 border-none rounded-xl px-3 py-3 text-center text-sm outline-none font-black text-main placeholder:text-dim"
                                     />
                                     <span className="text-dim text-[9px] uppercase font-black tracking-widest opacity-60">Chambres</span>
                                 </div>

@@ -54,3 +54,31 @@ export async function logoutAdmin() {
 export async function isAdminAuthenticated() {
     return cookies().get(SESSION_COOKIE)?.value === ADMIN_SECRET;
 }
+
+export async function loginPilgrim(email: string) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+    
+    if (error || !data) {
+        return { error: "Pèlerin introuvable en base." };
+    }
+
+    cookies().set('pilgrim_id', data.id, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 7, // 7 jours
+        path: '/',
+    });
+
+    return { success: true };
+}
+
+export async function logoutPilgrim() {
+    cookies().delete('pilgrim_id');
+    redirect('/login');
+}
