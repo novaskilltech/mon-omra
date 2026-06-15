@@ -43,6 +43,7 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
         first_name: p.full_name?.split(' ')[0] || '',
         family_name: p.family_name || p.full_name?.split(' ')[1] || '',
         gender: p.gender,
+        email: p.email || '',
         visa_status: p.visa_status || 'PENDING',
         visa_url: p.visa_url || '',
         checkin_done: !!p.checkin_done,
@@ -101,6 +102,49 @@ export async function createPilgrim(data: {
     } catch (e: any) {
         console.error("Error creating pilgrim:", e);
         return { error: e.message || "Erreur lors de la création du pèlerin" };
+    }
+}
+
+export async function updatePilgrimAction(id: string, data: {
+    email?: string;
+    firstName: string;
+    familyName: string;
+    gender: 'M' | 'F';
+    groupId?: string;
+}) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        // 1. Mettre à jour profiles
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+                full_name: `${data.firstName} ${data.familyName}`,
+                family_name: data.familyName,
+                gender: data.gender,
+                email: data.email || null
+            })
+            .eq('id', id);
+
+        if (profileError) throw profileError;
+
+        // 2. Mettre à jour pilgrims (group_id)
+        const { error: pilgrimError } = await supabase
+            .from('pilgrims')
+            .update({
+                group_id: data.groupId || null
+            })
+            .eq('id', id);
+
+        if (pilgrimError) throw pilgrimError;
+
+        revalidatePath('/backoffice/concierge');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error updating pilgrim:", e);
+        return { error: e.message || "Erreur lors de la mise à jour du pèlerin" };
     }
 }
 

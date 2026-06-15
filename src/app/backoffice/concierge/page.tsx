@@ -5,14 +5,14 @@ import {
     Users, Plus, Search, User, CreditCard, 
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
     CheckCircle, XCircle, Clock, CheckCircle2,
-    DollarSign, BookOpen, Plane, Upload, Brain
+    DollarSign, BookOpen, Plane, Upload, Brain, Edit
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, 
     addPayment, getPilgrimPayments, getGroups,
     getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
     extractFlightTicketOCR, saveIndividualFlightInfo, updatePilgrimPackagePrice,
-    linkFamilyMember, unlinkFamilyMember
+    linkFamilyMember, unlinkFamilyMember, updatePilgrimAction
 } from '@/lib/actions/concierge';
 
 export default function ConciergeDashboard() {
@@ -51,6 +51,16 @@ export default function ConciergeDashboard() {
     // Modals
     const [showAddModal, setShowAddModal] = useState(false);
     const [addForm, setAddForm] = useState({
+        firstName: '',
+        familyName: '',
+        email: '',
+        gender: 'M' as 'M' | 'F',
+        groupId: ''
+    });
+
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editForm, setEditForm] = useState({
+        id: '',
         firstName: '',
         familyName: '',
         email: '',
@@ -143,6 +153,39 @@ export default function ConciergeDashboard() {
                 await loadData();
             } else {
                 alert(res.error || "Erreur lors de la création");
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEditPilgrimSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const res = await updatePilgrimAction(editForm.id, {
+                firstName: editForm.firstName,
+                familyName: editForm.familyName,
+                email: editForm.email,
+                gender: editForm.gender,
+                groupId: editForm.groupId || undefined
+            });
+            if (res.success) {
+                setShowEditModal(false);
+                setSelectedPilgrim({
+                    ...selectedPilgrim,
+                    first_name: editForm.firstName,
+                    family_name: editForm.familyName,
+                    email: editForm.email,
+                    gender: editForm.gender,
+                    group_id: editForm.groupId || null,
+                    group_name: groups.find(g => g.id === editForm.groupId)?.name || 'Sans Groupe'
+                });
+                await loadData();
+            } else {
+                alert(res.error || "Erreur lors de la modification");
             }
         } catch (err) {
             console.error(err);
@@ -520,6 +563,22 @@ export default function ConciergeDashboard() {
                                             <p className="text-xs text-dim italic mt-0.5">Groupe : {selectedPilgrim.group_name}</p>
                                         </div>
                                         <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    setEditForm({
+                                                        id: selectedPilgrim.id,
+                                                        firstName: selectedPilgrim.first_name,
+                                                        familyName: selectedPilgrim.family_name,
+                                                        email: selectedPilgrim.email || '',
+                                                        gender: selectedPilgrim.gender as 'M' | 'F',
+                                                        groupId: selectedPilgrim.group_id || ''
+                                                    });
+                                                    setShowEditModal(true);
+                                                }}
+                                                className="btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-emerald-500/10 hover:bg-emerald-500/5 transition-all text-main"
+                                            >
+                                                <Edit className="w-3.5 h-3.5 text-emerald-500" /> Modifier Profil
+                                            </button>
                                             <button 
                                                 onClick={() => setShowVisaModal(true)}
                                                 className="btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-emerald-500/10 hover:bg-emerald-500/5 transition-all text-main"
@@ -1109,6 +1168,87 @@ export default function ConciergeDashboard() {
                                 className="w-1/2 px-6 py-3 bg-emerald-600 dark:bg-emerald-500 text-white dark:text-[#050605] rounded-2xl font-black uppercase tracking-widest text-[10px]"
                             >
                                 Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* Modal: Edit Pilgrim */}
+            {showEditModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+                    <form onSubmit={handleEditPilgrimSubmit} className="glass w-full max-w-md p-8 rounded-[2.5rem] border-emerald-500/10 space-y-6">
+                        <h3 className="text-xl font-black uppercase tracking-tighter text-main m-0">Modifier le Dossier Pèlerin</h3>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Prénom</label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    value={editForm.firstName}
+                                    onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Nom de Famille</label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    value={editForm.familyName}
+                                    onChange={(e) => setEditForm({ ...editForm, familyName: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Adresse Email (Optionnel)</label>
+                                <input 
+                                    type="email" 
+                                    value={editForm.email}
+                                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Genre</label>
+                                <select 
+                                    value={editForm.gender}
+                                    onChange={(e) => setEditForm({ ...editForm, gender: e.target.value as 'M' | 'F' })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
+                                >
+                                    <option value="M" className="bg-[#0b0e0c] text-main">Masculin</option>
+                                    <option value="F" className="bg-[#0b0e0c] text-main">Féminin</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Groupe de Voyage</label>
+                                <select 
+                                    value={editForm.groupId}
+                                    onChange={(e) => setEditForm({ ...editForm, groupId: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
+                                >
+                                    <option value="" className="bg-[#0b0e0c] text-main">Sélectionner un groupe</option>
+                                    {groups.map(g => (
+                                        <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button 
+                                type="button"
+                                onClick={() => setShowEditModal(false)}
+                                className="w-1/2 btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/10 text-main"
+                            >
+                                Annuler
+                            </button>
+                            <button 
+                                type="submit"
+                                className="w-1/2 px-6 py-3 bg-emerald-600 dark:bg-emerald-500 text-white dark:text-[#050605] rounded-2xl font-black uppercase tracking-widest text-[10px]"
+                            >
+                                Modifier
                             </button>
                         </div>
                     </form>
