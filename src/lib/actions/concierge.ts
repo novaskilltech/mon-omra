@@ -38,21 +38,24 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
         return [];
     }
 
-    return data.map((p: any) => ({
-        id: p.id,
-        first_name: p.full_name?.split(' ')[0] || '',
-        family_name: p.family_name || p.full_name?.split(' ')[1] || '',
-        gender: p.gender,
-        email: p.email || '',
-        visa_status: p.visa_status || 'PENDING',
-        visa_url: p.visa_url || '',
-        checkin_done: !!p.checkin_done,
-        group_name: p.pilgrims?.[0]?.groups?.name || 'Sans Groupe',
-        group_id: p.pilgrims?.[0]?.group_id || null,
-        individual_flight_info: p.pilgrims?.[0]?.individual_flight_info || null,
-        package_price: p.pilgrims?.[0]?.package_price !== null ? Number(p.pilgrims?.[0]?.package_price) : 2500,
-        family_head_id: p.pilgrims?.[0]?.family_head_id || null
-    }));
+    return data.map((p: any) => {
+        const pilgrimDetail = Array.isArray(p.pilgrims) ? p.pilgrims[0] : p.pilgrims;
+        return {
+            id: p.id,
+            first_name: p.full_name?.split(' ')[0] || '',
+            family_name: p.family_name || p.full_name?.split(' ')[1] || '',
+            gender: p.gender,
+            email: p.email || '',
+            visa_status: p.visa_status || 'PENDING',
+            visa_url: p.visa_url || '',
+            checkin_done: !!p.checkin_done,
+            group_name: pilgrimDetail?.groups?.name || 'Sans Groupe',
+            group_id: pilgrimDetail?.group_id || null,
+            individual_flight_info: pilgrimDetail?.individual_flight_info || null,
+            package_price: pilgrimDetail?.package_price !== null && pilgrimDetail?.package_price !== undefined ? Number(pilgrimDetail.package_price) : 2500,
+            family_head_id: pilgrimDetail?.family_head_id || null
+        };
+    });
 }
 
 export async function createPilgrim(data: {
