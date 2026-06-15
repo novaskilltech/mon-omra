@@ -586,3 +586,105 @@ export async function resolvePilgrimIdByEmail(userId: string, email?: string): P
     }
     return userId;
 }
+
+export async function getRoomingState(groupId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
+
+    const supabase = createClient();
+
+    // 1. Get Group Details
+    const { data: group } = await supabase
+        .from('groups')
+        .select('name')
+        .eq('id', groupId)
+        .single();
+
+    // 2. Get pilgrims of this group
+    const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, family_name, gender, pilgrims!inner(group_id)')
+        .eq('pilgrims.group_id', groupId);
+
+    const mappedPilgrims = (profiles || []).map((p: any) => ({
+        id: p.id,
+        name: p.full_name || '',
+        family: p.family_name || p.full_name?.split(' ')[1] || '',
+        gender: p.gender || 'M'
+    }));
+
+    // 3. Get stays for this group
+    const { data: stays } = await supabase
+        .from('group_hotel_stays')
+        .select(`
+            id,
+            hotel_id,
+            hotels (
+                id,
+                name,
+                city
+            )
+        `)
+        .eq('group_id', groupId);
+
+    const mappedStays = (stays || []).map((s: any) => ({
+        id: s.id,
+        hotel_id: s.hotel_id,
+        hotel_name: s.hotels?.name || 'Hôtel',
+        city: s.hotels?.city || 'MAKKAH'
+    }));
+
+    // 4. Get rooms of these hotels
+    const hotelIds = mappedStays.map(s => s.hotel_id);
+    let mappedRooms: any[] = [];
+    if (hotelIds.length > 0) {
+        let { data: rooms } = await supabase
+            .from('rooms')
+            .select('*')
+            .in('hotel_id', hotelIds);
+        
+        let currentRooms = rooms || [];
+
+        // Check if any hotel is missing rooms; if so, populate defaults.
+        for (const hotelId of hotelIds) {
+            const hasRooms = currentRooms.some(r => r.hotel_id === hotelId);
+            if (!hasRooms) {
+                const defaultRooms = [];
+                // Generate 5 rooms of each major type (DOUBLE, TRIPLE, QUADRUPLE)
+                for (let i = 1; i <= 5; i++) {
+                    defaultRooms.push({ hotel_id: hotelId, type: 'DOUBLE', capacity: 2 });
+                    defaultRooms.push({ hotel_id: hotelId, type: 'TRIPLE', capacity: 3 });
+                    defaultRooms.push({ hotel_id: hotelId, type: 'QUADRUPLE', capacity: 4 });
+                }
+                const { data: inserted, error: insertError } = await supabase
+                    .from('rooms')
+                    .insert(defaultRooms)
+                    .select();
+                if (!insertError && inserted) {
+                    currentRooms = [...currentRooms, ...inserted];
+                }
+            }
+        }
+        
+        mappedRooms = currentRooms.map((r: any) => ({
+            id: r.id,
+            hotel_id: r.hotel_id,
+            type: r.type,
+            capacity: r.capacity
+        }));
+    }
+
+    // 5. Get assignments for this group
+    const { data: assignments } = await supabase
+        .from('room_assignments')
+        .select('room_id, pilgrim_id')
+        .eq('group_id', groupId);
+
+    return {
+        groupName: group?.name || "Sans Groupe",
+        pilgrims: mappedPilgrims,
+        stays: mappedStays,
+        rooms: mappedRooms,
+        assignments: assignments || []
+    };
+}
