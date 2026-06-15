@@ -5,14 +5,15 @@ import {
     Users, Plus, Search, User, CreditCard, 
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
     CheckCircle, XCircle, Clock, CheckCircle2,
-    DollarSign, BookOpen, Plane, Upload, Brain, Edit
+    DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, 
     addPayment, getPilgrimPayments, getGroups,
     getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
     extractFlightTicketOCR, saveIndividualFlightInfo, updatePilgrimPackagePrice,
-    linkFamilyMember, unlinkFamilyMember, updatePilgrimAction
+    linkFamilyMember, unlinkFamilyMember, updatePilgrimAction,
+    getAvailableFlightsAndHotels, saveIndividualHotelInfo
 } from '@/lib/actions/concierge';
 
 export default function ConciergeDashboard() {
@@ -33,6 +34,11 @@ export default function ConciergeDashboard() {
     // Family Link State
     const [familySearchText, setFamilySearchText] = useState('');
     const [selectedFamilyMemberId, setSelectedFamilyMemberId] = useState('');
+
+    // Stays / Hotels Form State
+    const [dbHotels, setDbHotels] = useState<any[]>([]);
+    const [makkahHotelId, setMakkahHotelId] = useState<string>('');
+    const [madinahHotelId, setMadinahHotelId] = useState<string>('');
     
     // Tab active view
     const [activeView, setActiveView] = useState<'pilgrims' | 'requests'>('pilgrims');
@@ -100,6 +106,10 @@ export default function ConciergeDashboard() {
             // Load registration requests
             const reqs = await getRegistrationRequests();
             setRequests(reqs);
+
+            // Fetch hotels
+            const { hotels } = await getAvailableFlightsAndHotels();
+            setDbHotels(hotels || []);
         } catch (e) {
             console.error(e);
         } finally {
@@ -133,6 +143,11 @@ export default function ConciergeDashboard() {
         setBaggageSoute(souteMatch ? souteMatch[1].trim() : '');
         setBaggageCabine(cabineMatch ? cabineMatch[1].trim() : '');
         setBaggageMain(mainMatch ? mainMatch[1].trim() : '');
+
+        // Populate hotels
+        const hotelInfo = pilgrim.individual_hotel_info || {};
+        setMakkahHotelId(hotelInfo.makkah_hotel_id || '');
+        setMadinahHotelId(hotelInfo.madinah_hotel_id || '');
 
         try {
             const payList = await getPilgrimPayments(pilgrim.id);
@@ -325,6 +340,40 @@ export default function ConciergeDashboard() {
                 setSelectedPilgrim((prev: any) => ({
                     ...prev,
                     individual_flight_info: flightInfoToSave
+                }));
+                // Reload list to update local database states
+                const list = await getPilgrimsList({
+                    groupId: groupFilter || undefined,
+                    visaStatus: visaFilter || undefined
+                });
+                setPilgrims(list);
+            } else {
+                alert(res.error || "Erreur lors de la sauvegarde.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors de la sauvegarde.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSaveHotelInfo = async () => {
+        if (!selectedPilgrim) return;
+        setLoading(true);
+
+        const hotelInfoToSave = {
+            makkah_hotel_id: makkahHotelId || null,
+            madinah_hotel_id: madinahHotelId || null
+        };
+
+        try {
+            const res = await saveIndividualHotelInfo(selectedPilgrim.id, hotelInfoToSave);
+            if (res.success) {
+                alert("Informations d'hôtels enregistrées avec succès !");
+                setSelectedPilgrim((prev: any) => ({
+                    ...prev,
+                    individual_hotel_info: hotelInfoToSave
                 }));
                 // Reload list to update local database states
                 const list = await getPilgrimsList({
@@ -787,6 +836,66 @@ export default function ConciergeDashboard() {
                                                         Lier au dossier
                                                     </button>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Choix des Hôtels Individuels */}
+                                    <div className="space-y-4 pt-6 border-t border-emerald-500/10">
+                                        <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                                            <Hotel className="w-4 h-4 text-emerald-500" /> Choix des Hôtels Individuels
+                                        </h4>
+                                        <div className="bg-emerald-500/[0.02] border border-emerald-500/10 rounded-3xl p-6 space-y-6">
+                                            <p className="text-xs text-dim m-0">
+                                                Sélectionnez individuellement les hôtels de Makkah et Médine pour ce pèlerin. Ces hôtels écrasent la configuration par défaut du groupe.
+                                            </p>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {/* Makkah Hotel Dropdown */}
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Hôtel Makkah</label>
+                                                    <select 
+                                                        value={makkahHotelId}
+                                                        onChange={(e) => setMakkahHotelId(e.target.value)}
+                                                        className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500"
+                                                    >
+                                                        <option value="" className="bg-[#0b0e0c] text-main">-- Par défaut (Hôtel du groupe) --</option>
+                                                        {dbHotels
+                                                            .filter(h => h.city === 'MAKKAH')
+                                                            .map(h => (
+                                                                <option key={h.id} value={h.id} className="bg-[#0b0e0c] text-main">{h.name}</option>
+                                                            ))
+                                                        }
+                                                    </select>
+                                                </div>
+
+                                                {/* Madinah Hotel Dropdown */}
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Hôtel Médine</label>
+                                                    <select 
+                                                        value={madinahHotelId}
+                                                        onChange={(e) => setMadinahHotelId(e.target.value)}
+                                                        className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500"
+                                                    >
+                                                        <option value="" className="bg-[#0b0e0c] text-main">-- Par défaut (Hôtel du groupe) --</option>
+                                                        {dbHotels
+                                                            .filter(h => h.city === 'MADINAH')
+                                                            .map(h => (
+                                                                <option key={h.id} value={h.id} className="bg-[#0b0e0c] text-main">{h.name}</option>
+                                                            ))
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-end pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleSaveHotelInfo}
+                                                    className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-2xl transition-all shadow-lg hover:shadow-emerald-500/20"
+                                                >
+                                                    Enregistrer les Hôtels
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

@@ -18,6 +18,7 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
                 id,
                 group_id,
                 individual_flight_info,
+                individual_hotel_info,
                 package_price,
                 family_head_id,
                 groups(name)
@@ -52,6 +53,7 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
             group_name: pilgrimDetail?.groups?.name || 'Sans Groupe',
             group_id: pilgrimDetail?.group_id || null,
             individual_flight_info: pilgrimDetail?.individual_flight_info || null,
+            individual_hotel_info: pilgrimDetail?.individual_hotel_info || null,
             package_price: pilgrimDetail?.package_price !== null && pilgrimDetail?.package_price !== undefined ? Number(pilgrimDetail.package_price) : 2500,
             family_head_id: pilgrimDetail?.family_head_id || null
         };
@@ -1028,6 +1030,30 @@ export async function saveIndividualFlightInfo(pilgrimId: string, flightInfo: an
     } catch (e: any) {
         console.error("Error saving individual flight info:", e);
         return { error: e.message || "Erreur lors de l'enregistrement des informations de vol" };
+    }
+}
+
+export async function saveIndividualHotelInfo(pilgrimId: string, hotelInfo: any) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        const { error } = await supabase
+            .from('pilgrims')
+            .update({
+                individual_hotel_info: hotelInfo
+            })
+            .eq('id', pilgrimId);
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/concierge');
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error saving individual hotel info:", e);
+        return { error: e.message || "Erreur lors de l'enregistrement des informations d'hôtel" };
     }
 }
 

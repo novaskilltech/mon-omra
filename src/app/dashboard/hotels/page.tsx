@@ -15,18 +15,71 @@ export default async function PilgrimHotelsPage() {
             // Get stays for the pilgrim's group
             const { data: pilgrim } = await supabase
                 .from('pilgrims')
-                .select('group_id')
+                .select('group_id, individual_hotel_info')
                 .eq('id', resolvedId)
                 .single();
 
-            if (pilgrim && pilgrim.group_id) {
-                const { data: stays } = await supabase
-                    .from('group_hotel_stays')
-                    .select('*, hotels(*)')
-                    .eq('group_id', pilgrim.group_id);
+            if (pilgrim) {
+                const indHotels = pilgrim.individual_hotel_info as any;
+                
+                // Fetch group stays first to get dates and backup hotels
+                let groupStays: any[] = [];
+                if (pilgrim.group_id) {
+                    const { data } = await supabase
+                        .from('group_hotel_stays')
+                        .select('*, hotels(*)')
+                        .eq('group_id', pilgrim.group_id);
+                    if (data) groupStays = data;
+                }
 
-                if (stays) {
-                    hotelsData = stays.map((s: any) => ({
+                if (indHotels && (indHotels.makkah_hotel_id || indHotels.madinah_hotel_id)) {
+                    const hotelIds = [indHotels.makkah_hotel_id, indHotels.madinah_hotel_id].filter(Boolean);
+                    const { data: specificHotels } = await supabase
+                        .from('hotels')
+                        .select('*')
+                        .in('id', hotelIds);
+
+                    const makkahHotel = specificHotels?.find(h => h.id === indHotels.makkah_hotel_id);
+                    const madinahHotel = specificHotels?.find(h => h.id === indHotels.madinah_hotel_id);
+
+                    const groupMakkah = groupStays.find(s => s.hotels?.city === 'MAKKAH');
+                    const groupMadinah = groupStays.find(s => s.hotels?.city === 'MADINAH');
+
+                    const targetDate = new Date();
+                    const checkInMakkah = groupMakkah?.check_in || targetDate.toISOString();
+                    const checkOutMakkah = groupMakkah?.check_out || new Date(targetDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+                    const checkInMadinah = groupMadinah?.check_in || checkOutMakkah;
+                    const checkOutMadinah = groupMadinah?.check_out || new Date(new Date(checkInMadinah).getTime() + 5 * 24 * 60 * 60 * 1000).toISOString();
+
+                    if (makkahHotel) {
+                        hotelsData.push({
+                            ...makkahHotel,
+                            checkIn: new Date(checkInMakkah).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                            checkOut: new Date(checkOutMakkah).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                        });
+                    } else if (groupMakkah) {
+                        hotelsData.push({
+                            ...groupMakkah.hotels,
+                            checkIn: new Date(groupMakkah.check_in).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                            checkOut: new Date(groupMakkah.check_out).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                        });
+                    }
+
+                    if (madinahHotel) {
+                        hotelsData.push({
+                            ...madinahHotel,
+                            checkIn: new Date(checkInMadinah).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                            checkOut: new Date(checkOutMadinah).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                        });
+                    } else if (groupMadinah) {
+                        hotelsData.push({
+                            ...groupMadinah.hotels,
+                            checkIn: new Date(groupMadinah.check_in).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                            checkOut: new Date(groupMadinah.check_out).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                        });
+                    }
+                } else {
+                    hotelsData = groupStays.map((s: any) => ({
                         ...s.hotels,
                         checkIn: new Date(s.check_in).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
                         checkOut: new Date(s.check_out).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
