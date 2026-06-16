@@ -236,6 +236,7 @@ export default function LoginPage() {
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 placeholder="exemple@site.com"
+                                                autoComplete="off"
                                                 className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
                                             />
                                         </div>
@@ -371,6 +372,7 @@ export default function LoginPage() {
                                         value={regForm.email}
                                         onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
                                         placeholder="exemple@site.com"
+                                        autoComplete="off"
                                         className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                     />
                                 </div>
