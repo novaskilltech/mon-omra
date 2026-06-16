@@ -397,7 +397,7 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
 
         const { data: pilgrim } = await supabase
             .from('pilgrims')
-            .select('group_id, individual_flight_info, package_price')
+            .select('group_id, individual_flight_info, package_price, family_head_id')
             .eq('id', resolvedId)
             .single();
 
@@ -489,6 +489,56 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
         const pilgrimPrice = pilgrim?.package_price !== undefined && pilgrim?.package_price !== null ? Number(pilgrim.package_price) : 2500;
         const isPaid = totalPaid >= pilgrimPrice;
 
+        // --- FETCH FAMILY MEMBERS ---
+        const familyHeadId = pilgrim?.family_head_id || resolvedId;
+        let familyMembers: any[] = [];
+        try {
+            const { data: rawMembers } = await supabase
+                .from('profiles')
+                .select(`
+                    id,
+                    full_name,
+                    visa_status,
+                    checkin_done,
+                    pilgrims!inner (
+                        id,
+                        family_head_id,
+                        package_price
+                    )
+                `)
+                .or(`id.eq.${familyHeadId},pilgrims.family_head_id.eq.${familyHeadId}`)
+                .eq('role', 'PILGRIM');
+
+            const filteredMembers = (rawMembers || []).filter((m: any) => m.id !== resolvedId);
+            
+            for (const member of filteredMembers) {
+                const { data: memberPayments } = await supabase
+                    .from('payments')
+                    .select('amount')
+                    .eq('pilgrim_id', member.id)
+                    .eq('status', 'COMPLETED');
+                const memberTotalPaid = memberPayments ? memberPayments.reduce((acc: number, curr: any) => acc + Number(curr.amount), 0) : 0;
+                
+                const memberDetail = Array.isArray(member.pilgrims) ? member.pilgrims[0] : member.pilgrims;
+                const memberPrice = memberDetail?.package_price !== null && memberDetail?.package_price !== undefined ? Number(memberDetail.package_price) : 2500;
+                const memberIsPaid = memberTotalPaid >= memberPrice;
+
+                familyMembers.push({
+                    id: member.id,
+                    name: member.full_name || '',
+                    is_head: member.id === familyHeadId,
+                    visa_status: member.visa_status === 'APPROVED' ? 'OK' : 'En cours',
+                    visa_ok: member.visa_status === 'APPROVED',
+                    checkin_status: member.checkin_done ? 'Prêt' : 'À faire',
+                    checkin_ok: !!member.checkin_done,
+                    payment_status: memberIsPaid ? 'Payé' : 'En attente',
+                    payment_ok: memberIsPaid
+                });
+            }
+        } catch (familyErr) {
+            console.error("Error fetching family members:", familyErr);
+        }
+
         return {
             pilgrimName: `${profile.full_name || ''}`.trim() || "Salah Lamkhannet",
             daysToDeparture: daysToDeparture,
@@ -509,7 +559,8 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
                 { label: "Visa Omra", status: profile.visa_status === 'APPROVED' ? "OK" : "En cours", ok: profile.visa_status === 'APPROVED' },
                 { label: "Solde", status: isPaid ? "Payé" : "En attente", ok: isPaid },
                 { label: "Check-in", status: profile.checkin_done ? "Prêt" : "À faire", ok: !!profile.checkin_done },
-            ]
+            ],
+            familyMembers
         };
     } catch (err) {
         const targetDate = new Date();
@@ -539,7 +590,8 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
                 { label: "Visa Omra", status: "OK", ok: true },
                 { label: "Solde", status: "Payé", ok: true },
                 { label: "Check-in", status: "Prêt", ok: true },
-            ]
+            ],
+            familyMembers: []
         };
     }
 }
@@ -687,4 +739,182 @@ export async function getRoomingState(groupId: string) {
         rooms: mappedRooms,
         assignments: assignments || []
     };
+}
+
+export async function getHotelRoomingState(hotelId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
+
+    const supabase = createClient();
+
+    // 1. Get Hotel details
+    const { data: hotel } = await supabase
+        .from('hotels')
+        .select('name, city')
+        .eq('id', hotelId)
+        .single();
+
+    // 2. Get Rooms for this hotel
+    const { data: rooms } = await supabase
+        .from('rooms')
+        .select(`
+            *,
+            room_assignments (
+                id,
+                pilgrim_id,
+                group_id,
+                profiles (
+                    id,
+                    full_name,
+                    family_name,
+                    gender
+                )
+            )
+        `)
+        .eq('hotel_id', hotelId)
+        .order('room_number', { ascending: true })
+        .order('created_at', { ascending: true });
+
+    // 3. Get all pilgrims of this agency (so we can select them to assign)
+    const { data: profiles } = await supabase
+        .from('profiles')
+        .select(`
+            id,
+            full_name,
+            family_name,
+            gender,
+            pilgrims!inner(
+                id,
+                group_id,
+                groups(name)
+            )
+        `)
+        .eq('role', 'PILGRIM');
+
+    const mappedPilgrims = (profiles || []).map((p: any) => {
+        const pilgrimDetail = Array.isArray(p.pilgrims) ? p.pilgrims[0] : p.pilgrims;
+        return {
+            id: p.id,
+            name: p.full_name || '',
+            family: p.family_name || p.full_name?.split(' ')[1] || '',
+            gender: p.gender || 'M',
+            group_name: pilgrimDetail?.groups?.name || 'Sans Groupe',
+            group_id: pilgrimDetail?.group_id || null
+        };
+    });
+
+    return {
+        hotelName: hotel?.name || "Hôtel",
+        city: hotel?.city || "MAKKAH",
+        rooms: (rooms || []).map((r: any) => ({
+            id: r.id,
+            room_number: r.room_number || `Chambre #${r.id.slice(0, 4)}`,
+            type: r.type,
+            capacity: r.capacity,
+            assignments: (r.room_assignments || []).map((ra: any) => ({
+                id: ra.id,
+                pilgrim_id: ra.pilgrim_id,
+                group_id: ra.group_id,
+                name: ra.profiles?.full_name || '',
+                family: ra.profiles?.family_name || '',
+                gender: ra.profiles?.gender || 'M'
+            }))
+        })),
+        pilgrims: mappedPilgrims
+    };
+}
+
+export async function createRoomAction(hotelId: string, roomNumber: string, type: 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE') {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
+
+    const supabase = createClient();
+    
+    const capacity = type === 'DOUBLE' ? 2 : type === 'TRIPLE' ? 3 : 4;
+
+    const { data, error } = await supabase
+        .from('rooms')
+        .insert({
+            hotel_id: hotelId,
+            room_number: roomNumber || null,
+            type,
+            capacity
+        })
+        .select()
+        .single();
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/backoffice/logistics/hotels');
+    return { success: true, room: data };
+}
+
+export async function deleteRoomAction(roomId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
+
+    const supabase = createClient();
+
+    // Check assignments
+    const { data: assignments } = await supabase
+        .from('room_assignments')
+        .select('id')
+        .eq('room_id', roomId)
+        .limit(1);
+
+    if (assignments && assignments.length > 0) {
+        return { error: "Cette chambre contient des occupants et ne peut pas être supprimée." };
+    }
+
+    const { error } = await supabase
+        .from('rooms')
+        .delete()
+        .eq('id', roomId);
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/backoffice/logistics/hotels');
+    return { success: true };
+}
+
+export async function assignPilgrimToRoomFromHotel(pilgrimId: string, roomId: string) {
+    const supabase = createClient();
+    const userId = await getAuthUserId(supabase);
+    if (!userId) throw new Error("Non autorisé");
+
+    // Fetch the pilgrim's group_id
+    const { data: pilgrimRecord, error: pilgrimErr } = await supabase
+        .from('pilgrims')
+        .select('group_id')
+        .eq('id', pilgrimId)
+        .single();
+        
+    if (pilgrimErr || !pilgrimRecord) {
+        return { error: "Pèlerin ou groupe introuvable." };
+    }
+    
+    const groupId = pilgrimRecord.group_id;
+    if (!groupId) {
+        return { error: "Le pèlerin doit d'abord être affecté à un groupe (depuis la rubrique Concierge) pour pouvoir lui attribuer une chambre." };
+    }
+
+    return assignPilgrimToRoom(pilgrimId, roomId, groupId);
+}
+
+export async function unassignPilgrimFromRoomFromHotel(pilgrimId: string, roomId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
+
+    const supabase = createClient();
+
+    const { error } = await supabase
+        .from('room_assignments')
+        .delete()
+        .eq('pilgrim_id', pilgrimId)
+        .eq('room_id', roomId);
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/backoffice/logistics/hotels');
+    return { success: true };
 }

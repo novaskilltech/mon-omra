@@ -1,9 +1,8 @@
-'use client';
-
 import { useState } from 'react';
 import { Star, Trash2, Loader2, Building2 } from 'lucide-react';
 import { deleteHotel } from '@/lib/actions/logistics';
 import { useToast } from '@/components/ui/Toast';
+import HotelRoomingModal from './HotelRoomingModal';
 
 interface HotelCardProps {
     hotel: any;
@@ -12,6 +11,7 @@ interface HotelCardProps {
 export default function HotelCard({ hotel }: HotelCardProps) {
     const [deleting, setDeleting] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [showRooming, setShowRooming] = useState(false);
     const { showToast } = useToast();
 
     const doubleQty = hotel.rooms.filter((r: any) => r.type === 'DOUBLE').length;
@@ -72,6 +72,14 @@ export default function HotelCard({ hotel }: HotelCardProps) {
                         </div>
                     ))}
                 </div>
+
+                <button 
+                    onClick={() => setShowRooming(true)}
+                    className="mt-6 w-full py-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-emerald-500/20"
+                >
+                    <Building2 className="w-4 h-4" />
+                    Gérer le Rooming
+                </button>
             </div>
 
             {/* Modal de Confirmation ultra-fine */}
@@ -97,6 +105,14 @@ export default function HotelCard({ hotel }: HotelCardProps) {
                         </button>
                     </div>
                 </div>
+            )}
+
+            {/* Modal de Rooming */}
+            {showRooming && (
+                <HotelRoomingModal 
+                    hotelId={hotel.id} 
+                    onClose={() => setShowRooming(false)} 
+                />
             )}
         </div>
     );

@@ -1,4 +1,4 @@
-import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle } from 'lucide-react';
+import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -137,6 +137,50 @@ export default async function Dashboard() {
                         </div>
                     </div>
                 </div>
+
+                {/* Family Members Section */}
+                {(data as any).familyMembers && (data as any).familyMembers.length > 0 && (
+                    <section className="space-y-4">
+                        <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3 text-main">
+                            <Users className="w-6 h-6 text-emerald-500" />
+                            Ma Famille / Co-voyageurs ({(data as any).familyMembers.length})
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {(data as any).familyMembers.map((member: any) => (
+                                <div key={member.id} className="glass p-6 rounded-3xl border border-white/5 bg-white/[0.01] flex flex-col justify-between">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-bold text-emerald-500">
+                                            {member.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-main text-sm line-clamp-1">{member.name}</h4>
+                                            <p className="text-[9px] font-bold uppercase tracking-widest text-dim">
+                                                {member.is_head ? "Chef de Famille" : "Co-voyageur"}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Checklist summary */}
+                                    <div className="space-y-2.5 pt-2 border-t border-white/5">
+                                        {[
+                                            { label: "Visa", status: member.visa_status, ok: member.visa_ok },
+                                            { label: "Paiement", status: member.payment_status, ok: member.payment_ok },
+                                            { label: "Enregistrement", status: member.checkin_status, ok: member.checkin_ok }
+                                        ].map((item, idx) => (
+                                            <div key={idx} className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                                                <span className="text-dim">{item.label}</span>
+                                                <span className={`px-2 py-0.5 rounded-md flex items-center gap-1 ${item.ok ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}`}>
+                                                    <span className={`w-1 h-1 rounded-full ${item.ok ? 'bg-emerald-400' : 'bg-amber-500'}`} />
+                                                    {item.status}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {/* Quick Links */}
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">

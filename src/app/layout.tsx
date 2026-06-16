@@ -6,6 +6,7 @@ import ThemeSwitcher from "@/components/ThemeSwitcher";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://omrayanair.vercel.app"),
   title: "OMRAYANAIR — Plateforme Premium de Gestion de Voyage spirituel",
   description: "Simplifiez votre voyage en Terre Sainte. Centralisez vos documents, suivez votre programme en temps réel et accédez à une assistance 24/7. Excellence et sérénité pour votre Omra.",
   keywords: ["Omra", "Mequel", "Voyage Spirituel", "Hajj", "Guide Omra", "Pèlerinage"],
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "OMRAYANAIR — Votre Compagnon en Terre Sainte",
     description: "L'application tout-en-un pour un voyage Omra parfaitement organisé.",
-    url: "https://omrayanair.com",
+    url: "https://omrayanair.vercel.app",
     siteName: "OMRAYANAIR",
     images: [
       {
