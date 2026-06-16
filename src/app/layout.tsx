@@ -69,3 +69,6 @@ export default function RootLayout({
     </html>
   );
 }
+
+// Trigger Vercel rebuild to push metadata changes
+
