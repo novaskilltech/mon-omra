@@ -59,6 +59,17 @@ export default function Home() {
                         Découvrir les fonctions
                     </Link>
                 </div>
+
+                <div className="mt-16 relative rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(16,185,129,0.15)] aspect-[16/9] max-w-4xl mx-auto animate-fade-in group hover:border-emerald-500/30 transition-all duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#090b09]/40 via-transparent to-transparent z-10" />
+                    <Image 
+                        src="/hero.png" 
+                        alt="OMRAYANAIR Dashboard Preview" 
+                        fill
+                        className="object-cover object-top"
+                        priority
+                    />
+                </div>
             </header>
 
             {/* Bento Grid Features */}

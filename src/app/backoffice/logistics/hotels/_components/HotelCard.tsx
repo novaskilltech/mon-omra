@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { Star, Trash2, Loader2, Building2 } from 'lucide-react';
 import { deleteHotel } from '@/lib/actions/logistics';
