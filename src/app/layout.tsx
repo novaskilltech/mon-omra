@@ -18,20 +18,20 @@ export const metadata: Metadata = {
     siteName: "OMRAYANAIR",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "OMRAYANAIR Dashboard Preview",
+        url: "/logo.png",
+        width: 500,
+        height: 500,
+        alt: "OMRAYANAIR Logo Preview",
       },
     ],
     locale: "fr_FR",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "OMRAYANAIR — Votre Compagnon en Terre Sainte",
     description: "L'excellence technologique au service de votre foi.",
-    images: ["/og-image.png"],
+    images: ["/logo.png"],
   },
   icons: {
     icon: "/favicon.ico",
