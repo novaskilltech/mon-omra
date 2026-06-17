@@ -2,13 +2,23 @@
 
 import { DollarSign, Wallet, ArrowUpRight, ArrowDownRight, Clock } from 'lucide-react';
 
-export default function FinanceSummary() {
-    const data = {
+interface FinanceSummaryProps {
+    data?: {
+        totalRevenue: string;
+        received: string;
+        pending: string;
+        completion: number;
+    };
+}
+
+export default function FinanceSummary({ data: propData }: FinanceSummaryProps) {
+    const fallbackData = {
         totalRevenue: "482,000 €",
         received: "312,000 €",
         pending: "170,000 €",
         completion: 64, // percentage
     };
+    const data = propData || fallbackData;
 
     return (
         <div className="glass p-8 rounded-[2.5rem] space-y-8 relative overflow-hidden group border-emerald-500/5">
