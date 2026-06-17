@@ -60,16 +60,22 @@ export default function Home() {
                     </Link>
                 </div>
 
-                <div className="mt-16 relative rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(16,185,129,0.15)] aspect-[16/9] max-w-4xl mx-auto animate-fade-in group hover:border-emerald-500/30 transition-all duration-500">
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#090b09]/40 via-transparent to-transparent z-10" />
-                    <Image 
-                        src="/hero.png" 
-                        alt="OMRAYANAIR Dashboard Preview" 
-                        fill
-                        className="object-cover object-top"
-                        priority
-                    />
-                </div>
+                <Link href="/login" className="block mt-16 mx-auto max-w-xs group cursor-pointer animate-fade-in">
+                    <div className="relative w-48 h-48 mx-auto rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(16,185,129,0.15)] bg-black/20 backdrop-blur-md transition-all duration-500 group-hover:scale-105 group-hover:border-emerald-500/40 group-hover:shadow-[0_0_60px_rgba(16,185,129,0.3)] flex items-center justify-center">
+                        <Image 
+                            src="/logo.png" 
+                            alt="OMRAYANAIR Logo Entry" 
+                            width={160}
+                            height={160}
+                            className="object-contain transition-transform duration-500 group-hover:rotate-3"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    </div>
+                    <span className="inline-block mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-dim group-hover:text-emerald-400 transition-colors">
+                        Cliquer pour entrer dans l'application
+                    </span>
+                </Link>
             </header>
 
             {/* Bento Grid Features */}
