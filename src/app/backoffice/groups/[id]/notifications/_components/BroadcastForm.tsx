@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Send, Users, AlertCircle, Info, Bus, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
+import { createNotificationAction } from '@/lib/actions/concierge';
 
 const TYPES = [
     { label: 'Urgent', value: 'URGENT', icon: AlertCircle, color: 'text-red-400' },
@@ -15,16 +16,31 @@ export default function BroadcastForm({ groupId }: { groupId: string }) {
     const [sent, setSent] = useState(false);
     const [type, setType] = useState('INFO');
     const [message, setMessage] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
 
     const handleSend = async () => {
         if (!message) return;
         setLoading(true);
-        // Simulating Broadcast logic
-        await new Promise(r => setTimeout(r, 1500));
-        setSent(true);
-        setLoading(false);
-        setMessage('');
-        setTimeout(() => setSent(false), 3000);
+        setErrorMsg('');
+        try {
+            const res = await createNotificationAction({
+                type,
+                title: type === 'URGENT' ? 'Message Urgent du Guide' : 'Information Groupe',
+                content: message,
+                groupId: groupId
+            });
+            if (res.error) {
+                setErrorMsg(res.error);
+            } else {
+                setSent(true);
+                setMessage('');
+                setTimeout(() => setSent(false), 3000);
+            }
+        } catch (err: any) {
+            setErrorMsg(err.message || "Erreur de diffusion.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -61,6 +77,10 @@ export default function BroadcastForm({ groupId }: { groupId: string }) {
                     {message.length} chars
                 </div>
             </div>
+
+            {errorMsg && (
+                <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider text-center mb-2">{errorMsg}</p>
+            )}
 
             <button
                 onClick={handleSend}

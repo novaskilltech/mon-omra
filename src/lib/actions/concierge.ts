@@ -1349,4 +1349,99 @@ function formatTimeAgo(date: Date): string {
     return `${days}d ago`;
 }
 
+export async function getNotificationsList() {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
+
+    const supabase = createClient();
+    try {
+        const { data, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const resolvedNotifications = [];
+        if (data) {
+            for (const n of data) {
+                let targetName = "Tous les pèlerins";
+                if (n.group_id) {
+                    const { data: grp } = await supabase
+                        .from('groups')
+                        .select('name')
+                        .eq('id', n.group_id)
+                        .maybeSingle();
+                    if (grp) targetName = grp.name;
+                } else if (n.pilgrim_id) {
+                    const { data: prof } = await supabase
+                        .from('profiles')
+                        .select('full_name')
+                        .eq('id', n.pilgrim_id)
+                        .maybeSingle();
+                    if (prof) targetName = prof.full_name;
+                }
+
+                resolvedNotifications.push({
+                    id: n.id,
+                    group: targetName,
+                    type: n.type,
+                    msg: n.title,
+                    content: n.content,
+                    date: formatTimeAgo(new Date(n.created_at)),
+                    status: 'Délivré'
+                });
+            }
+        }
+        return resolvedNotifications;
+    } catch (e) {
+        console.error("Error fetching notifications:", e);
+        return [];
+    }
+}
+
+export async function createNotificationAction(data: {
+    type: string;
+    title: string;
+    content: string;
+    groupId?: string;
+    pilgrimId?: string;
+}) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'SUPER_ADMIN')
+            .limit(1)
+            .single();
+        const agencyId = adminProfile?.id || crypto.randomUUID();
+
+        const { error } = await supabase
+            .from('notifications')
+            .insert({
+                agency_id: agencyId,
+                group_id: data.groupId || null,
+                pilgrim_id: data.pilgrimId || null,
+                type: data.type,
+                title: data.title,
+                content: data.content
+            });
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/notifications');
+        if (data.groupId) {
+            revalidatePath(`/backoffice/groups/${data.groupId}/notifications`);
+        }
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error creating notification:", e);
+        return { error: e.message || "Erreur de diffusion." };
+    }
+}
+
 
