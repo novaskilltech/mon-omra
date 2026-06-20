@@ -66,6 +66,7 @@ export async function createPilgrim(data: {
     familyName: string;
     gender: 'M' | 'F';
     groupId?: string;
+    flightId?: string;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -92,12 +93,37 @@ export async function createPilgrim(data: {
 
         if (profileError) throw profileError;
 
+        let individualFlightInfo = null;
+        if (data.flightId) {
+            const { data: flight } = await supabase
+                .from('flights')
+                .select('*, flight_segments(*)')
+                .eq('id', data.flightId)
+                .single();
+            if (flight && flight.flight_segments) {
+                const sortedSegments = [...flight.flight_segments].sort((a, b) => a.sequence_order - b.sequence_order);
+                individualFlightInfo = {
+                    selected_flight_id: data.flightId,
+                    flights: sortedSegments.map(s => ({
+                        flight_number: s.flight_number,
+                        airline: s.airline,
+                        departure_airport: s.departure_airport,
+                        arrival_airport: s.arrival_airport,
+                        departure_time: s.departure_time,
+                        arrival_time: s.arrival_time
+                    })),
+                    baggage_policy: "2 x 23kg inclus"
+                };
+            }
+        }
+
         // 2. Insère dans la table pilgrims
         const { error: pilgrimError } = await supabase
             .from('pilgrims')
             .insert({
                 id: fakeUserId,
-                group_id: data.groupId || null
+                group_id: data.groupId || null,
+                individual_flight_info: individualFlightInfo
             });
 
         if (pilgrimError) throw pilgrimError;
@@ -116,6 +142,7 @@ export async function updatePilgrimAction(id: string, data: {
     familyName: string;
     gender: 'M' | 'F';
     groupId?: string;
+    flightId?: string;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -135,12 +162,45 @@ export async function updatePilgrimAction(id: string, data: {
 
         if (profileError) throw profileError;
 
-        // 2. Mettre à jour pilgrims (group_id)
+        let individualFlightInfo = undefined;
+        if (data.flightId !== undefined) {
+            if (data.flightId) {
+                const { data: flight } = await supabase
+                    .from('flights')
+                    .select('*, flight_segments(*)')
+                    .eq('id', data.flightId)
+                    .single();
+                if (flight && flight.flight_segments) {
+                    const sortedSegments = [...flight.flight_segments].sort((a, b) => a.sequence_order - b.sequence_order);
+                    individualFlightInfo = {
+                        selected_flight_id: data.flightId,
+                        flights: sortedSegments.map(s => ({
+                            flight_number: s.flight_number,
+                            airline: s.airline,
+                            departure_airport: s.departure_airport,
+                            arrival_airport: s.arrival_airport,
+                            departure_time: s.departure_time,
+                            arrival_time: s.arrival_time
+                        })),
+                        baggage_policy: "2 x 23kg inclus"
+                    };
+                }
+            } else {
+                individualFlightInfo = null;
+            }
+        }
+
+        const updateData: any = {
+            group_id: data.groupId || null
+        };
+        if (individualFlightInfo !== undefined) {
+            updateData.individual_flight_info = individualFlightInfo;
+        }
+
+        // 2. Mettre à jour pilgrims
         const { error: pilgrimError } = await supabase
             .from('pilgrims')
-            .update({
-                group_id: data.groupId || null
-            })
+            .update(updateData)
             .eq('id', id);
 
         if (pilgrimError) throw pilgrimError;

@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { FlightSchema, Flight } from '@/types/logistics';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { isAdminAuthenticated } from './auth';
 
 
@@ -599,16 +600,27 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
 export async function createAssistanceRequest(data: { category: string, priority: string, message: string }) {
     const supabase = createClient();
     try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+        const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
+        
+        if (!resolvedId) {
             return { error: "Non autorisé" };
         }
+
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'SUPER_ADMIN')
+            .limit(1)
+            .single();
+        const agencyId = adminProfile?.id || resolvedId;
 
         const { error } = await supabase
             .from('assistance_requests')
             .insert({
-                pilgrim_id: user.id,
-                agency_id: user.id,
+                pilgrim_id: resolvedId,
+                agency_id: agencyId,
                 category: data.category,
                 priority: data.priority,
                 message: data.message,

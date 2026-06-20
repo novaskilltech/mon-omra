@@ -39,6 +39,7 @@ export default function ConciergeDashboard() {
     const [dbHotels, setDbHotels] = useState<any[]>([]);
     const [makkahHotelId, setMakkahHotelId] = useState<string>('');
     const [madinahHotelId, setMadinahHotelId] = useState<string>('');
+    const [availableFlights, setAvailableFlights] = useState<any[]>([]);
     
     // Tab active view
     const [activeView, setActiveView] = useState<'pilgrims' | 'requests'>('pilgrims');
@@ -61,7 +62,8 @@ export default function ConciergeDashboard() {
         familyName: '',
         email: '',
         gender: 'M' as 'M' | 'F',
-        groupId: ''
+        groupId: '',
+        flightId: ''
     });
 
     const [showEditModal, setShowEditModal] = useState(false);
@@ -71,7 +73,8 @@ export default function ConciergeDashboard() {
         familyName: '',
         email: '',
         gender: 'M' as 'M' | 'F',
-        groupId: ''
+        groupId: '',
+        flightId: ''
     });
     
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -107,9 +110,10 @@ export default function ConciergeDashboard() {
             const reqs = await getRegistrationRequests();
             setRequests(reqs);
 
-            // Fetch hotels
-            const { hotels } = await getAvailableFlightsAndHotels();
+            // Fetch hotels and flights
+            const { hotels, flights: fls } = await getAvailableFlightsAndHotels();
             setDbHotels(hotels || []);
+            setAvailableFlights(fls || []);
         } catch (e) {
             console.error(e);
         } finally {
@@ -164,7 +168,7 @@ export default function ConciergeDashboard() {
             const res = await createPilgrim(addForm);
             if (res.success) {
                 setShowAddModal(false);
-                setAddForm({ firstName: '', familyName: '', email: '', gender: 'M', groupId: '' });
+                setAddForm({ firstName: '', familyName: '', email: '', gender: 'M', groupId: '', flightId: '' });
                 await loadData();
             } else {
                 alert(res.error || "Erreur lors de la création");
@@ -185,20 +189,20 @@ export default function ConciergeDashboard() {
                 familyName: editForm.familyName,
                 email: editForm.email,
                 gender: editForm.gender,
-                groupId: editForm.groupId || undefined
+                groupId: editForm.groupId || undefined,
+                flightId: editForm.flightId
             });
             if (res.success) {
                 setShowEditModal(false);
-                setSelectedPilgrim({
-                    ...selectedPilgrim,
-                    first_name: editForm.firstName,
-                    family_name: editForm.familyName,
-                    email: editForm.email,
-                    gender: editForm.gender,
-                    group_id: editForm.groupId || null,
-                    group_name: groups.find(g => g.id === editForm.groupId)?.name || 'Sans Groupe'
+                const updatedList = await getPilgrimsList({
+                    groupId: groupFilter || undefined,
+                    visaStatus: visaFilter || undefined
                 });
-                await loadData();
+                setPilgrims(updatedList);
+                const updatedPilgrim = updatedList.find((p: any) => p.id === editForm.id);
+                if (updatedPilgrim) {
+                    await handleSelectPilgrim(updatedPilgrim);
+                }
             } else {
                 alert(res.error || "Erreur lors de la modification");
             }
@@ -620,7 +624,8 @@ export default function ConciergeDashboard() {
                                                         familyName: selectedPilgrim.family_name,
                                                         email: selectedPilgrim.email || '',
                                                         gender: selectedPilgrim.gender as 'M' | 'F',
-                                                        groupId: selectedPilgrim.group_id || ''
+                                                        groupId: selectedPilgrim.group_id || '',
+                                                        flightId: selectedPilgrim.individual_flight_info?.selected_flight_id || ''
                                                     });
                                                     setShowEditModal(true);
                                                 }}
@@ -1262,6 +1267,30 @@ export default function ConciergeDashboard() {
                                     ))}
                                 </select>
                             </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Vol Assigné (Optionnel)</label>
+                                <select 
+                                    value={addForm.flightId || ''}
+                                    onChange={(e) => setAddForm({ ...addForm, flightId: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
+                                >
+                                    <option value="" className="bg-[#0b0e0c] text-main">Aucun vol assigné</option>
+                                    {availableFlights.map(f => {
+                                        const segments = f.flight_segments || [];
+                                        const firstSeg = segments[0];
+                                        const lastSeg = segments[segments.length - 1];
+                                        const dateStr = firstSeg ? new Date(firstSeg.departure_time).toLocaleDateString('fr-FR') : '';
+                                        const display = firstSeg
+                                            ? `${firstSeg.airline || ''} (${firstSeg.flight_number || ''}) - ${firstSeg.departure_airport || ''} ➔ ${lastSeg?.arrival_airport || firstSeg.arrival_airport || ''} (${dateStr})`
+                                            : `Vol #${f.id.slice(0, 8)}`;
+                                        return (
+                                            <option key={f.id} value={f.id} className="bg-[#0b0e0c] text-main">
+                                                {display}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </div>
                         </div>
 
                         <div className="flex gap-4">
@@ -1341,6 +1370,30 @@ export default function ConciergeDashboard() {
                                     {groups.map(g => (
                                         <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
                                     ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Vol Assigné (Optionnel)</label>
+                                <select 
+                                    value={editForm.flightId || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, flightId: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
+                                >
+                                    <option value="" className="bg-[#0b0e0c] text-main">Aucun vol assigné</option>
+                                    {availableFlights.map(f => {
+                                        const segments = f.flight_segments || [];
+                                        const firstSeg = segments[0];
+                                        const lastSeg = segments[segments.length - 1];
+                                        const dateStr = firstSeg ? new Date(firstSeg.departure_time).toLocaleDateString('fr-FR') : '';
+                                        const display = firstSeg
+                                            ? `${firstSeg.airline || ''} (${firstSeg.flight_number || ''}) - ${firstSeg.departure_airport || ''} ➔ ${lastSeg?.arrival_airport || firstSeg.arrival_airport || ''} (${dateStr})`
+                                            : `Vol #${f.id.slice(0, 8)}`;
+                                        return (
+                                            <option key={f.id} value={f.id} className="bg-[#0b0e0c] text-main">
+                                                {display}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             </div>
                         </div>

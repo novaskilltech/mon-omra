@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { UserDocumentSchema, DocumentType } from '@/types/documents';
 import { resolvePilgrimIdByEmail } from './logistics';
 
@@ -12,8 +13,10 @@ import { resolvePilgrimIdByEmail } from './logistics';
 export async function uploadDocument(formData: FormData) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+    const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
 
-    if (!user) {
+    if (!resolvedId) {
         throw new Error('Non autorisé');
     }
 
@@ -23,8 +26,6 @@ export async function uploadDocument(formData: FormData) {
     if (!file || !type) {
         throw new Error('Fichier ou type manquant');
     }
-
-    const resolvedId = await resolvePilgrimIdByEmail(user.id, user.email || undefined);
 
     // 1. Validate with Zod (Contract Enforcement)
     const validation = UserDocumentSchema.safeParse({

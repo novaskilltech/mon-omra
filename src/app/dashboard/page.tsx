@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
 import { getPilgrimDashboardData } from '@/lib/actions/logistics';
+import { checkFeedbackStatus } from '@/lib/actions/feedback';
 import Countdown from '@/components/Countdown';
 
 const DownloadJournalButton = dynamic(
@@ -19,6 +20,7 @@ export default async function Dashboard() {
     
     // Rapatriement des données réelles ou de démo via l'action
     const data = await getPilgrimDashboardData(pilgrimCookieId || user?.id || 'demo-pilgrim-id', user?.email || undefined);
+    const feedbackStatus = await checkFeedbackStatus(pilgrimCookieId || user?.id || 'demo-pilgrim-id', user?.email || undefined);
 
     // Calcul du pourcentage de préparation pour l'UI
     const completedTasksCount = data.checklist.filter(item => item.ok).length;
@@ -52,6 +54,26 @@ export default async function Dashboard() {
                         <Countdown departureDateIso={data.departureDateIso} />
                     </div>
                 </header>
+
+                {/* Feedback Invitation Banner */}
+                {feedbackStatus && feedbackStatus.ready && !feedbackStatus.hasSubmitted && (
+                    <div className="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent p-6 rounded-[2rem] border border-emerald-500/20 shadow-md flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse-subtle">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-emerald-500/20 rounded-full border border-emerald-500/30 text-emerald-500">
+                                <Compass className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-main text-base">Votre Omra est terminée, donnez votre avis ! 🕋</h3>
+                                <p className="text-dim text-[11px] font-medium leading-relaxed max-w-xl m-0">
+                                    Aidez-nous à améliorer l'accompagnement des prochains pèlerins en évaluant vos vols, vos hébergements et le service des guides.
+                                </p>
+                            </div>
+                        </div>
+                        <Link href="/dashboard/feedback" className="w-full md:w-auto text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-102">
+                            Évaluer mon séjour
+                        </Link>
+                    </div>
+                )}
 
                 {/* Main Status Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

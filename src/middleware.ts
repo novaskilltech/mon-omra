@@ -8,10 +8,12 @@ export function middleware(request: NextRequest) {
     // Permet de restreindre d'où les scripts, styles et images peuvent être chargés.
     const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://vercel.live https://*.vercel.live;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://*.supabase.co;
+    img-src 'self' blob: data: https://*.supabase.co https://vercel.live https://*.vercel.live;
     font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self' data: https://*.supabase.co https://*.vercel.live wss://*.vercel.live;
+    frame-src 'self' https://vercel.live https://*.vercel.live;
     object-src 'none';
     base-uri 'self';
     form-action 'self';

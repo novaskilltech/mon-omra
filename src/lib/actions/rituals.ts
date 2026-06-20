@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const RitualStepSchema = z.enum([
@@ -19,13 +20,16 @@ export type RitualStep = z.infer<typeof RitualStepSchema>;
 
 export async function getRitualProgress() {
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+    const resolvedId = pilgrimCookieId || user?.id;
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return [];
+    if (!resolvedId) return [];
 
     const { data, error } = await supabase
         .from('ritual_progress')
         .select('ritual_step, completed_at')
+        .eq('user_id', resolvedId)
         .order('completed_at', { ascending: true });
 
     if (error) {
@@ -38,9 +42,11 @@ export async function getRitualProgress() {
 
 export async function markRitualStepComplete(step: string) {
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+    const resolvedId = pilgrimCookieId || user?.id;
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) throw new Error("Non autorisé");
+    if (!resolvedId) throw new Error("Non autorisé");
 
     const parsedStep = RitualStepSchema.safeParse(step);
     if (!parsedStep.success) {
@@ -50,7 +56,7 @@ export async function markRitualStepComplete(step: string) {
     const { error } = await supabase
         .from('ritual_progress')
         .insert({
-            user_id: user.id,
+            user_id: resolvedId,
             ritual_step: parsedStep.data
         });
 
@@ -68,9 +74,11 @@ export async function markRitualStepComplete(step: string) {
 
 export async function unmarkRitualStep(step: string) {
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+    const resolvedId = pilgrimCookieId || user?.id;
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) throw new Error("Non autorisé");
+    if (!resolvedId) throw new Error("Non autorisé");
 
     const parsedStep = RitualStepSchema.safeParse(step);
     if (!parsedStep.success) {
@@ -81,7 +89,7 @@ export async function unmarkRitualStep(step: string) {
         .from('ritual_progress')
         .delete()
         .match({ 
-            user_id: user.id, 
+            user_id: resolvedId, 
             ritual_step: parsedStep.data 
         });
 

@@ -1,17 +1,19 @@
 import { ChevronLeft, Hotel, Star, MapPin, Compass, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
 import { resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
 
 export default async function PilgrimHotelsPage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
 
     // Query assigned room and hotels for the pilgrim
     let hotelsData: any[] = [];
     try {
-        if (user) {
-            const resolvedId = await resolvePilgrimIdByEmail(user.id, user.email || undefined);
+        const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
+        if (resolvedId) {
             // Get stays for the pilgrim's group
             const { data: pilgrim } = await supabase
                 .from('pilgrims')

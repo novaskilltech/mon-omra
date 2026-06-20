@@ -1,5 +1,6 @@
 import { Compass, ShieldCheck, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import DocumentUpload from '@/components/documents/DocumentUpload';
 import { createClient } from '@/utils/supabase/server';
 import { resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
@@ -7,8 +8,9 @@ import { resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
 export default async function DocumentsPage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
 
-    const resolvedId = user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : undefined;
+    const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : undefined);
 
     // Fetch existing docs if any
     const { data: documents } = await supabase
