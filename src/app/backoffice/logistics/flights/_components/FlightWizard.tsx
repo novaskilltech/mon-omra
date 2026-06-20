@@ -36,15 +36,26 @@ export default function FlightWizard({ agencyId }: { agencyId: string }) {
             const res = await extractFlightTicketOCR(formData);
             if (res.success && res.data) {
                 const parsed = res.data;
-                const newSegment = {
-                    flight_number: parsed.flight_number || '',
-                    airline: parsed.airline || '',
-                    departure_airport: parsed.departure_airport || '',
-                    arrival_airport: parsed.arrival_airport || '',
-                    departure_time: parsed.departure_time ? parsed.departure_time.substring(0, 16) : '',
-                    arrival_time: parsed.arrival_time ? parsed.arrival_time.substring(0, 16) : ''
-                };
-                setSegments([newSegment]);
+                if (parsed.segments && Array.isArray(parsed.segments) && parsed.segments.length > 0) {
+                    setSegments(parsed.segments.map((s: any) => ({
+                        flight_number: s.flight_number || '',
+                        airline: s.airline || '',
+                        departure_airport: s.departure_airport || '',
+                        arrival_airport: s.arrival_airport || '',
+                        departure_time: s.departure_time ? s.departure_time.substring(0, 16) : '',
+                        arrival_time: s.arrival_time ? s.arrival_time.substring(0, 16) : ''
+                    })));
+                } else {
+                    const newSegment = {
+                        flight_number: parsed.flight_number || '',
+                        airline: parsed.airline || '',
+                        departure_airport: parsed.departure_airport || '',
+                        arrival_airport: parsed.arrival_airport || '',
+                        departure_time: parsed.departure_time ? parsed.departure_time.substring(0, 16) : '',
+                        arrival_time: parsed.arrival_time ? parsed.arrival_time.substring(0, 16) : ''
+                    };
+                    setSegments([newSegment]);
+                }
                 alert("Billet d'avion analysé et importé avec succès !");
             } else {
                 alert(res.error || "Impossible d'analyser le billet.");

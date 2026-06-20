@@ -888,13 +888,13 @@ export async function extractFlightTicketOCR(formData: FormData) {
             if (rawText && rawText.trim().length > 30) {
                 userContent.push({
                     type: "text",
-                    text: `Voici le contenu textuel extrait du billet d'avion : \n\n${rawText}\n\nExtrais les informations de vol de ce billet. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : flight_number (numéro de vol), airline (compagnie), departure_airport (code IATA 3 lettres de départ), arrival_airport (code IATA 3 lettres d'arrivée), departure_time (format ISO YYYY-MM-DDTHH:MM:SS), arrival_time (format ISO YYYY-MM-DDTHH:MM:SS), et baggage_policy (politique de bagage extraite, ex: '2 x 23kg').`
+                    text: `Voici le contenu textuel extrait du billet d'avion : \n\n${rawText}\n\nExtrais TOUS les segments de vol présents dans ce billet d'avion. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), et baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg').`
                 });
             } else {
                 const base64Data = buffer.toString('base64');
                 userContent.push({
                     type: "text",
-                    text: "Extrais les informations de vol de ce billet d'avion en format JSON. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : flight_number (numéro de vol), airline (compagnie), departure_airport (code IATA 3 lettres de départ), arrival_airport (code IATA 3 lettres d'arrivée), departure_time (format ISO YYYY-MM-DDTHH:MM:SS), arrival_time (format ISO YYYY-MM-DDTHH:MM:SS), et baggage_policy (politique de bagage extraite, ex: '2 x 23kg')."
+                    text: "Extrais TOUS les segments de vol présents dans ce billet d'avion en format JSON. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), et baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg')."
                 });
                 userContent.push({
                     type: "image_url",
@@ -935,16 +935,34 @@ export async function extractFlightTicketOCR(formData: FormData) {
                 console.log("OpenRouter response:", textResponse);
                 const cleanedText = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
                 const parsedData = JSON.parse(cleanedText);
+                
+                let flightSegments = [];
+                if (parsedData.segments && Array.isArray(parsedData.segments)) {
+                    flightSegments = parsedData.segments;
+                } else if (parsedData.flight_number || parsedData.airline) {
+                    flightSegments = [parsedData];
+                }
+                
+                const firstSeg = flightSegments[0] || {};
+
                 return {
                     success: true,
                     data: {
-                        flight_number: parsedData.flight_number || "TK1822",
-                        airline: parsedData.airline || "Turkish Airlines",
-                        departure_airport: parsedData.departure_airport || "CDG",
-                        arrival_airport: parsedData.arrival_airport || "JED",
-                        departure_time: parsedData.departure_time || "2026-06-25T11:15:00",
-                        arrival_time: parsedData.arrival_time || "2026-06-25T19:30:00",
-                        baggage_policy: parsedData.baggage_policy || "2 x 23kg"
+                        flight_number: firstSeg.flight_number || parsedData.flight_number || "TK1822",
+                        airline: firstSeg.airline || parsedData.airline || "Turkish Airlines",
+                        departure_airport: firstSeg.departure_airport || parsedData.departure_airport || "CDG",
+                        arrival_airport: firstSeg.arrival_airport || parsedData.arrival_airport || "JED",
+                        departure_time: firstSeg.departure_time || parsedData.departure_time || "2026-06-25T11:15:00",
+                        arrival_time: firstSeg.arrival_time || parsedData.arrival_time || "2026-06-25T19:30:00",
+                        baggage_policy: parsedData.baggage_policy || "2 x 23kg",
+                        segments: flightSegments.map((s: any) => ({
+                            flight_number: s.flight_number || "TK1822",
+                            airline: s.airline || "Turkish Airlines",
+                            departure_airport: s.departure_airport || "CDG",
+                            arrival_airport: s.arrival_airport || "JED",
+                            departure_time: s.departure_time || "2026-06-25T11:15:00",
+                            arrival_time: s.arrival_time || "2026-06-25T19:30:00"
+                        }))
                     }
                 };
             }
@@ -1064,7 +1082,15 @@ export async function extractFlightTicketOCR(formData: FormData) {
             arrival_airport,
             departure_time,
             arrival_time,
-            baggage_policy
+            baggage_policy,
+            segments: [{
+                flight_number,
+                airline,
+                departure_airport,
+                arrival_airport,
+                departure_time,
+                arrival_time
+            }]
         }
     };
 }
