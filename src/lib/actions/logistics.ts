@@ -665,7 +665,7 @@ export async function getRoomingState(groupId: string) {
     // 2. Get pilgrims of this group
     const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, family_name, gender, pilgrims!inner(group_id)')
+        .select('id, full_name, family_name, gender, pilgrims!inner(group_id, individual_hotel_info)')
         .eq('pilgrims.group_id', groupId);
 
     const mappedPilgrims = (profiles || []).map((p: any) => ({
@@ -689,12 +689,42 @@ export async function getRoomingState(groupId: string) {
         `)
         .eq('group_id', groupId);
 
-    const mappedStays = (stays || []).map((s: any) => ({
+    let mappedStays = (stays || []).map((s: any) => ({
         id: s.id,
         hotel_id: s.hotel_id,
         hotel_name: s.hotels?.name || 'Hôtel',
         city: s.hotels?.city || 'MAKKAH'
     }));
+
+    // Fallback: If no group hotel stays are defined, fallback to hotels defined on the group's pilgrims
+    if (mappedStays.length === 0 && profiles && profiles.length > 0) {
+        const makkahHotelIds = new Set<string>();
+        const madinahHotelIds = new Set<string>();
+
+        for (const p of profiles) {
+            const pilgrimObj = p.pilgrims as any;
+            const hotelInfo = pilgrimObj?.individual_hotel_info;
+            if (hotelInfo?.makkah_hotel_id) makkahHotelIds.add(hotelInfo.makkah_hotel_id);
+            if (hotelInfo?.madinah_hotel_id) madinahHotelIds.add(hotelInfo.madinah_hotel_id);
+        }
+
+        const allHotelIds = [...makkahHotelIds, ...madinahHotelIds];
+        if (allHotelIds.length > 0) {
+            const { data: fallbackHotels } = await supabase
+                .from('hotels')
+                .select('id, name, city')
+                .in('id', allHotelIds);
+
+            if (fallbackHotels) {
+                mappedStays = fallbackHotels.map(h => ({
+                    id: `fallback-${h.id}`,
+                    hotel_id: h.id,
+                    hotel_name: h.name,
+                    city: h.city || 'MAKKAH'
+                }));
+            }
+        }
+    }
 
     // 4. Get rooms of these hotels
     const hotelIds = mappedStays.map(s => s.hotel_id);
