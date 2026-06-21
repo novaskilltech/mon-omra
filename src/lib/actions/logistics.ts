@@ -928,3 +928,279 @@ export async function unassignPilgrimFromRoomFromHotel(pilgrimId: string, roomId
     revalidatePath('/backoffice/logistics/hotels');
     return { success: true };
 }
+
+export async function getPilgrimProgram(pilgrimId: string, email?: string) {
+    const supabase = createClient();
+    try {
+        const resolvedId = await resolvePilgrimIdByEmail(pilgrimId, email);
+
+        // Fetch profile
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', resolvedId)
+            .single();
+
+        // Fetch pilgrim and group
+        const { data: pilgrim } = await supabase
+            .from('pilgrims')
+            .select('group_id, individual_flight_info, individual_hotel_info')
+            .eq('id', resolvedId)
+            .single();
+
+        let groupId = pilgrim?.group_id;
+        let groupName = "";
+        let departureDate = new Date();
+
+        if (groupId) {
+            const { data: group } = await supabase
+                .from('groups')
+                .select('name, departure_date')
+                .eq('id', groupId)
+                .single();
+            if (group) {
+                groupName = group.name || "";
+                if (group.departure_date) {
+                    departureDate = new Date(group.departure_date);
+                }
+            }
+        }
+
+        // Determine itinerary sequence and stays
+        let stays: any[] = [];
+        if (groupId) {
+            const { data: groupStays } = await supabase
+                .from('group_hotel_stays')
+                .select('*, hotels(*)')
+                .eq('group_id', groupId)
+                .order('check_in', { ascending: true });
+            if (groupStays) {
+                stays = groupStays;
+            }
+        }
+
+        const cities = stays.map(s => s.hotels?.city?.toUpperCase()).filter(Boolean);
+        
+        let mode: 'MAKKAH_FIRST' | 'MADINAH_FIRST' | 'TWO_OMRAS' = 'MAKKAH_FIRST';
+        
+        const lowerGroupName = groupName.toLowerCase();
+        if (
+            (cities.length >= 3 && cities[0] === 'MAKKAH' && cities[1] === 'MADINAH' && cities[2] === 'MAKKAH') ||
+            lowerGroupName.includes("double") || 
+            lowerGroupName.includes("2 omra") || 
+            lowerGroupName.includes("deux omra")
+        ) {
+            mode = 'TWO_OMRAS';
+        } else if (cities[0] === 'MADINAH') {
+            mode = 'MADINAH_FIRST';
+        }
+
+        // Calculate stay duration
+        let duration = 14; // Default
+        if (pilgrim?.individual_flight_info) {
+            const indFlight = pilgrim.individual_flight_info as any;
+            if (indFlight.flights && Array.isArray(indFlight.flights) && indFlight.flights.length >= 2) {
+                const first = indFlight.flights[0];
+                const last = indFlight.flights[indFlight.flights.length - 1];
+                if (first.departure_time && last.arrival_time) {
+                    const diff = new Date(last.arrival_time).getTime() - new Date(first.departure_time).getTime();
+                    duration = Math.max(7, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+                }
+            }
+        } else if (groupId) {
+            const { data: logistics } = await supabase
+                .from('group_logistics')
+                .select('flight_departure_id, flight_return_id')
+                .eq('group_id', groupId)
+                .single();
+            if (logistics && logistics.flight_departure_id && logistics.flight_return_id) {
+                const { data: depFlight } = await supabase
+                    .from('flights')
+                    .select('*, flight_segments(*)')
+                    .eq('id', logistics.flight_departure_id)
+                    .single();
+                const { data: retFlight } = await supabase
+                    .from('flights')
+                    .select('*, flight_segments(*)')
+                    .eq('id', logistics.flight_return_id)
+                    .single();
+                
+                const depTime = depFlight?.flight_segments?.[0]?.departure_time;
+                const retSegments = retFlight?.flight_segments || [];
+                const retTime = retSegments[retSegments.length - 1]?.arrival_time;
+
+                if (depTime && retTime) {
+                    const diff = new Date(retTime).getTime() - new Date(depTime).getTime();
+                    duration = Math.max(7, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+                }
+            }
+        }
+
+        // Build list of days
+        const days = [];
+        for (let d = 1; d <= duration; d++) {
+            const currentDate = new Date(departureDate.getTime() + (d - 1) * 24 * 60 * 60 * 1000);
+            const dateLabel = currentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+            
+            // Define active city
+            let activeCity: 'MAKKAH' | 'MADINAH' = 'MAKKAH';
+            if (mode === 'MAKKAH_FIRST') {
+                activeCity = d < Math.ceil(duration / 2) ? 'MAKKAH' : 'MADINAH';
+            } else if (mode === 'MADINAH_FIRST') {
+                activeCity = d < Math.ceil(duration / 2) ? 'MADINAH' : 'MAKKAH';
+            } else {
+                // TWO_OMRAS
+                if (d <= 5) activeCity = 'MAKKAH';
+                else if (d <= 10) activeCity = 'MADINAH';
+                else activeCity = 'MAKKAH';
+            }
+
+            const guidedActivities: any[] = [];
+            const spiritualActivities: any[] = [];
+
+            // Add standard spiritual activities based on the city
+            if (activeCity === 'MAKKAH') {
+                spiritualActivities.push(
+                    { title: "Tawaf surérogatoire", desc: "Effectuer un Tawaf facultatif autour de la Kaaba (recommandé après l'Asr ou tard le soir)." },
+                    { title: "Tahajjud au Haram", desc: "Se rendre à Masjid Al-Haram dans le dernier tiers de la nuit pour effectuer des prières nocturnes et douas." },
+                    { title: "Fajr et évocation (Shuruq)", desc: "Prier le Fajr en congrégation et rester dans la mosquée à lire le Coran et faire des évocations jusqu'au lever du soleil, puis effectuer la prière de Duha." },
+                    { title: "Douas au Multazam", desc: "S'approcher du Multazam (partie située entre la porte de la Kaaba et la Pierre Noire) et y faire des douas ferventes." }
+                );
+            } else {
+                spiritualActivities.push(
+                    { title: "Prière dans la Rawdah", desc: "Profiter de son créneau de réservation pour prier dans le jardin du Paradis (Rawdah ash-Sharifah)." },
+                    { title: "Salutations au Messager (ﷺ)", desc: "Se présenter respectueusement devant le tombeau du Prophète (ﷺ) et de ses compagnons Abu Bakr et Umar pour leur adresser le Salam." },
+                    { title: "Invocation à Al-Baqi", desc: "Visiter le cimetière historique d'Al-Baqi jouxtant la Mosquée du Prophète et faire des invocations pour les compagnons et les défunts." },
+                    { title: "Assister aux cercles de science", desc: "Rejoindre l'une des assemblées d'enseignement ou d'explication religieuse tenues quotidiennement au sein de la mosquée." }
+                );
+            }
+
+            // Core guided activities based on Mode and Day
+            if (mode === 'MAKKAH_FIRST') {
+                if (d === 1) {
+                    guidedActivities.push(
+                        { time: '14:30', title: 'Arrivée à Jeddah (JED)', location: 'Aéroport Roi-Abdelaziz', type: 'TRANSPORT', description: 'Accueil par notre guide local et transfert immédiat vers Makkah en bus climatisé.' },
+                        { time: '18:00', title: 'Check-in Hôtel Makkah', location: 'Makkah Hotel', type: 'REPOS', description: 'Remise des clés et temps libre pour se rafraîchir avant le début des rites.' },
+                        { time: '21:30', title: 'Première Omra Collective', location: 'Masjid al-Haram', type: 'RITUEL', description: 'Départ du lobby pour accomplir le Tawaf et le Sa\'y ensemble sous la direction de notre guide.' }
+                    );
+                } else if (d === 3) {
+                    guidedActivities.push(
+                        { time: '08:30', title: 'Visites Guidées Makkah (Ziyarat)', location: 'Lieux Historiques Makkah', type: 'ZIYARAT', description: 'Excursion historique guidée en bus : Mont Jabal al-Nour (grotte de Hira), Jabal Thawr, plaine d\'Arafat, Muzdalifah et Mina.' }
+                    );
+                } else if (d === 7) {
+                    guidedActivities.push(
+                        { time: '10:00', title: 'Check-out & Départ pour Médine', location: 'Lobby Hôtel Makkah', type: 'TRANSPORT', description: 'Départ en bus climatisé vers la sainte ville de Médine.' },
+                        { time: '16:30', title: 'Check-in Hôtel Médine', location: 'Hôtel Madinah', type: 'REPOS', description: 'Installation à l\'hôtel et première salutation au Prophète (ﷺ).' }
+                    );
+                } else if (d === 9) {
+                    guidedActivities.push(
+                        { time: '08:30', title: 'Visites Guidées Médine (Ziyarat)', location: 'Lieux Historiques Médine', type: 'ZIYARAT', description: 'Visite guidée en groupe : Mosquée de Quba (prier 2 Rakats équivaut à une Omra), Mont Uhud (les martyrs) et Masjid al-Qiblatain.' }
+                    );
+                } else if (d === 11) {
+                    guidedActivities.push(
+                        { time: '08:00', title: 'Excursion à Badr', location: 'Site historique de Badr', type: 'ZIYARAT', description: 'Excursion historique vers le champ de bataille de Badr et le cimetière des martyrs de Badr avec les explications du guide.' }
+                    );
+                } else if (d === duration) {
+                    guidedActivities.push(
+                        { time: '12:00', title: 'Check-out & Transfert Retour', location: 'Lobby Hôtel', type: 'TRANSPORT', description: 'Transfert vers l\'aéroport de Médine (MED) ou de Jeddah (JED) pour votre vol retour.' }
+                    );
+                }
+            } else if (mode === 'MADINAH_FIRST') {
+                if (d === 1) {
+                    guidedActivities.push(
+                        { time: '15:30', title: 'Arrivée à Médine (MED)', location: 'Aéroport Prince Mohammad Bin Abdulaziz', type: 'TRANSPORT', description: 'Accueil par notre guide et transfert vers votre hôtel à Médine.' },
+                        { time: '17:30', title: 'Check-in Hôtel Médine', location: 'Hôtel Madinah', type: 'REPOS', description: 'Remise des clés et installation dans les chambres.' }
+                    );
+                } else if (d === 3) {
+                    guidedActivities.push(
+                        { time: '08:30', title: 'Visites Guidées Médine (Ziyarat)', location: 'Lieux Historiques Médine', type: 'ZIYARAT', description: 'Visite guidée en groupe : Mosquée de Quba, Mont Uhud et la mosquée des deux Qiblas.' }
+                    );
+                } else if (d === 4) {
+                    guidedActivities.push(
+                        { time: '08:00', title: 'Excursion à Badr', location: 'Site historique de Badr', type: 'ZIYARAT', description: 'Visite guidée du champ de bataille historique de Badr et du cimetière des martyrs de la première grande bataille de l\'Islam.' }
+                    );
+                } else if (d === 6) {
+                    guidedActivities.push(
+                        { time: '09:00', title: 'Départ pour Makkah avec passage Miqat', location: 'Lobby Hôtel / Miqat', type: 'TRANSPORT', description: 'Check-out et départ vers Makkah. Halte au Miqat (Dhu\'l-Hulayfah) pour se mettre en état d\'Ihram et formuler l\'intention de l\'Omra.' },
+                        { time: '16:00', title: 'Check-in Hôtel Makkah', location: 'Hôtel Makkah', type: 'REPOS', description: 'Installation dans les chambres.' },
+                        { time: '20:30', title: 'Première Omra Collective', location: 'Masjid al-Haram', type: 'RITUEL', description: 'Accomplissement collectif des rites de l\'Omra guidé étape par étape.' }
+                    );
+                } else if (d === 9) {
+                    guidedActivities.push(
+                        { time: '08:30', title: 'Visites Guidées Makkah (Ziyarat)', location: 'Lieux Historiques Makkah', type: 'ZIYARAT', description: 'Visite guidée en bus : Jabal al-Nour (grotte de Hira), Jabal Thawr, Arafat, Mina.' }
+                    );
+                } else if (d === duration) {
+                    guidedActivities.push(
+                        { time: '10:00', title: 'Check-out & Transfert Jeddah', location: 'Lobby Hôtel', type: 'TRANSPORT', description: 'Départ en bus vers l\'aéroport de Jeddah (JED) pour votre vol retour.' }
+                    );
+                }
+            } else {
+                // TWO_OMRAS
+                if (d === 1) {
+                    guidedActivities.push(
+                        { time: '14:30', title: 'Arrivée à Jeddah (JED)', location: 'Aéroport Roi-Abdelaziz', type: 'TRANSPORT', description: 'Accueil par l\'agence et transfert vers Makkah.' },
+                        { time: '17:30', title: 'Check-in Makkah', location: 'Hôtel Makkah', type: 'REPOS', description: 'Installation rapide.' },
+                        { time: '21:00', title: 'Première Omra Collective', location: 'Masjid al-Haram', type: 'RITUEL', description: 'Départ groupé pour accomplir la première Omra.' }
+                    );
+                } else if (d === 3) {
+                    guidedActivities.push(
+                        { time: '08:30', title: 'Visites Guidées Makkah (Ziyarat)', location: 'Lieux Historiques Makkah', type: 'ZIYARAT', description: 'Visite des sites de Jabal al-Nour, Arafat et des tentes de Mina.' }
+                    );
+                } else if (d === 5) {
+                    guidedActivities.push(
+                        { time: '09:00', title: 'Départ pour Médine', location: 'Lobby Hôtel Makkah', type: 'TRANSPORT', description: 'Check-out et transfert en bus vers Médine.' },
+                        { time: '15:30', title: 'Check-in Médine', location: 'Hôtel Madinah', type: 'REPOS', description: 'Installation dans les chambres.' }
+                    );
+                } else if (d === 7) {
+                    guidedActivities.push(
+                        { time: '08:30', title: 'Visites Guidées Médine (Ziyarat)', location: 'Lieux Historiques Médine', type: 'ZIYARAT', description: 'Visite de la Mosquée de Quba, du Mont Uhud et des mosquées historiques.' }
+                    );
+                } else if (d === 8) {
+                    guidedActivities.push(
+                        { time: '08:00', title: 'Excursion à Badr', location: 'Site historique de Badr', type: 'ZIYARAT', description: 'Visite guidée historique du champ de bataille de Badr.' }
+                    );
+                } else if (d === 10) {
+                    guidedActivities.push(
+                        { time: '09:00', title: 'Retour à Makkah pour Deuxième Omra', location: 'Lobby Hôtel / Miqat', type: 'TRANSPORT', description: 'Départ de Médine vers Makkah avec halte rituelle au Miqat pour l\'Ihram.' },
+                        { time: '16:30', title: 'Check-in Makkah', location: 'Hôtel Makkah', type: 'REPOS', description: 'Réinstallation dans votre hôtel.' },
+                        { time: '21:00', title: 'Deuxième Omra Collective', location: 'Masjid al-Haram', type: 'RITUEL', description: 'Accomplissement de la deuxième Omra en groupe.' }
+                    );
+                } else if (d === duration) {
+                    guidedActivities.push(
+                        { time: '11:00', title: 'Check-out & Transfert Retour', location: 'Lobby Hôtel', type: 'TRANSPORT', description: 'Transfert vers l\'aéroport de Jeddah (JED) pour le vol de retour.' }
+                    );
+                }
+            }
+
+            // If no guided activities are scheduled for this day, add a placeholder indicating free time
+            if (guidedActivities.length === 0) {
+                guidedActivities.push({
+                    time: 'Toute la journée',
+                    title: 'Journée Libre & Spiritualité',
+                    location: activeCity === 'MAKKAH' ? 'Masjid al-Haram' : 'Al-Masjid an-Nabawi',
+                    type: 'REPOS',
+                    description: 'Aucune activité de groupe n\'est prévue. Profitez de votre temps libre pour multiplier les prières et évocations.'
+                });
+            }
+
+            days.push({
+                day: d,
+                date: dateLabel,
+                city: activeCity,
+                guidedActivities,
+                spiritualActivities
+            });
+        }
+
+        return {
+            success: true,
+            mode,
+            duration,
+            days
+        };
+
+    } catch (e: any) {
+        console.error("Error in getPilgrimProgram:", e);
+        return { error: e.message || "Erreur de génération du programme." };
+    }
+}
