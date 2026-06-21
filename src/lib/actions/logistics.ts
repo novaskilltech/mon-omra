@@ -665,15 +665,39 @@ export async function getRoomingState(groupId: string) {
     // 2. Get pilgrims of this group
     const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, family_name, gender, pilgrims!inner(group_id, individual_hotel_info)')
+        .select('id, full_name, family_name, gender, pilgrims!inner(group_id, individual_hotel_info, package_price)')
         .eq('pilgrims.group_id', groupId);
 
-    const mappedPilgrims = (profiles || []).map((p: any) => ({
-        id: p.id,
-        name: p.full_name || '',
-        family: p.family_name || p.full_name?.split(' ')[1] || '',
-        gender: p.gender || 'M'
-    }));
+    const pilgrimIds = (profiles || []).map((p: any) => p.id);
+    let payments: any[] = [];
+    if (pilgrimIds.length > 0) {
+        const { data: payData } = await supabase
+            .from('payments')
+            .select('pilgrim_id, amount, status')
+            .in('pilgrim_id', pilgrimIds);
+        if (payData) payments = payData;
+    }
+
+    const mappedPilgrims = (profiles || []).map((p: any) => {
+        const pilgrimObj = p.pilgrims as any;
+        const packagePrice = pilgrimObj?.package_price !== null && pilgrimObj?.package_price !== undefined 
+            ? Number(pilgrimObj.package_price) 
+            : 2500;
+        
+        const totalPaid = payments
+            .filter((pay: any) => pay.pilgrim_id === p.id && pay.status === 'COMPLETED')
+            .reduce((sum: number, pay: any) => sum + Number(pay.amount), 0);
+        
+        const balanceDue = Math.max(0, packagePrice - totalPaid);
+
+        return {
+            id: p.id,
+            name: p.full_name || '',
+            family: p.family_name || p.full_name?.split(' ')[1] || '',
+            gender: p.gender || 'M',
+            balanceDue
+        };
+    });
 
     // 3. Get stays for this group
     const { data: stays } = await supabase
@@ -737,36 +761,17 @@ export async function getRoomingState(groupId: string) {
         let { data: rooms } = await supabase
             .from('rooms')
             .select('*')
-            .in('hotel_id', hotelIds);
+            .in('hotel_id', hotelIds)
+            .order('room_number', { ascending: true })
+            .order('created_at', { ascending: true });
         
-        let currentRooms = rooms || [];
-
-        // Check if any hotel is missing rooms; if so, populate defaults.
-        for (const hotelId of hotelIds) {
-            const hasRooms = currentRooms.some(r => r.hotel_id === hotelId);
-            if (!hasRooms) {
-                const defaultRooms = [];
-                // Generate 5 rooms of each major type (DOUBLE, TRIPLE, QUADRUPLE)
-                for (let i = 1; i <= 5; i++) {
-                    defaultRooms.push({ hotel_id: hotelId, type: 'DOUBLE', capacity: 2 });
-                    defaultRooms.push({ hotel_id: hotelId, type: 'TRIPLE', capacity: 3 });
-                    defaultRooms.push({ hotel_id: hotelId, type: 'QUADRUPLE', capacity: 4 });
-                }
-                const { data: inserted, error: insertError } = await supabase
-                    .from('rooms')
-                    .insert(defaultRooms)
-                    .select();
-                if (!insertError && inserted) {
-                    currentRooms = [...currentRooms, ...inserted];
-                }
-            }
-        }
-        
-        mappedRooms = currentRooms.map((r: any) => ({
+        mappedRooms = (rooms || []).map((r: any) => ({
             id: r.id,
             hotel_id: r.hotel_id,
             type: r.type,
-            capacity: r.capacity
+            capacity: r.capacity,
+            room_number: r.room_number || '',
+            has_breakfast: !!r.has_breakfast
         }));
     }
 
@@ -868,57 +873,95 @@ export async function getHotelRoomingState(hotelId: string) {
     };
 }
 
-export async function createRoomAction(hotelId: string, roomNumber: string, type: 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE') {
+export async function createRoomAction(
+    hotelId: string,
+    arg2: string,
+    arg3?: 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'SUITE' | string,
+    arg4?: number,
+    arg5?: boolean
+) {
     const isAdmin = await isAdminAuthenticated();
-    if (!isAdmin) throw new Error("Non autorisé");
+    if (!isAdmin) return { error: "Non autorisé" };
 
     const supabase = createClient();
-    
-    const capacity = type === 'DOUBLE' ? 2 : type === 'TRIPLE' ? 3 : 4;
 
-    const { data, error } = await supabase
-        .from('rooms')
-        .insert({
-            hotel_id: hotelId,
-            room_number: roomNumber || null,
-            type,
-            capacity
-        })
-        .select()
-        .single();
+    let type: 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'SUITE' = 'DOUBLE';
+    let roomNumber = '';
+    let capacity = 2;
+    let hasBreakfast = false;
 
-    if (error) throw new Error(error.message);
+    // Check if arg2 is a room type
+    const isType = (val: any): val is 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'SUITE' => 
+        ['DOUBLE', 'TRIPLE', 'QUADRUPLE', 'SUITE'].includes(val);
 
-    revalidatePath('/backoffice/logistics/hotels');
-    return { success: true, room: data };
+    if (isType(arg2)) {
+        type = arg2;
+        roomNumber = (arg3 as string) || '';
+        capacity = arg4 ?? (type === 'DOUBLE' ? 2 : type === 'TRIPLE' ? 3 : type === 'QUADRUPLE' ? 4 : 6);
+        hasBreakfast = !!arg5;
+    } else {
+        roomNumber = arg2 || '';
+        if (isType(arg3)) {
+            type = arg3;
+        } else {
+            type = 'DOUBLE';
+        }
+        capacity = type === 'DOUBLE' ? 2 : type === 'TRIPLE' ? 3 : type === 'QUADRUPLE' ? 4 : 6;
+        hasBreakfast = false;
+    }
+
+    try {
+        const { data, error } = await supabase
+            .from('rooms')
+            .insert({
+                hotel_id: hotelId,
+                type,
+                room_number: roomNumber || null,
+                capacity,
+                has_breakfast: hasBreakfast
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/logistics/hotels');
+        return { success: true, room: data };
+    } catch (e: any) {
+        console.error("Error creating room:", e);
+        return { error: e.message || "Erreur de création de chambre." };
+    }
 }
 
 export async function deleteRoomAction(roomId: string) {
     const isAdmin = await isAdminAuthenticated();
-    if (!isAdmin) throw new Error("Non autorisé");
+    if (!isAdmin) return { error: "Non autorisé" };
 
     const supabase = createClient();
+    try {
+        const { data: assignments } = await supabase
+            .from('room_assignments')
+            .select('id')
+            .eq('room_id', roomId)
+            .limit(1);
 
-    // Check assignments
-    const { data: assignments } = await supabase
-        .from('room_assignments')
-        .select('id')
-        .eq('room_id', roomId)
-        .limit(1);
+        if (assignments && assignments.length > 0) {
+            return { error: "Cette chambre contient des occupants et ne peut pas être supprimée." };
+        }
 
-    if (assignments && assignments.length > 0) {
-        return { error: "Cette chambre contient des occupants et ne peut pas être supprimée." };
+        const { error } = await supabase
+            .from('rooms')
+            .delete()
+            .eq('id', roomId);
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/logistics/hotels');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error deleting room:", e);
+        return { error: e.message || "Erreur de suppression de chambre." };
     }
-
-    const { error } = await supabase
-        .from('rooms')
-        .delete()
-        .eq('id', roomId);
-
-    if (error) throw new Error(error.message);
-
-    revalidatePath('/backoffice/logistics/hotels');
-    return { success: true };
 }
 
 export async function assignPilgrimToRoomFromHotel(pilgrimId: string, roomId: string) {
@@ -1370,4 +1413,24 @@ export async function getPilgrimBadgeData(pilgrimId: string, email?: string) {
         return { error: e.message || "Erreur lors de la récupération des données du badge." };
     }
 }
+
+export async function toggleRoomBreakfastAction(roomId: string, hasBreakfast: boolean) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        const { error } = await supabase
+            .from('rooms')
+            .update({ has_breakfast: hasBreakfast })
+            .eq('id', roomId);
+
+        if (error) throw error;
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error toggling room breakfast:", e);
+        return { error: e.message || "Erreur de modification du petit-déjeuner." };
+    }
+}
+
 

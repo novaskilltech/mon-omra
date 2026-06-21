@@ -1,4 +1,4 @@
-import { getPilgrimProgram, getPilgrimBadgeData } from '../logistics';
+import { getPilgrimProgram, getPilgrimBadgeData, createRoomAction, deleteRoomAction, toggleRoomBreakfastAction } from '../logistics';
 import { createClient } from '@/utils/supabase/server';
 
 vi.mock('@/utils/supabase/server', () => {
@@ -22,6 +22,15 @@ vi.mock('@/utils/supabase/server', () => {
     createClient: vi.fn(() => mockSupabase),
   };
 });
+
+vi.mock('../auth', () => ({
+  isAdminAuthenticated: vi.fn(() => Promise.resolve(true)),
+  getAuthUserId: vi.fn(() => Promise.resolve('mock-user-id'))
+}));
+
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn()
+}));
 
 describe('getPilgrimProgram Server Action', () => {
   beforeEach(() => {
@@ -311,4 +320,49 @@ describe('getPilgrimBadgeData Server Action', () => {
     expect(result.badge.photoUrl).toBe('https://supabase.signed.url/photo.jpg');
   });
 });
+
+describe('Dynamic Room Actions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should create room successfully', async () => {
+    const mockSupabase = createClient();
+    const insertMock = vi.fn().mockReturnThis();
+    const selectMock = vi.fn().mockReturnThis();
+    const singleMock = vi.fn().mockResolvedValue({
+      data: { id: 'room-123', room_number: '101', type: 'DOUBLE', capacity: 2, has_breakfast: false },
+      error: null
+    });
+
+    mockSupabase.from = vi.fn().mockReturnValue({
+      insert: insertMock,
+      select: selectMock,
+      single: singleMock
+    });
+
+    const result = await createRoomAction('hotel-123', 'DOUBLE', '101', 2, false);
+
+    expect(result.success).toBe(true);
+    expect(result.room.room_number).toBe('101');
+    expect(result.room.has_breakfast).toBe(false);
+  });
+
+  it('should toggle breakfast option successfully', async () => {
+    const mockSupabase = createClient();
+    const updateMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: null });
+
+    mockSupabase.from = vi.fn().mockReturnValue({
+      update: updateMock,
+      eq: eqMock
+    });
+
+    const result = await toggleRoomBreakfastAction('room-123', true);
+
+    expect(result.success).toBe(true);
+    expect(updateMock).toHaveBeenCalledWith({ has_breakfast: true });
+  });
+});
+
 

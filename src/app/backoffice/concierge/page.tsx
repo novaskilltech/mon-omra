@@ -15,6 +15,7 @@ import {
     linkFamilyMember, unlinkFamilyMember, updatePilgrimAction,
     getAvailableFlightsAndHotels, saveIndividualHotelInfo
 } from '@/lib/actions/concierge';
+import { getPilgrimDocuments } from '@/lib/actions/documents';
 
 export default function ConciergeDashboard() {
     const [pilgrims, setPilgrims] = useState<any[]>([]);
@@ -22,6 +23,7 @@ export default function ConciergeDashboard() {
     const [loading, setLoading] = useState(true);
     const [selectedPilgrim, setSelectedPilgrim] = useState<any>(null);
     const [payments, setPayments] = useState<any[]>([]);
+    const [pilgrimDocs, setPilgrimDocs] = useState<any[]>([]);
     
     // Flight & Baggage Form State
     const [flights, setFlights] = useState<any[]>([
@@ -156,6 +158,13 @@ export default function ConciergeDashboard() {
         try {
             const payList = await getPilgrimPayments(pilgrim.id);
             setPayments(payList);
+            
+            const docsRes = await getPilgrimDocuments(pilgrim.id);
+            if (docsRes.success && docsRes.documents) {
+                setPilgrimDocs(docsRes.documents);
+            } else {
+                setPilgrimDocs([]);
+            }
         } catch (e) {
             console.error(e);
         }
@@ -676,6 +685,44 @@ export default function ConciergeDashboard() {
                                                         </a>
                                                     </div>
                                                 )}
+
+                                                {/* Uploaded Documents List */}
+                                                <div className="border-t border-emerald-500/10 pt-3 mt-3 space-y-2">
+                                                    <span className="font-bold text-main block uppercase text-[10px] tracking-wider mb-2">Documents du Pèlerin :</span>
+                                                    {pilgrimDocs && pilgrimDocs.length > 0 ? (
+                                                        <div className="space-y-2">
+                                                            {pilgrimDocs.map((doc: any) => {
+                                                                const labelMap: Record<string, string> = {
+                                                                    PASSPORT: "Passeport",
+                                                                    PHOTO: "Photo d'identité",
+                                                                    RESIDENCE_PERMIT: "Titre de séjour"
+                                                                };
+                                                                return (
+                                                                    <div key={doc.id} className="flex justify-between items-center bg-[#0b0f0d]/30 p-2.5 rounded-xl border border-emerald-500/5">
+                                                                        <div className="min-w-0 flex-1 pr-2">
+                                                                            <span className="font-bold text-main block text-[11px] truncate">{labelMap[doc.type] || doc.type}</span>
+                                                                            <span className="text-dim text-[10px] opacity-75 truncate block">{doc.file_name}</span>
+                                                                        </div>
+                                                                        {doc.url ? (
+                                                                            <a 
+                                                                                href={doc.url} 
+                                                                                target="_blank" 
+                                                                                rel="noopener noreferrer" 
+                                                                                className="btn-premium px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest block text-center shrink-0"
+                                                                            >
+                                                                                Ouvrir
+                                                                            </a>
+                                                                        ) : (
+                                                                            <span className="text-dim text-[9px] shrink-0">Lien expiré</span>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-dim italic text-[11px] block">Aucun document chargé.</span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 
