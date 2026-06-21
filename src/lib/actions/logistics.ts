@@ -1204,3 +1204,136 @@ export async function getPilgrimProgram(pilgrimId: string, email?: string) {
         return { error: e.message || "Erreur de génération du programme." };
     }
 }
+
+export async function getPilgrimBadgeData(pilgrimId: string, email?: string) {
+    const supabase = createClient();
+    try {
+        const resolvedId = await resolvePilgrimIdByEmail(pilgrimId, email);
+
+        // 1. Fetch Profile (names, phone)
+        const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('full_name, phone, role')
+            .eq('id', resolvedId)
+            .single();
+
+        if (profileErr || !profile) {
+            throw new Error("Profil du pèlerin introuvable.");
+        }
+
+        // 2. Fetch Pilgrim Group
+        const { data: pilgrim, error: pilgrimErr } = await supabase
+            .from('pilgrims')
+            .select('group_id, individual_flight_info')
+            .eq('id', resolvedId)
+            .single();
+
+        let groupId = pilgrim?.group_id;
+        let groupName = "Individuel";
+        let departureDate = "";
+        let returnDate = "";
+        let makkahHotel = "Non défini";
+        let madinahHotel = "Non défini";
+
+        // 3. Fetch Stays and Flight Dates
+        if (groupId) {
+            const { data: group } = await supabase
+                .from('groups')
+                .select('name, departure_date')
+                .eq('id', groupId)
+                .single();
+            if (group) {
+                groupName = group.name || "";
+                if (group.departure_date) {
+                    departureDate = new Date(group.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+                }
+            }
+
+            // Fetch Hotels
+            const { data: groupStays } = await supabase
+                .from('group_hotel_stays')
+                .select('*, hotels(*)')
+                .eq('group_id', groupId);
+
+            if (groupStays) {
+                const makkahStay = groupStays.find(s => s.hotels?.city?.toUpperCase() === 'MAKKAH');
+                const madinahStay = groupStays.find(s => s.hotels?.city?.toUpperCase() === 'MADINAH');
+                if (makkahStay) makkahHotel = makkahStay.hotels?.name || "Hôtel Makkah";
+                if (madinahStay) madinahHotel = madinahStay.hotels?.name || "Hôtel Médine";
+            }
+
+            // Fetch return flight date from group logistics
+            const { data: groupLogistics } = await supabase
+                .from('group_logistics')
+                .select('flight_return_id')
+                .eq('group_id', groupId)
+                .single();
+
+            if (groupLogistics && groupLogistics.flight_return_id) {
+                const { data: retFlight } = await supabase
+                    .from('flights')
+                    .select('*, flight_segments(*)')
+                    .eq('id', groupLogistics.flight_return_id)
+                    .single();
+                
+                const retTime = retFlight?.flight_segments?.[retFlight.flight_segments.length - 1]?.arrival_time;
+                if (retTime) {
+                    returnDate = new Date(retTime).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+                }
+            }
+        }
+
+        // Fallbacks for dates if not found from logistics
+        if (!departureDate) {
+            departureDate = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+        if (!returnDate) {
+            const tempReturn = new Date();
+            tempReturn.setDate(tempReturn.getDate() + 14);
+            returnDate = tempReturn.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // 4. Fetch Photo and generate signed URL
+        const { data: userDoc } = await supabase
+            .from('user_documents')
+            .select('storage_path')
+            .eq('user_id', resolvedId)
+            .eq('type', 'PHOTO')
+            .maybeSingle();
+
+        let photoUrl = null;
+        if (userDoc && userDoc.storage_path) {
+            try {
+                const { data: signedData, error: signError } = await supabase
+                    .storage
+                    .from('pelerin-documents')
+                    .createSignedUrl(userDoc.storage_path, 3600); // 1 hour validity
+
+                if (!signError && signedData) {
+                    photoUrl = signedData.signedUrl;
+                }
+            } catch (storageErr) {
+                console.error("Error signing photo URL:", storageErr);
+            }
+        }
+
+        return {
+            success: true,
+            badge: {
+                fullName: profile.full_name || "Pèlerin",
+                phone: profile.phone || "Non renseigné",
+                groupName,
+                makkahHotel,
+                madinahHotel,
+                departureDate,
+                returnDate,
+                photoUrl
+            }
+        };
+
+    } catch (e: any) {
+        console.error("Error in getPilgrimBadgeData:", e);
+        return { error: e.message || "Erreur lors de la récupération des données du badge." };
+    }
+}
+

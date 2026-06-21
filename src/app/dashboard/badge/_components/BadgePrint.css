@@ -1,0 +1,40 @@
+@media print {
+  /* Hide standard web app UI elements */
+  body, 
+  nav, 
+  header, 
+  footer, 
+  button, 
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset body styles for print page */
+  body {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Badge container settings */
+  .badge-print-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+    width: 85mm !important;
+    height: 120mm !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    background: white !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Force print background colors and shadows */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

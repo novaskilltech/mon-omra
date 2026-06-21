@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getPilgrimProgram } from '../logistics';
+import { getPilgrimProgram, getPilgrimBadgeData } from '../logistics';
 import { createClient } from '@/utils/supabase/server';
 
 vi.mock('@/utils/supabase/server', () => {
@@ -13,6 +12,11 @@ vi.mock('@/utils/supabase/server', () => {
     order: vi.fn().mockReturnThis(),
     single: vi.fn(),
     maybeSingle: vi.fn(),
+    storage: {
+      from: vi.fn(() => ({
+        createSignedUrl: vi.fn(() => Promise.resolve({ data: { signedUrl: 'https://supabase.signed.url/photo.jpg' }, error: null }))
+      }))
+    }
   };
   return {
     createClient: vi.fn(() => mockSupabase),
@@ -226,3 +230,85 @@ describe('getPilgrimProgram Server Action', () => {
     expect(day10.guidedActivities[2].title).toContain('Deuxième Omra');
   });
 });
+
+describe('getPilgrimBadgeData Server Action', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should return complete badge data with signed photo URL', async () => {
+    const mockSupabase = createClient();
+    
+    const selectMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { full_name: 'Ahmad Siddiq', phone: '+33678901234' },
+            error: null,
+          }),
+        };
+      }
+      if (table === 'pilgrims') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { group_id: 'group-789' },
+            error: null,
+          }),
+        };
+      }
+      if (table === 'groups') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { name: 'Ramadan Prestige', departure_date: '2026-03-25T12:00:00Z' },
+            error: null,
+          }),
+        };
+      }
+      if (table === 'group_hotel_stays') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          eq2: vi.fn().mockResolvedValue({
+            data: [
+              { hotels: { name: 'Makkah Clock Royal', city: 'MAKKAH' } },
+              { hotels: { name: 'Oberoi Madinah', city: 'MADINAH' } },
+            ],
+            error: null,
+          }),
+        };
+      }
+      if (table === 'user_documents') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({
+            data: { storage_path: 'user-123/passport-photo.jpg' },
+            error: null,
+          }),
+        };
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+    });
+
+    mockSupabase.from = selectMock as any;
+
+    const result = await getPilgrimBadgeData('pilgrim-123');
+
+    expect(result.success).toBe(true);
+    expect(result.badge.fullName).toBe('Ahmad Siddiq');
+    expect(result.badge.phone).toBe('+33678901234');
+    expect(result.badge.groupName).toBe('Ramadan Prestige');
+    expect(result.badge.photoUrl).toBe('https://supabase.signed.url/photo.jpg');
+  });
+});
+

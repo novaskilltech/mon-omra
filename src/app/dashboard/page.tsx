@@ -1,4 +1,4 @@
-import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle, Users } from 'lucide-react';
+import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle, Users, Shield } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -205,16 +205,17 @@ export default async function Dashboard() {
                 )}
 
                 {/* Quick Links */}
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                     {[
                         { icon: Hotel, title: "Hôtels", color: "text-blue-600 dark:text-blue-400", href: "/dashboard/hotels" },
                         { icon: Calendar, title: "Programme", color: "text-purple-600 dark:text-purple-400", href: "/dashboard/program" },
                         { icon: Compass, title: "Rites", color: "text-emerald-600 dark:text-emerald-500", href: "/dashboard/rites" },
+                        { icon: Shield, title: "Badge ID", color: "text-amber-500 dark:text-amber-400", href: "/dashboard/badge" },
                         { icon: HelpCircle, title: "Aide", color: "text-blue-600 dark:text-blue-500", href: "/dashboard/help" },
                         { icon: AlertCircle, title: "Urgence", color: "text-red-600 dark:text-red-500", href: "/dashboard/assistance" }
                     ].map((item, i) => (
                         <Link key={i} href={item.href} className="glass p-6 rounded-[2rem] hover:bg-emerald-500/5 transition-all text-center group border-emerald-500/5 shadow-sm">
-                            <item.icon className={`w-8 h-8 mx-auto mb-3 ${item.color.split(' ')[0]} ${item.color.split(' ')[1]} group-hover:scale-110 transition-transform`} />
+                            <item.icon className={`w-8 h-8 mx-auto mb-3 ${item.color.split(' ')[0]} ${item.color.split(' ')[1] || ''} group-hover:scale-110 transition-transform`} />
                             <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-dim group-hover:text-main transition-colors">{item.title}</span>
                         </Link>
                     ))}
