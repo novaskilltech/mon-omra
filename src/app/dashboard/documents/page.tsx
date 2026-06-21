@@ -1,9 +1,10 @@
 import { Compass, ShieldCheck, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import DocumentUpload from '@/components/documents/DocumentUpload';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
+import DocumentsClient from './_components/DocumentsClient';
 
 export default async function DocumentsPage() {
     const supabase = createClient();
@@ -12,34 +13,51 @@ export default async function DocumentsPage() {
 
     const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : undefined);
 
-    // Fetch existing docs if any
-    const { data: documents } = await supabase
+    if (!resolvedId) {
+        redirect('/login');
+    }
+
+    // 1. Fetch pilgrim to find family head
+    const { data: pilgrim } = await supabase
+        .from('pilgrims')
+        .select('family_head_id')
+        .eq('id', resolvedId)
+        .single();
+
+    const familyHeadId = pilgrim?.family_head_id || resolvedId;
+
+    // 2. Fetch all pilgrims in the same family folder
+    const { data: rawPilgrims } = await supabase
+        .from('pilgrims')
+        .select('id')
+        .or(`id.eq.${familyHeadId},family_head_id.eq.${familyHeadId}`);
+
+    const pilgrimIds = rawPilgrims?.map(p => p.id) || [resolvedId];
+
+    // 3. Fetch profiles for all family members
+    const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', pilgrimIds);
+
+    // 4. Fetch all documents for all family members
+    const { data: allDocuments } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', resolvedId);
+        .in('user_id', pilgrimIds);
 
-    const getDoc = (type: string) => documents?.find(d => d.type === type);
-
-    const docConfigs = [
-        {
-            type: 'PASSPORT' as const,
-            label: 'Passeport',
-            description: 'Copie lisible de la page d\'identité. Le passeport doit être valide au moins 6 mois après votre retour.',
-            existing: getDoc('PASSPORT')
-        },
-        {
-            type: 'PHOTO' as const,
-            label: 'Photo d\'identité',
-            description: 'Photo récente sur fond blanc, format passeport (e-photo acceptée).',
-            existing: getDoc('PHOTO')
-        },
-        {
-            type: 'RESIDENCE_PERMIT' as const,
-            label: 'Titre de Séjour',
-            description: 'Uniquement pour les résidents non-européens. Copie recto-verso en cours de validité.',
-            existing: getDoc('RESIDENCE_PERMIT')
-        }
-    ];
+    // 5. Construct travelers array (sorted: self first)
+    const travelers = (profiles || [])
+        .map(p => ({
+            id: p.id,
+            name: p.id === resolvedId ? `${p.full_name} (Vous)` : p.full_name || 'Co-voyageur',
+            documents: (allDocuments || []).filter((d: any) => d.user_id === p.id)
+        }))
+        .sort((a, b) => {
+            if (a.id === resolvedId) return -1;
+            if (b.id === resolvedId) return 1;
+            return 0;
+        });
 
     return (
         <div className="min-h-screen pb-12">
@@ -61,30 +79,7 @@ export default async function DocumentsPage() {
                     </p>
                 </header>
 
-                <div className="grid gap-6">
-                    {docConfigs.map((config, i) => (
-                        <DocumentUpload 
-                            key={i}
-                            type={config.type}
-                            label={config.label}
-                            description={config.description}
-                            existingDoc={config.existing}
-                        />
-                    ))}
-                </div>
-
-                {/* Safety Note */}
-                <div className="glass p-8 rounded-[2.5rem] bg-emerald-500/[0.01] border-emerald-500/10 flex gap-6 items-center">
-                    <div className="bg-emerald-500/10 p-4 rounded-3xl">
-                        <ShieldCheck className="w-8 h-8 text-emerald-500" />
-                    </div>
-                    <div>
-                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em] text-main mb-1">Sécurité de vos données</h4>
-                        <p className="text-[12px] text-dim italic opacity-80 leading-relaxed">
-                            Vos documents sont chiffrés et stockés sur des serveurs sécurisés. Seuls les agents habilités de l'agence peuvent les consulter.
-                        </p>
-                    </div>
-                </div>
+                <DocumentsClient travelers={travelers} />
             </div>
         </div>
     );

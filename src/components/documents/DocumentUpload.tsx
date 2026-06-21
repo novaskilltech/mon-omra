@@ -13,9 +13,10 @@ interface DocumentUploadProps {
         file_name: string;
         verified: boolean;
     };
+    targetUserId?: string;
 }
 
-export default function DocumentUpload({ type, label, description, existingDoc }: DocumentUploadProps) {
+export default function DocumentUpload({ type, label, description, existingDoc, targetUserId }: DocumentUploadProps) {
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,9 @@ export default function DocumentUpload({ type, label, description, existingDoc }
         const formData = new FormData();
         formData.append('file', file);
         formData.append('type', type);
+        if (targetUserId) {
+            formData.append('targetUserId', targetUserId);
+        }
 
         try {
             const result = await uploadDocument(formData);

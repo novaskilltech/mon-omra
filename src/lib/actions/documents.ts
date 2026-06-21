@@ -23,14 +23,38 @@ export async function uploadDocument(formData: FormData) {
 
     const file = formData.get('file') as File;
     const type = formData.get('type') as DocumentType;
+    const targetUserId = formData.get('targetUserId') as string | null;
 
     if (!file || !type) {
         throw new Error('Fichier ou type manquant');
     }
 
+    let uploadUserId = resolvedId;
+    if (targetUserId && targetUserId !== resolvedId) {
+        const { data: pilgrimRecords } = await supabase
+            .from('pilgrims')
+            .select('id, family_head_id')
+            .in('id', [resolvedId, targetUserId]);
+            
+        if (pilgrimRecords && pilgrimRecords.length === 2) {
+            const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
+            const targetRecord = pilgrimRecords.find(p => p.id === targetUserId);
+            const selfHead = selfRecord?.family_head_id || resolvedId;
+            const targetHead = targetRecord?.family_head_id || targetUserId;
+            
+            if (selfHead === targetHead) {
+                uploadUserId = targetUserId;
+            } else {
+                throw new Error('Non autorisé à charger des documents pour ce pèlerin');
+            }
+        } else {
+            throw new Error('Pèlerin ou relation de famille introuvable');
+        }
+    }
+
     // 1. Validate with Zod (Contract Enforcement)
     const validation = UserDocumentSchema.safeParse({
-        user_id: resolvedId,
+        user_id: uploadUserId,
         type: type,
         file_name: file.name,
         file_size: file.size,
@@ -45,7 +69,7 @@ export async function uploadDocument(formData: FormData) {
     try {
         // 2. Upload to Supabase Storage (Private Bucket)
         const fileExt = file.name.split('.').pop();
-        const filePath = `${resolvedId}/${type}_${Date.now()}.${fileExt}`;
+        const filePath = `${uploadUserId}/${type}_${Date.now()}.${fileExt}`;
         const fileBuffer = Buffer.from(await file.arrayBuffer());
 
         const { error: uploadError } = await supabase.storage
@@ -61,7 +85,7 @@ export async function uploadDocument(formData: FormData) {
         const { error: dbError } = await supabase
             .from('user_documents')
             .insert({
-                user_id: resolvedId,
+                user_id: uploadUserId,
                 type: type,
                 storage_path: filePath,
                 file_name: file.name,
