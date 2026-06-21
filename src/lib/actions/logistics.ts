@@ -494,47 +494,45 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
         const familyHeadId = pilgrim?.family_head_id || resolvedId;
         let familyMembers: any[] = [];
         try {
-            const { data: rawMembers } = await supabase
-                .from('profiles')
-                .select(`
-                    id,
-                    full_name,
-                    visa_status,
-                    checkin_done,
-                    pilgrims!inner (
-                        id,
-                        family_head_id,
-                        package_price
-                    )
-                `)
-                .or(`id.eq.${familyHeadId},pilgrims.family_head_id.eq.${familyHeadId}`)
-                .eq('role', 'PILGRIM');
+            const { data: rawPilgrims } = await supabase
+                .from('pilgrims')
+                .select('id, family_head_id, package_price')
+                .or(`id.eq.${familyHeadId},family_head_id.eq.${familyHeadId}`);
 
-            const filteredMembers = (rawMembers || []).filter((m: any) => m.id !== resolvedId);
-            
-            for (const member of filteredMembers) {
-                const { data: memberPayments } = await supabase
-                    .from('payments')
-                    .select('amount')
-                    .eq('pilgrim_id', member.id)
-                    .eq('status', 'COMPLETED');
-                const memberTotalPaid = memberPayments ? memberPayments.reduce((acc: number, curr: any) => acc + Number(curr.amount), 0) : 0;
-                
-                const memberDetail = Array.isArray(member.pilgrims) ? member.pilgrims[0] : member.pilgrims;
-                const memberPrice = memberDetail?.package_price !== null && memberDetail?.package_price !== undefined ? Number(memberDetail.package_price) : 2500;
-                const memberIsPaid = memberTotalPaid >= memberPrice;
+            if (rawPilgrims && rawPilgrims.length > 0) {
+                const pilgrimIds = rawPilgrims.map(p => p.id);
+                const { data: rawProfiles } = await supabase
+                    .from('profiles')
+                    .select('id, full_name, visa_status, checkin_done')
+                    .in('id', pilgrimIds);
 
-                familyMembers.push({
-                    id: member.id,
-                    name: member.full_name || '',
-                    is_head: member.id === familyHeadId,
-                    visa_status: member.visa_status === 'APPROVED' ? 'OK' : 'En cours',
-                    visa_ok: member.visa_status === 'APPROVED',
-                    checkin_status: member.checkin_done ? 'Prêt' : 'À faire',
-                    checkin_ok: !!member.checkin_done,
-                    payment_status: memberIsPaid ? 'Payé' : 'En attente',
-                    payment_ok: memberIsPaid
-                });
+                const pilgrimMap = new Map(rawPilgrims.map(p => [p.id, p]));
+                const filteredMembers = (rawProfiles || []).filter((m: any) => m.id !== resolvedId);
+
+                for (const member of filteredMembers) {
+                    const { data: memberPayments } = await supabase
+                        .from('payments')
+                        .select('amount')
+                        .eq('pilgrim_id', member.id)
+                        .eq('status', 'COMPLETED');
+                    const memberTotalPaid = memberPayments ? memberPayments.reduce((acc: number, curr: any) => acc + Number(curr.amount), 0) : 0;
+                    
+                    const memberDetail = pilgrimMap.get(member.id);
+                    const memberPrice = memberDetail?.package_price !== null && memberDetail?.package_price !== undefined ? Number(memberDetail.package_price) : 2500;
+                    const memberIsPaid = memberTotalPaid >= memberPrice;
+
+                    familyMembers.push({
+                        id: member.id,
+                        name: member.full_name || '',
+                        is_head: member.id === familyHeadId,
+                        visa_status: member.visa_status === 'APPROVED' ? 'OK' : 'En cours',
+                        visa_ok: member.visa_status === 'APPROVED',
+                        checkin_status: member.checkin_done ? 'Prêt' : 'À faire',
+                        checkin_ok: !!member.checkin_done,
+                        payment_status: memberIsPaid ? 'Payé' : 'En attente',
+                        payment_ok: memberIsPaid
+                    });
+                }
             }
         } catch (familyErr) {
             console.error("Error fetching family members:", familyErr);
