@@ -698,14 +698,18 @@ export async function getRoomingState(groupId: string) {
 
     // Fallback: If no group hotel stays are defined, fallback to hotels defined on the group's pilgrims
     if (mappedStays.length === 0 && profiles && profiles.length > 0) {
-        const makkahHotelIds = new Set<string>();
-        const madinahHotelIds = new Set<string>();
+        const makkahHotelIds: string[] = [];
+        const madinahHotelIds: string[] = [];
 
         for (const p of profiles) {
             const pilgrimObj = p.pilgrims as any;
             const hotelInfo = pilgrimObj?.individual_hotel_info;
-            if (hotelInfo?.makkah_hotel_id) makkahHotelIds.add(hotelInfo.makkah_hotel_id);
-            if (hotelInfo?.madinah_hotel_id) madinahHotelIds.add(hotelInfo.madinah_hotel_id);
+            if (hotelInfo?.makkah_hotel_id && !makkahHotelIds.includes(hotelInfo.makkah_hotel_id)) {
+                makkahHotelIds.push(hotelInfo.makkah_hotel_id);
+            }
+            if (hotelInfo?.madinah_hotel_id && !madinahHotelIds.includes(hotelInfo.madinah_hotel_id)) {
+                madinahHotelIds.push(hotelInfo.madinah_hotel_id);
+            }
         }
 
         const allHotelIds = [...makkahHotelIds, ...madinahHotelIds];
