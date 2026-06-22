@@ -254,38 +254,53 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
     const sendWhatsAppManifest = () => {
         if (!currentStay) return;
 
-        // Generate manifest text
-        let text = `*MANIFESTE DE RÉPARTITION DES CHAMBRES*\n`;
-        text += `*Hôtel* : ${currentHotelName} (${selectedStay.toUpperCase()})\n`;
-        
         // Helper to format date
         const formatDate = (dateStr: string) => {
             return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
         };
-        
-        if (currentStay.check_in) text += `*Date d'entrée* : ${formatDate(currentStay.check_in)}\n`;
-        if (currentStay.check_out) text += `*Date de sortie* : ${formatDate(currentStay.check_out)}\n\n`;
 
-        text += `*RÉPARTITION PAR CHAMBRE :*\n`;
+        // Generate manifest text
+        let text = `*📋 MANIFESTE DE RÉPARTITION / بيان توزيع الغرف*\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━\n`;
+        text += `*🏨 Hôtel / الفندق* : ${currentHotelName} (${selectedStay.toUpperCase()})\n`;
+        if (currentStay.check_in) text += `*📅 Entrée / الدخول* : ${formatDate(currentStay.check_in)}\n`;
+        if (currentStay.check_out) text += `*📅 Sortie / الخروج* : ${formatDate(currentStay.check_out)}\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+        text += `*🔑 RÉPARTITION PAR CHAMBRE / توزيع الغرف :*\n`;
 
         if (rooms.length === 0) {
-            text += `Aucune chambre configurée.\n`;
+            text += `Aucune chambre configurée / لا توجد غرف مجهزة.\n`;
         } else {
             rooms.forEach(r => {
-                const breakfastText = r.has_breakfast ? "Avec petit-déjeuner" : "Sans petit-déjeuner";
-                text += `\n*Chambre ${r.room_number} (${r.type} - ${breakfastText})* :\n`;
+                const typeMap: Record<string, string> = {
+                    DOUBLE: "Double / ثنائية",
+                    TRIPLE: "Triple / ثلاثية",
+                    QUADRUPLE: "Quadruple / رباعية",
+                    SUITE: "Suite / جناح"
+                };
+                const translatedType = typeMap[r.type] || r.type;
+                const breakfastText = r.has_breakfast 
+                    ? "Avec Petit-déjeuner / مع فطور" 
+                    : "Sans Petit-déjeuner / بدون فطور";
+
+                text += `\n*Chambre / غرفة ${r.room_number}* (${translatedType})\n`;
+                text += `🍽️ _${breakfastText}_\n`;
                 
                 if (r.members.length === 0) {
-                    text += `  _Libre / Disponible_\n`;
+                    text += `  _Libre / Disponible / فارغة_\n`;
                 } else {
                     r.members.forEach((mId, idx) => {
                         const pilgrim = pilgrims.find(p => p.id === mId);
                         if (pilgrim) {
-                            const dueText = pilgrim.balanceDue > 0 ? ` (Reste à payer sur place : ${pilgrim.balanceDue}€)` : '';
-                            text += `  ${idx + 1}. ${pilgrim.name}${dueText}\n`;
+                            const dueText = pilgrim.balanceDue > 0 
+                                ? ` (Reste à payer : ${pilgrim.balanceDue}€ / المتبقي للدفع : ${pilgrim.balanceDue}€)` 
+                                : '';
+                            text += `  • ${pilgrim.name}${dueText}\n`;
                         }
                     });
                 }
+                text += `────────────────────\n`;
             });
         }
 
