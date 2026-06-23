@@ -1539,14 +1539,17 @@ export async function getPilgrimJournalData(groupId: string, pilgrimId?: string)
             }));
 
             if (individualFlight.flights && Array.isArray(individualFlight.flights)) {
-                const outbound = segments.filter((s: any) => {
-                    const fromCity = s.from.toUpperCase();
-                    return fromCity === 'CDG' || fromCity === 'ORY' || fromCity === 'TUN' || fromCity === 'PAR';
-                });
-                const inbound = segments.filter((s: any) => {
+                let saArrivalIndex = segments.findIndex((s: any) => {
                     const toCity = s.to.toUpperCase();
-                    return toCity === 'CDG' || toCity === 'ORY' || toCity === 'TUN' || toCity === 'PAR';
+                    return toCity.includes('JED') || toCity.includes('MED');
                 });
+
+                if (saArrivalIndex === -1) {
+                    saArrivalIndex = Math.floor(segments.length / 2) - 1;
+                }
+
+                const outbound = segments.slice(0, saArrivalIndex + 1);
+                const inbound = segments.slice(saArrivalIndex + 1);
 
                 if (outbound.length > 0) {
                     flightsList.push({
