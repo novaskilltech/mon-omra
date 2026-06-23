@@ -103,9 +103,15 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
         <Page size="A4" style={styles.page}>
             {/* Header */}
             <View style={styles.header}>
-                <View>
-                    <Text style={styles.title}>MON OMRA</Text>
-                    <Text style={styles.subtitle}>Carnet de Voyage Spirituel</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Image 
+                        src="/logo.png" 
+                        style={{ width: 35, height: 35, marginRight: 10, borderRadius: 8 }} 
+                    />
+                    <View>
+                        <Text style={styles.title}>MON OMRA</Text>
+                        <Text style={styles.subtitle}>Carnet de Voyage Spirituel</Text>
+                    </View>
                 </View>
                 <View style={{ textAlign: 'right' }}>
                     <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{data.groupName}</Text>

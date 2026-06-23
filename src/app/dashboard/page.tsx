@@ -90,7 +90,7 @@ export default async function Dashboard() {
                                 <Link href="/dashboard/documents" className="glass py-4 px-8 rounded-2xl font-bold text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-500/10 transition-all text-main shadow-sm">
                                     Mes Documents
                                 </Link>
-                                <DownloadJournalButton groupName="Groupe Ramadan A" groupId="1" pilgrimName={data.pilgrimName} />
+                                <DownloadJournalButton groupName={data.groupName || "Groupe Ramadan A"} groupId={data.groupId || "1"} pilgrimName={data.pilgrimName} pilgrimId={pilgrimCookieId || user?.id} />
                             </div>
                             <div className="flex justify-between items-center mb-10">
                                 <div>

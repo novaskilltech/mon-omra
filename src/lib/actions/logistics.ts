@@ -402,6 +402,16 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
             .eq('id', resolvedId)
             .single();
 
+        let groupName = "Groupe Ramadan A";
+        if (pilgrim && pilgrim.group_id) {
+            const { data: groupData } = await supabase
+                .from('groups')
+                .select('name')
+                .eq('id', pilgrim.group_id)
+                .maybeSingle();
+            if (groupData) groupName = groupData.name;
+        }
+
         let flightInfo = null;
         if (pilgrim && pilgrim.individual_flight_info) {
             const indFlight = pilgrim.individual_flight_info as any;
@@ -429,18 +439,24 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
                 sequence_order: idx
             }));
 
-            const first = segments[0];
-            const last = segments[segments.length - 1];
+            // Find the upcoming flight segment based on current date
+            const now = new Date();
+            let activeSegment = segments.find(s => s.departure_time && new Date(s.departure_time) > now);
+            
+            // If no segment is in the future, default to the first segment (outbound)
+            if (!activeSegment) {
+                activeSegment = segments[0];
+            }
 
             flightInfo = {
-                departureAirport: first.departure_airport,
-                arrivalAirport: last.arrival_airport,
-                departureCity: first.departure_airport === 'CDG' || first.departure_airport === 'ORY' ? 'Paris, FR' : first.departure_airport,
-                arrivalCity: last.arrival_airport === 'JED' ? 'Jeddah, SA' : last.arrival_airport === 'MED' ? 'Médine, SA' : last.arrival_airport,
-                departureDate: first.departure_time ? new Date(first.departure_time).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
-                departureTime: first.departure_time ? new Date(first.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
-                departureDateIso: first.departure_time ? new Date(first.departure_time).toISOString() : '',
-                carrier: first.airline,
+                departureAirport: activeSegment.departure_airport,
+                arrivalAirport: activeSegment.arrival_airport,
+                departureCity: activeSegment.departure_airport === 'CDG' || activeSegment.departure_airport === 'ORY' ? 'Paris, FR' : activeSegment.departure_airport,
+                arrivalCity: activeSegment.arrival_airport === 'JED' ? 'Jeddah, SA' : activeSegment.arrival_airport === 'MED' ? 'Médine, SA' : activeSegment.arrival_airport,
+                departureDate: activeSegment.departure_time ? new Date(activeSegment.departure_time).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+                departureTime: activeSegment.departure_time ? new Date(activeSegment.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+                departureDateIso: activeSegment.departure_time ? new Date(activeSegment.departure_time).toISOString() : '',
+                carrier: activeSegment.airline,
                 baggage_policy: indFlight.baggage_policy,
                 segments
             };
@@ -529,7 +545,7 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
                         visa_ok: member.visa_status === 'APPROVED',
                         checkin_status: member.checkin_done ? 'Prêt' : 'À faire',
                         checkin_ok: !!member.checkin_done,
-                        payment_status: memberIsPaid ? 'Payé' : 'En attente',
+                        payment_status: memberIsPaid ? 'Payé' : `Reste : ${memberPrice - memberTotalPaid} €`,
                         payment_ok: memberIsPaid
                     });
                 }
@@ -540,6 +556,8 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
 
         return {
             pilgrimName: `${profile.full_name || ''}`.trim() || "Salah Lamkhannet",
+            groupId: pilgrim?.group_id || '1',
+            groupName,
             daysToDeparture: daysToDeparture,
             departureAirport: flightInfo?.departureAirport || "CDG",
             arrivalAirport: flightInfo?.arrivalAirport || "JED",
@@ -556,7 +574,7 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
             ],
             checklist: [
                 { label: "Visa Omra", status: profile.visa_status === 'APPROVED' ? "OK" : "En cours", ok: profile.visa_status === 'APPROVED' },
-                { label: "Solde", status: isPaid ? "Payé" : "En attente", ok: isPaid },
+                { label: "Solde", status: isPaid ? "Payé" : `Reste : ${pilgrimPrice - totalPaid} €`, ok: isPaid },
                 { label: "Check-in", status: profile.checkin_done ? "Prêt" : "À faire", ok: !!profile.checkin_done },
             ],
             familyMembers
@@ -572,6 +590,8 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
 
         return {
             pilgrimName: "Salah Lamkhannet",
+            groupId: '1',
+            groupName: "Groupe Ramadan A",
             daysToDeparture: 12,
             departureAirport: "CDG",
             arrivalAirport: "JED",
@@ -1301,7 +1321,7 @@ export async function getPilgrimBadgeData(pilgrimId: string, email?: string) {
         // 2. Fetch Pilgrim Group
         const { data: pilgrim, error: pilgrimErr } = await supabase
             .from('pilgrims')
-            .select('group_id, individual_flight_info')
+            .select('group_id, individual_flight_info, individual_hotel_info')
             .eq('id', resolvedId)
             .single();
 
@@ -1312,7 +1332,48 @@ export async function getPilgrimBadgeData(pilgrimId: string, email?: string) {
         let makkahHotel = "Non défini";
         let madinahHotel = "Non défini";
 
-        // 3. Fetch Stays and Flight Dates
+        // Resolve Individual Hotel Stay if configured
+        if (pilgrim && pilgrim.individual_hotel_info) {
+            const hotelInfo = pilgrim.individual_hotel_info as any;
+            const hotelIds = [];
+            if (hotelInfo.makkah_hotel_id) hotelIds.push(hotelInfo.makkah_hotel_id);
+            if (hotelInfo.madinah_hotel_id) hotelIds.push(hotelInfo.madinah_hotel_id);
+
+            if (hotelIds.length > 0) {
+                const { data: dbHotels } = await supabase
+                    .from('hotels')
+                    .select('id, name, city')
+                    .in('id', hotelIds);
+
+                if (dbHotels) {
+                    const makkahDb = dbHotels.find(h => h.id === hotelInfo.makkah_hotel_id || h.city?.toUpperCase() === 'MAKKAH');
+                    const madinahDb = dbHotels.find(h => h.id === hotelInfo.madinah_hotel_id || h.city?.toUpperCase() === 'MADINAH');
+                    if (makkahDb) makkahHotel = makkahDb.name;
+                    if (madinahDb) madinahHotel = madinahDb.name;
+                }
+            }
+        }
+
+        // Resolve Individual Flight Dates if configured
+        if (pilgrim && pilgrim.individual_flight_info) {
+            const indFlight = pilgrim.individual_flight_info as any;
+            const rawSegments = indFlight.flights && Array.isArray(indFlight.flights) && indFlight.flights.length > 0
+                ? indFlight.flights
+                : [indFlight];
+
+            if (rawSegments.length > 0) {
+                const firstSeg = rawSegments[0];
+                const lastSeg = rawSegments[rawSegments.length - 1];
+                if (firstSeg.departure_time) {
+                    departureDate = new Date(firstSeg.departure_time).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+                }
+                if (lastSeg.arrival_time) {
+                    returnDate = new Date(lastSeg.arrival_time).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+                }
+            }
+        }
+
+        // 3. Fetch Stays and Flight Dates from Group as Fallback
         if (groupId) {
             const { data: group } = await supabase
                 .from('groups')
@@ -1321,41 +1382,45 @@ export async function getPilgrimBadgeData(pilgrimId: string, email?: string) {
                 .single();
             if (group) {
                 groupName = group.name || "";
-                if (group.departure_date) {
+                if (!departureDate && group.departure_date) {
                     departureDate = new Date(group.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
                 }
             }
 
-            // Fetch Hotels
-            const { data: groupStays } = await supabase
-                .from('group_hotel_stays')
-                .select('*, hotels(*)')
-                .eq('group_id', groupId);
+            // Fetch Hotels if still undefined
+            if (makkahHotel === "Non défini" || madinahHotel === "Non défini") {
+                const { data: groupStays } = await supabase
+                    .from('group_hotel_stays')
+                    .select('*, hotels(*)')
+                    .eq('group_id', groupId);
 
-            if (groupStays) {
-                const makkahStay = groupStays.find(s => s.hotels?.city?.toUpperCase() === 'MAKKAH');
-                const madinahStay = groupStays.find(s => s.hotels?.city?.toUpperCase() === 'MADINAH');
-                if (makkahStay) makkahHotel = makkahStay.hotels?.name || "Hôtel Makkah";
-                if (madinahStay) madinahHotel = madinahStay.hotels?.name || "Hôtel Médine";
+                if (groupStays) {
+                    const makkahStay = groupStays.find(s => s.hotels?.city?.toUpperCase() === 'MAKKAH');
+                    const madinahStay = groupStays.find(s => s.hotels?.city?.toUpperCase() === 'MADINAH');
+                    if (makkahHotel === "Non défini" && makkahStay) makkahHotel = makkahStay.hotels?.name || "Hôtel Makkah";
+                    if (madinahHotel === "Non défini" && madinahStay) madinahHotel = madinahStay.hotels?.name || "Hôtel Médine";
+                }
             }
 
-            // Fetch return flight date from group logistics
-            const { data: groupLogistics } = await supabase
-                .from('group_logistics')
-                .select('flight_return_id')
-                .eq('group_id', groupId)
-                .single();
-
-            if (groupLogistics && groupLogistics.flight_return_id) {
-                const { data: retFlight } = await supabase
-                    .from('flights')
-                    .select('*, flight_segments(*)')
-                    .eq('id', groupLogistics.flight_return_id)
+            // Fetch return flight date if still undefined
+            if (!returnDate) {
+                const { data: groupLogistics } = await supabase
+                    .from('group_logistics')
+                    .select('flight_return_id')
+                    .eq('group_id', groupId)
                     .single();
-                
-                const retTime = retFlight?.flight_segments?.[retFlight.flight_segments.length - 1]?.arrival_time;
-                if (retTime) {
-                    returnDate = new Date(retTime).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                if (groupLogistics && groupLogistics.flight_return_id) {
+                    const { data: retFlight } = await supabase
+                        .from('flights')
+                        .select('*, flight_segments(*)')
+                        .eq('id', groupLogistics.flight_return_id)
+                        .single();
+                    
+                    const retTime = retFlight?.flight_segments?.[retFlight.flight_segments.length - 1]?.arrival_time;
+                    if (retTime) {
+                        returnDate = new Date(retTime).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+                    }
                 }
             }
         }
@@ -1411,6 +1476,291 @@ export async function getPilgrimBadgeData(pilgrimId: string, email?: string) {
     } catch (e: any) {
         console.error("Error in getPilgrimBadgeData:", e);
         return { error: e.message || "Erreur lors de la récupération des données du badge." };
+    }
+}
+
+export async function getPilgrimJournalData(groupId: string, pilgrimId?: string) {
+    const supabase = createClient();
+    try {
+        let groupName = "Groupe";
+        let resolvedPilgrimName = "Tous les Pèlerins";
+        
+        // Fetch group details if groupId is valid
+        if (groupId && groupId !== '1') {
+            const { data: group } = await supabase
+                .from('groups')
+                .select('name')
+                .eq('id', groupId)
+                .maybeSingle();
+            if (group) {
+                groupName = group.name;
+            }
+        }
+
+        // Resolving pilgrim name
+        let individualFlight = null;
+        let individualHotel = null;
+
+        if (pilgrimId && pilgrimId !== 'demo-pilgrim-id') {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', pilgrimId)
+                .maybeSingle();
+            if (profile) {
+                resolvedPilgrimName = profile.full_name;
+            }
+
+            const { data: pilgrim } = await supabase
+                .from('pilgrims')
+                .select('individual_flight_info, individual_hotel_info')
+                .eq('id', pilgrimId)
+                .maybeSingle();
+            if (pilgrim) {
+                individualFlight = pilgrim.individual_flight_info as any;
+                individualHotel = pilgrim.individual_hotel_info as any;
+            }
+        }
+
+        // 1. Resolve Flights
+        let flightsList: any[] = [];
+        if (individualFlight && (individualFlight.flights || individualFlight.departure_airport)) {
+            const rawFlights = individualFlight.flights && Array.isArray(individualFlight.flights)
+                ? individualFlight.flights
+                : [individualFlight];
+
+            const segments = rawFlights.map((f: any) => ({
+                from: f.departure_airport || '',
+                to: f.arrival_airport || '',
+                flightNum: f.flight_number || '',
+                date: f.departure_time ? new Date(f.departure_time).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }) : '',
+                time: f.departure_time ? new Date(f.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+                departure_time: f.departure_time
+            }));
+
+            if (individualFlight.flights && Array.isArray(individualFlight.flights)) {
+                const outbound = segments.filter((s: any) => {
+                    const fromCity = s.from.toUpperCase();
+                    return fromCity === 'CDG' || fromCity === 'ORY' || fromCity === 'TUN' || fromCity === 'PAR';
+                });
+                const inbound = segments.filter((s: any) => {
+                    const toCity = s.to.toUpperCase();
+                    return toCity === 'CDG' || toCity === 'ORY' || toCity === 'TUN' || toCity === 'PAR';
+                });
+
+                if (outbound.length > 0) {
+                    flightsList.push({
+                        type: 'ALLER',
+                        carrier: rawFlights[0]?.airline || 'Turkish Airlines',
+                        segments: outbound
+                    });
+                }
+                if (inbound.length > 0) {
+                    flightsList.push({
+                        type: 'RETOUR',
+                        carrier: rawFlights[rawFlights.length - 1]?.airline || 'Saudi Arabian',
+                        segments: inbound
+                    });
+                }
+            } else {
+                flightsList.push({
+                    type: 'ALLER/RETOUR',
+                    carrier: individualFlight.airline || 'Compagnie',
+                    segments: segments
+                });
+            }
+        }
+
+        // If flightsList is empty, fetch group flights
+        if (flightsList.length === 0 && groupId && groupId !== '1') {
+            const { data: groupLogistics } = await supabase
+                .from('group_logistics')
+                .select('flight_departure_id, flight_return_id')
+                .eq('group_id', groupId)
+                .maybeSingle();
+
+            if (groupLogistics) {
+                if (groupLogistics.flight_departure_id) {
+                    const { data: dep } = await supabase
+                        .from('flights')
+                        .select('*, flight_segments(*)')
+                        .eq('id', groupLogistics.flight_departure_id)
+                        .maybeSingle();
+                    if (dep && dep.flight_segments) {
+                        flightsList.push({
+                            type: 'ALLER',
+                            carrier: dep.flight_segments[0]?.airline || 'Turkish Airlines',
+                            segments: dep.flight_segments.map((s: any) => ({
+                                from: s.departure_airport,
+                                to: s.arrival_airport,
+                                flightNum: s.flight_number,
+                                date: new Date(s.departure_time).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }),
+                                time: new Date(s.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                            }))
+                        });
+                    }
+                }
+                if (groupLogistics.flight_return_id) {
+                    const { data: ret } = await supabase
+                        .from('flights')
+                        .select('*, flight_segments(*)')
+                        .eq('id', groupLogistics.flight_return_id)
+                        .maybeSingle();
+                    if (ret && ret.flight_segments) {
+                        flightsList.push({
+                            type: 'RETOUR',
+                            carrier: ret.flight_segments[0]?.airline || 'Saudi Arabian',
+                            segments: ret.flight_segments.map((s: any) => ({
+                                from: s.departure_airport,
+                                to: s.arrival_airport,
+                                flightNum: s.flight_number,
+                                date: new Date(s.departure_time).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }),
+                                time: new Date(s.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                            }))
+                        });
+                    }
+                }
+            }
+        }
+
+        // 2. Resolve Hotels
+        let hotelsList: any[] = [];
+        if (individualHotel && (individualHotel.makkah_hotel_id || individualHotel.madinah_hotel_id)) {
+            const hotelIds = [];
+            if (individualHotel.makkah_hotel_id) hotelIds.push(individualHotel.makkah_hotel_id);
+            if (individualHotel.madinah_hotel_id) hotelIds.push(individualHotel.madinah_hotel_id);
+
+            if (hotelIds.length > 0) {
+                const { data: dbHotels } = await supabase
+                    .from('hotels')
+                    .select('id, name, city')
+                    .in('id', hotelIds);
+
+                if (dbHotels) {
+                    const makkahDb = dbHotels.find(h => h.id === individualHotel.makkah_hotel_id);
+                    const madinahDb = dbHotels.find(h => h.id === individualHotel.madinah_hotel_id);
+                    
+                    if (makkahDb) {
+                        hotelsList.push({
+                            name: makkahDb.name,
+                            city: 'Makkah',
+                            checkIn: individualHotel.makkah_checkin ? new Date(individualHotel.makkah_checkin).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }) : 'À définir',
+                            checkOut: individualHotel.makkah_checkout ? new Date(individualHotel.makkah_checkout).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }) : 'À définir'
+                        });
+                    }
+                    if (madinahDb) {
+                        hotelsList.push({
+                            name: madinahDb.name,
+                            city: 'Madinah',
+                            checkIn: individualHotel.madinah_checkin ? new Date(individualHotel.madinah_checkin).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }) : 'À définir',
+                            checkOut: individualHotel.madinah_checkout ? new Date(individualHotel.madinah_checkout).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }) : 'À définir'
+                        });
+                    }
+                }
+            }
+        }
+
+        // If hotelsList is empty, fetch group hotel stays
+        if (hotelsList.length === 0 && groupId && groupId !== '1') {
+            const { data: groupStays } = await supabase
+                .from('group_hotel_stays')
+                .select('*, hotels(*)')
+                .eq('group_id', groupId)
+                .order('check_in', { ascending: true });
+
+            if (groupStays) {
+                hotelsList = groupStays.map((s: any) => ({
+                    name: s.hotels?.name || 'Hôtel',
+                    city: s.hotels?.city || 'MAKKAH',
+                    checkIn: s.check_in ? new Date(s.check_in).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }) : '',
+                    checkOut: s.check_out ? new Date(s.check_out).toLocaleDateString('fr-FR', { day: 'numeric', month: '2-digit' }) : ''
+                }));
+            }
+        }
+
+        // 3. Resolve Program
+        let programList: any[] = [];
+        if (pilgrimId && pilgrimId !== 'demo-pilgrim-id') {
+            const progResult = await getPilgrimProgram(pilgrimId);
+            if (progResult && progResult.days) {
+                programList = progResult.days.map((d: any) => ({
+                    day: d.day,
+                    date: d.date,
+                    activities: d.guidedActivities.map((act: any) => ({
+                        time: act.time,
+                        title: act.title,
+                        description: act.description
+                    }))
+                }));
+            }
+        }
+
+        // Fallbacks for empty results
+        if (flightsList.length === 0) {
+            flightsList = [
+                {
+                    type: 'ALLER',
+                    carrier: 'Turkish Airlines',
+                    segments: [
+                        { from: 'CDG', to: 'IST', flightNum: 'TK1822', date: '15/05', time: '11:40' },
+                        { from: 'IST', to: 'JED', flightNum: 'TK96', date: '15/05', time: '20:15' }
+                    ]
+                },
+                {
+                    type: 'RETOUR',
+                    carrier: 'Saudi Arabian',
+                    segments: [
+                        { from: 'MED', to: 'CDG', flightNum: 'SV143', date: '30/05', time: '09:20' }
+                    ]
+                }
+            ];
+        }
+
+        if (hotelsList.length === 0) {
+            hotelsList = [
+                { name: 'Hilton Convention', city: 'Makkah', checkIn: '15/05', checkOut: '22/05' },
+                { name: 'Pullman Zamzam', city: 'Madinah', checkIn: '22/05', checkOut: '30/05' }
+            ];
+        }
+
+        if (programList.length === 0) {
+            programList = [
+                {
+                    day: 1,
+                    date: '15 Mai',
+                    activities: [
+                        { time: '20:15', title: 'Atterrissage Jeddah', description: 'Accueil terminal Hajj.' },
+                        { time: '23:30', title: 'Arrivée Makkah', description: 'Check-in et repos rapide.' }
+                    ]
+                },
+                {
+                    day: 2,
+                    date: '16 Mai',
+                    activities: [
+                        { time: '09:00', title: 'Omra Collective', description: 'Rendez-vous dans le lobby en Ihram.' }
+                    ]
+                }
+            ];
+        }
+
+        return {
+            success: true,
+            data: {
+                groupName,
+                groupId,
+                pilgrimName: resolvedPilgrimName,
+                flights: flightsList,
+                hotels: hotelsList,
+                program: programList
+            }
+        };
+
+    } catch (error: any) {
+        console.error("Error fetching journal data:", error);
+        return {
+            success: false,
+            error: error.message || "Erreur de chargement du carnet de voyage"
+        };
     }
 }
 

@@ -1,69 +1,79 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { FileText, Download, Loader2 } from 'lucide-react';
 import { TravelJournalDocument } from '@/lib/reports/TravelJournalTemplate';
+import { getPilgrimJournalData } from '@/lib/actions/logistics';
 
 export default function DownloadJournalButton({
     groupName,
     groupId,
-    pilgrimName
+    pilgrimName,
+    pilgrimId
 }: {
     groupName: string,
     groupId: string,
-    pilgrimName: string
+    pilgrimName: string,
+    pilgrimId?: string
 }) {
-    // Mock data for the demonstration build
-    const data = {
-        groupName,
-        groupId,
-        pilgrimName,
-        flights: [
-            {
-                type: 'ALLER',
-                carrier: 'Turkish Airlines',
-                segments: [
-                    { from: 'CDG', to: 'IST', flightNum: 'TK1822', date: '15/05', time: '11:40' },
-                    { from: 'IST', to: 'JED', flightNum: 'TK96', date: '15/05', time: '20:15' }
-                ]
-            },
-            {
-                type: 'RETOUR',
-                carrier: 'Saudi Arabian',
-                segments: [
-                    { from: 'MED', to: 'CDG', flightNum: 'SV143', date: '30/05', time: '09:20' }
-                ]
+    const [journalData, setJournalData] = useState<any>(null);
+    const [loadingData, setLoadingData] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                setLoadingData(true);
+                const res = await getPilgrimJournalData(groupId, pilgrimId);
+                if (res.success && res.data) {
+                    setJournalData(res.data);
+                } else {
+                    setError(res.error || "Impossible de charger le carnet de voyage");
+                }
+            } catch (err: any) {
+                console.error(err);
+                setError(err.message || "Erreur de chargement");
+            } finally {
+                setLoadingData(false);
             }
-        ],
-        hotels: [
-            { name: 'Hilton Convention', city: 'Makkah', checkIn: '15/05', checkOut: '22/05' },
-            { name: 'Pullman Zamzam', city: 'Madinah', checkIn: '22/05', checkOut: '30/05' }
-        ],
-        program: [
-            {
-                day: 1,
-                date: '15 Mai',
-                activities: [
-                    { time: '20:15', title: 'Atterrissage Jeddah', description: 'Accueil terminal Hajj.' },
-                    { time: '23:30', title: 'Arrivée Makkah', description: 'Check-in et repos rapide.' }
-                ]
-            },
-            {
-                day: 2,
-                date: '16 Mai',
-                activities: [
-                    { time: '09:00', title: 'Omra Collective', description: 'Rendez-vous dans le lobby en Ihram.' }
-                ]
-            }
-        ]
-    };
+        }
+        loadData();
+    }, [groupId, pilgrimId]);
+
+    if (loadingData) {
+        return (
+            <div className="inline-block">
+                <button
+                    disabled
+                    className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all border bg-emerald-500/10 border-emerald-500/20 text-dim cursor-not-allowed"
+                >
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Chargement...</span>
+                </button>
+            </div>
+        );
+    }
+
+    if (error || !journalData) {
+        return (
+            <div className="inline-block" title={error || "Erreur"}>
+                <button
+                    disabled
+                    className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all border bg-red-500/10 border-red-500/20 text-red-500 cursor-not-allowed"
+                >
+                    <FileText className="w-4 h-4" />
+                    <span>Carnet indisponible</span>
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="inline-block">
             <PDFDownloadLink
-                document={<TravelJournalDocument data={data} />}
-                fileName={`Carnet_Voyage_${groupName.replace(/\s+/g, '_')}.pdf`}
+                document={<TravelJournalDocument data={journalData} />}
+                fileName={`Carnet_Voyage_${journalData.pilgrimName.replace(/\s+/g, '_')}.pdf`}
             >
                 {({ blob, url, loading, error }) => (
                     <button
