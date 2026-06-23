@@ -28,26 +28,26 @@ export default function DocumentsClient({ travelers }: DocumentsClientProps) {
     const currentTraveler = travelers.find(t => t.id === activeTab) || travelers[0];
     if (!currentTraveler) return null;
 
-    const getDoc = (type: string) => currentTraveler.documents.find(d => d.type === type);
+    const getDocs = (type: string) => currentTraveler.documents.filter(d => d.type === type);
 
     const docConfigs = [
         {
             type: 'PASSPORT' as const,
             label: 'Passeport',
             description: 'Copie lisible de la page d\'identité. Le passeport doit être valide au moins 6 mois après votre retour.',
-            existing: getDoc('PASSPORT')
+            existingDocs: getDocs('PASSPORT')
         },
         {
             type: 'PHOTO' as const,
             label: 'Photo d\'identité',
             description: 'Photo récente sur fond blanc, format passeport (e-photo acceptée).',
-            existing: getDoc('PHOTO')
+            existingDocs: getDocs('PHOTO')
         },
         {
             type: 'RESIDENCE_PERMIT' as const,
             label: 'Titre de Séjour',
             description: 'Uniquement pour les résidents non-européens. Copie recto-verso en cours de validité.',
-            existing: getDoc('RESIDENCE_PERMIT')
+            existingDocs: getDocs('RESIDENCE_PERMIT')
         }
     ];
 
@@ -86,7 +86,7 @@ export default function DocumentsClient({ travelers }: DocumentsClientProps) {
                         type={config.type}
                         label={config.label}
                         description={config.description}
-                        existingDoc={config.existing}
+                        existingDocs={config.existingDocs}
                         targetUserId={activeTab}
                     />
                 ))}

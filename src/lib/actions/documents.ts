@@ -67,6 +67,35 @@ export async function uploadDocument(formData: FormData) {
     }
 
     try {
+        // Enforce document count limits and overwrite old ones
+        const { data: existingDocs } = await supabase
+            .from('user_documents')
+            .select('*')
+            .eq('user_id', uploadUserId)
+            .eq('type', type)
+            .order('created_at', { ascending: true });
+
+        const maxAllowed = type === 'RESIDENCE_PERMIT' ? 2 : 1;
+        
+        if (existingDocs && existingDocs.length >= maxAllowed) {
+            const docsToDelete = type === 'RESIDENCE_PERMIT' 
+                ? [existingDocs[0]] 
+                : existingDocs;
+
+            for (const doc of docsToDelete) {
+                // Delete file from storage
+                await supabase.storage
+                    .from('pelerin-documents')
+                    .remove([doc.storage_path]);
+                
+                // Delete record from DB
+                await supabase
+                    .from('user_documents')
+                    .delete()
+                    .eq('id', doc.id);
+            }
+        }
+
         // 2. Upload to Supabase Storage (Private Bucket)
         const fileExt = file.name.split('.').pop();
         const filePath = `${uploadUserId}/${type}_${Date.now()}.${fileExt}`;
@@ -155,5 +184,73 @@ export async function getPilgrimDocuments(pilgrimId: string) {
     } catch (e: any) {
         console.error("Error in getPilgrimDocuments:", e);
         return { error: e.message || "Erreur lors de la récupération des documents" };
+    }
+}
+
+/**
+ * Deletes a pilgrim document (can be called by pilgrim or family head).
+ */
+export async function deleteDocumentAction(documentId: string) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+    const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
+
+    if (!resolvedId) {
+        throw new Error('Non autorisé');
+    }
+
+    const { data: doc, error: fetchError } = await supabase
+        .from('user_documents')
+        .select('*')
+        .eq('id', documentId)
+        .single();
+
+    if (fetchError || !doc) {
+        return { error: 'Document introuvable' };
+    }
+
+    // Ensure ownership or same family folder
+    let isAuthorized = doc.user_id === resolvedId;
+    if (!isAuthorized) {
+        const { data: pilgrimRecords } = await supabase
+            .from('pilgrims')
+            .select('id, family_head_id')
+            .in('id', [resolvedId, doc.user_id]);
+
+        if (pilgrimRecords && pilgrimRecords.length === 2) {
+            const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
+            const targetRecord = pilgrimRecords.find(p => p.id === doc.user_id);
+            const selfHead = selfRecord?.family_head_id || resolvedId;
+            const targetHead = targetRecord?.family_head_id || doc.user_id;
+            if (selfHead === targetHead) {
+                isAuthorized = true;
+            }
+        }
+    }
+
+    if (!isAuthorized) {
+        return { error: 'Non autorisé à supprimer ce document' };
+    }
+
+    try {
+        const { error: storageError } = await supabase.storage
+            .from('pelerin-documents')
+            .remove([doc.storage_path]);
+
+        if (storageError) console.error("Storage delete error:", storageError);
+
+        const { error: dbError } = await supabase
+            .from('user_documents')
+            .delete()
+            .eq('id', documentId);
+
+        if (dbError) throw dbError;
+
+        revalidatePath('/dashboard/documents');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error deleting document:", e);
+        return { error: e.message || "Erreur de suppression du document" };
     }
 }

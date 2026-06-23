@@ -1,26 +1,31 @@
 'use client';
 
 import { useState } from 'react';
-import { Upload, CheckCircle2, AlertCircle, Loader2, FileText } from 'lucide-react';
-import { uploadDocument } from '@/lib/actions/documents';
+import { Upload, CheckCircle2, AlertCircle, Loader2, FileText, Trash2 } from 'lucide-react';
+import { uploadDocument, deleteDocumentAction } from '@/lib/actions/documents';
 import { DocumentType } from '@/types/documents';
 
 interface DocumentUploadProps {
     type: DocumentType;
     label: string;
     description: string;
-    existingDoc?: {
+    existingDocs?: Array<{
+        id: string;
         file_name: string;
         verified: boolean;
-    };
+    }>;
     targetUserId?: string;
 }
 
-export default function DocumentUpload({ type, label, description, existingDoc, targetUserId }: DocumentUploadProps) {
+export default function DocumentUpload({ type, label, description, existingDocs = [], targetUserId }: DocumentUploadProps) {
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(!!existingDoc);
+
+    const hasDocs = existingDocs.length > 0;
+    const maxFiles = type === 'RESIDENCE_PERMIT' ? 2 : 1;
+    const showUpload = existingDocs.length < maxFiles;
+    const allDocsUploaded = existingDocs.length === maxFiles;
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -32,10 +37,9 @@ export default function DocumentUpload({ type, label, description, existingDoc, 
         }
 
         setUploading(true);
-        setProgress(10); // Start progress
+        setProgress(10);
         setError(null);
 
-        // Simulated progress interval
         const interval = setInterval(() => {
             setProgress((prev) => {
                 if (prev >= 90) return prev;
@@ -57,9 +61,6 @@ export default function DocumentUpload({ type, label, description, existingDoc, 
 
             if (result.error) {
                 setError(result.error);
-                setSuccess(false);
-            } else {
-                setSuccess(true);
             }
         } catch (err) {
             clearInterval(interval);
@@ -70,76 +71,112 @@ export default function DocumentUpload({ type, label, description, existingDoc, 
         }
     };
 
+    const handleDelete = async (docId: string) => {
+        if (!confirm("Voulez-vous vraiment supprimer ce document ?")) return;
+        setUploading(true);
+        setError(null);
+        try {
+            const result = await deleteDocumentAction(docId);
+            if (result.error) {
+                setError(result.error);
+            }
+        } catch (err) {
+            setError("Erreur lors de la suppression du document.");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     return (
         <div className={`glass p-6 rounded-3xl border transition-all duration-300 ${
-            success ? 'border-emerald-500/20 bg-emerald-500/[0.02]' : 'border-emerald-500/5 hover:border-emerald-500/20'
+            allDocsUploaded ? 'border-emerald-500/20 bg-emerald-500/[0.02]' : 'border-emerald-500/5 hover:border-emerald-500/20'
         }`}>
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                     <h3 className="text-sm font-bold text-main uppercase tracking-tight mb-1 flex items-center gap-2">
                         {label}
-                        {success && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                        {allDocsUploaded && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />}
                     </h3>
                     <p className="text-xs text-dim opacity-70 leading-relaxed">
                         {description}
                     </p>
                 </div>
-                {success ? (
-                    <div className="bg-emerald-500/10 p-3 rounded-2xl">
+                {allDocsUploaded ? (
+                    <div className="bg-emerald-500/10 p-3 rounded-2xl shrink-0 ml-4">
                         <FileText className="w-6 h-6 text-emerald-500" />
                     </div>
                 ) : (
-                    <div className="bg-emerald-500/5 p-3 rounded-2xl">
+                    <div className="bg-emerald-500/5 p-3 rounded-2xl shrink-0 ml-4">
                         <Upload className="w-6 h-6 text-dim" />
                     </div>
                 )}
             </div>
 
-            {success ? (
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-                        {existingDoc?.verified ? "Document Vérifié" : "En attente de vérification"}
+            {/* List of existing uploaded documents */}
+            {hasDocs && (
+                <div className="space-y-2 mb-4">
+                    {existingDocs.map((doc) => (
+                        <div key={doc.id} className="flex justify-between items-center bg-[#0b0f0d]/35 p-3 rounded-2xl border border-emerald-500/5">
+                            <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                                <div className="bg-emerald-500/10 p-2 rounded-xl shrink-0">
+                                    <FileText className="w-4 h-4 text-emerald-500" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <span className="font-bold text-main block text-xs truncate" title={doc.file_name}>{doc.file_name}</span>
+                                    <span className={`text-[9px] font-black uppercase tracking-wider ${
+                                        doc.verified ? 'text-emerald-500' : 'text-amber-500'
+                                    }`}>
+                                        {doc.verified ? "Vérifié" : "En attente"}
+                                    </span>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => handleDelete(doc.id)}
+                                disabled={uploading}
+                                className="p-2 text-red-500/70 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all disabled:opacity-50 shrink-0"
+                                title="Supprimer"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+                <div className="flex items-center gap-2 text-[11px] text-red-500 font-bold uppercase tracking-widest bg-red-500/5 p-3 rounded-xl border border-red-500/10 mb-4">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {error}
+                </div>
+            )}
+
+            {/* File Upload Dropzone / Button */}
+            {showUpload && (
+                <label className="block w-full">
+                    <div className={`btn-premium py-4 flex flex-col items-center justify-center gap-2 cursor-pointer relative overflow-hidden ${uploading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                        {uploading && (
+                            <div 
+                                className="absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]" 
+                                style={{ width: `${progress}%` }} 
+                            />
+                        )}
+                        {uploading ? (
+                            <div className="flex items-center gap-3">
+                                <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+                                <span className="text-[11px] font-black uppercase tracking-widest">Envoi... {Math.round(progress)}%</span>
+                            </div>
+                        ) : (
+                            <>
+                                <Upload className="w-4 h-4" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">
+                                    {hasDocs ? "Charger le deuxième fichier (Recto/Verso)" : "Télécharger le document"}
+                                </span>
+                            </>
+                        )}
                     </div>
-                    <label className="block w-full">
-                        <span className="btn-premium py-2 text-[10px] cursor-pointer block text-center opacity-70 hover:opacity-100">
-                            {existingDoc?.verified ? "Mettre à jour le document vérifié" : "Modifier le document"}
-                            <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} accept="application/pdf,image/*" />
-                        </span>
-                    </label>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {error && (
-                        <div className="flex items-center gap-2 text-[11px] text-red-500 font-bold uppercase tracking-widest bg-red-500/5 p-3 rounded-xl border border-red-500/10">
-                            <AlertCircle className="w-4 h-4" />
-                            {error}
-                        </div>
-                    )}
-                    <label className="block w-full">
-                        <div className={`btn-premium py-4 flex flex-col items-center justify-center gap-3 cursor-pointer relative overflow-hidden ${uploading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-                            {uploading && (
-                                <div 
-                                    className="absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]" 
-                                    style={{ width: `${progress}%` }} 
-                                />
-                            )}
-                            {uploading ? (
-                                <>
-                                    <div className="flex items-center gap-3">
-                                        <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
-                                        <span className="text-[11px] font-black uppercase tracking-widest">Envoi... {Math.round(progress)}%</span>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <Upload className="w-4 h-4" />
-                                    Télécharger le document
-                                </>
-                            )}
-                        </div>
-                        <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} accept="application/pdf,image/*" />
-                    </label>
-                </div>
+                    <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} accept="application/pdf,image/*" />
+                </label>
             )}
         </div>
     );
