@@ -441,7 +441,7 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
 
             // Find the upcoming flight segment based on current date
             const now = new Date();
-            let activeSegment = segments.find(s => s.departure_time && new Date(s.departure_time) > now);
+            let activeSegment = segments.find((s: any) => s.departure_time && new Date(s.departure_time) > now);
             
             // If no segment is in the future, default to the first segment (outbound)
             if (!activeSegment) {
