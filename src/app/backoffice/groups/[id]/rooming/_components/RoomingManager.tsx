@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Hotel, Users, Trash2, Check, AlertCircle, Loader2, Plus, Coffee, Send, Sparkles } from 'lucide-react';
+import { User, Hotel, Users, Trash2, Check, AlertCircle, Loader2, Plus, Coffee, Send, Sparkles, Edit, X } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { 
     assignPilgrimToRoom, 
@@ -9,7 +9,8 @@ import {
     getRoomingState,
     createRoomAction,
     deleteRoomAction,
-    toggleRoomBreakfastAction
+    toggleRoomBreakfastAction,
+    updateRoomAction
 } from '@/lib/actions/logistics';
 
 export default function RoomingManager({ groupId }: { groupId: string }) {
@@ -30,6 +31,13 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
     const [newRoomType, setNewRoomType] = useState<'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'SUITE'>('DOUBLE');
     const [newRoomBreakfast, setNewRoomBreakfast] = useState(false);
     const [creatingRoom, setCreatingRoom] = useState(false);
+
+    // Room Editing states
+    const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
+    const [editRoomNumber, setEditRoomNumber] = useState('');
+    const [editRoomType, setEditRoomType] = useState<'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'SUITE'>('DOUBLE');
+    const [editRoomCapacity, setEditRoomCapacity] = useState(2);
+    const [editRoomBreakfast, setEditRoomBreakfast] = useState(false);
 
     // Click assignment state
     const [selectedPilgrimId, setSelectedPilgrimId] = useState<string | null>(null);
@@ -146,6 +154,36 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
             }
         } catch (err) {
             showToast("Erreur lors de la modification.", "error");
+        }
+    };
+
+    const handleUpdateRoom = async (roomId: string) => {
+        setLoading(roomId);
+        try {
+            const res = await updateRoomAction(roomId, {
+                room_number: editRoomNumber,
+                type: editRoomType,
+                capacity: editRoomCapacity,
+                has_breakfast: editRoomBreakfast
+            });
+            if (res.success) {
+                setDbRooms(prev => prev.map(r => r.id === roomId ? { 
+                    ...r, 
+                    room_number: editRoomNumber, 
+                    type: editRoomType, 
+                    capacity: editRoomCapacity, 
+                    has_breakfast: editRoomBreakfast 
+                } : r));
+                setEditingRoomId(null);
+                showToast("Chambre modifiée avec succès.");
+            } else {
+                showToast(res.error || "Erreur de modification.", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showToast("Erreur lors de la modification.", "error");
+        } finally {
+            setLoading(null);
         }
     };
 
@@ -517,91 +555,190 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
                                 </div>
 
                                 <div className="relative z-10">
-                                    <div className="flex justify-between items-start mb-8">
-                                        <div>
-                                            <h4 className="text-2xl font-black uppercase tracking-tighter text-main">Chambre {room.room_number}</h4>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-[0.2em]">{room.type}</span>
+                                    {editingRoomId === room.id ? (
+                                        <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
+                                            <div className="flex justify-between items-center">
+                                                <h4 className="text-sm font-black uppercase tracking-tight text-main">Modifier la Chambre</h4>
                                                 <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleToggleBreakfast(room.id, room.has_breakfast);
-                                                    }}
-                                                    className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1 border transition-all ${
-                                                        room.has_breakfast
-                                                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                                                            : 'bg-emerald-500/5 text-dim border-emerald-500/10 hover:border-emerald-500/30'
-                                                    }`}
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); setEditingRoomId(null); }}
+                                                    className="p-1 hover:bg-white/10 rounded"
                                                 >
-                                                    <Coffee className="w-2.5 h-2.5" /> {room.has_breakfast ? 'Avec PDJ' : 'Sans PDJ'}
+                                                    <X className="w-4 h-4 text-dim hover:text-main" />
                                                 </button>
                                             </div>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-2">
-                                            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black border shadow-sm ${room.members.length >= room.capacity
-                                                ? 'border-red-500/20 text-red-600 dark:text-red-400 bg-red-400/5'
-                                                : 'border-emerald-500/10 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5'
-                                                }`}>
-                                                {room.members.length} / {room.capacity}
-                                            </div>
-                                            {room.members.length === 0 && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteRoom(room.id);
-                                                    }}
-                                                    disabled={loading === room.id}
-                                                    className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                                    title="Supprimer la chambre vide"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {[...Array(room.capacity)].map((_, i) => {
-                                            const pilgrimId = room.members[i];
-                                            const pilgrim = pilgrims.find(p => p.id === pilgrimId);
-
-                                            return (
-                                                <div 
-                                                    key={i} 
-                                                    draggable={!!pilgrim}
-                                                    onDragStart={pilgrim ? (e) => handleDragStart(e, pilgrim.id) : undefined}
-                                                    onDragEnd={() => setDraggedPilgrimId(null)}
-                                                    className={`p-4 rounded-2xl flex items-center justify-between border transition-all ${pilgrim ? 'bg-emerald-500/5 dark:bg-white/5 border-emerald-500/10 dark:border-white/10 shadow-inner cursor-grab active:cursor-grabbing' : 'border-dashed border-emerald-500/10 dark:border-white/5 text-dim opacity-30'
-                                                    } ${draggedPilgrimId === pilgrimId ? 'opacity-50 scale-95' : ''}`}
-                                                >
-                                                    {pilgrim ? (
-                                                        <>
-                                                            <div className="flex items-center gap-3 pointer-events-none">
-                                                                {pilgrim.gender === 'F' && (
-                                                                    <span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block shrink-0 shadow-[0_0_8px_rgba(236,72,153,0.4)]" title="Féminin"></span>
-                                                                )}
-                                                                {pilgrim.gender === 'M' && (
-                                                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block shrink-0 shadow-[0_0_8px_rgba(96,165,250,0.4)]" title="Masculin"></span>
-                                                                )}
-                                                                <span className="text-xs font-black uppercase tracking-tight text-main">{pilgrim.name}</span>
-                                                            </div>
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); handleUnassign(pilgrim.id, room.id); }}
-                                                                className="p-2 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                                                            >
-                                                                 <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </>
-                                                    ) : (
-                                                        <div className="flex items-center gap-3 pointer-events-none">
-                                                            <div className="w-2 h-2 rounded-full bg-emerald-500/20" />
-                                                            <span className="text-[10px] uppercase font-black tracking-widest">Lit {String.fromCharCode(65 + i)} disponible</span>
-                                                        </div>
-                                                    )}
+                                            
+                                            <div className="space-y-3 text-xs">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold uppercase tracking-wider text-dim mb-1">Numéro de Chambre</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={editRoomNumber} 
+                                                        onChange={(e) => setEditRoomNumber(e.target.value)}
+                                                        className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500"
+                                                    />
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold uppercase tracking-wider text-dim mb-1">Type de Chambre</label>
+                                                    <select 
+                                                        value={editRoomType} 
+                                                        onChange={(e) => {
+                                                            const t = e.target.value as any;
+                                                            setEditRoomType(t);
+                                                            const capacityMap: Record<string, number> = { DOUBLE: 2, TRIPLE: 3, QUADRUPLE: 4, SUITE: 6 };
+                                                            setEditRoomCapacity(capacityMap[t] || 2);
+                                                        }}
+                                                        className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500"
+                                                    >
+                                                        <option value="DOUBLE">DOUBLE</option>
+                                                        <option value="TRIPLE">TRIPLE</option>
+                                                        <option value="QUADRUPLE">QUADRUPLE</option>
+                                                        <option value="SUITE">SUITE</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold uppercase tracking-wider text-dim mb-1">Capacité (Lits)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        value={editRoomCapacity} 
+                                                        onChange={(e) => setEditRoomCapacity(parseInt(e.target.value) || 2)}
+                                                        className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-2 py-1">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        id={`edit-breakfast-${room.id}`}
+                                                        checked={editRoomBreakfast}
+                                                        onChange={(e) => setEditRoomBreakfast(e.target.checked)}
+                                                        className="rounded border-emerald-500/20 text-emerald-500 focus:ring-emerald-500 bg-[#0b0f0d]/40"
+                                                    />
+                                                    <label htmlFor={`edit-breakfast-${room.id}`} className="text-main font-bold select-none cursor-pointer">Avec petit-déjeuner</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex gap-2 pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); setEditingRoomId(null); }}
+                                                    className="w-1/2 px-4 py-2 border border-emerald-500/15 text-main hover:bg-white/5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all"
+                                                >
+                                                    Annuler
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); handleUpdateRoom(room.id); }}
+                                                    className="w-1/2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[9px] font-black uppercase tracking-wider transition-all"
+                                                >
+                                                    {loading === room.id ? <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" /> : 'Enregistrer'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex justify-between items-start mb-8">
+                                                <div>
+                                                    <h4 className="text-2xl font-black uppercase tracking-tighter text-main">Chambre {room.room_number}</h4>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-[0.2em]">{room.type}</span>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleToggleBreakfast(room.id, room.has_breakfast);
+                                                            }}
+                                                            className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1 border transition-all ${
+                                                                room.has_breakfast
+                                                                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                                                    : 'bg-emerald-500/5 text-dim border-emerald-500/10 hover:border-emerald-500/30'
+                                                            }`}
+                                                        >
+                                                            <Coffee className="w-2.5 h-2.5" /> {room.has_breakfast ? 'Avec PDJ' : 'Sans PDJ'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-2">
+                                                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black border shadow-sm ${room.members.length >= room.capacity
+                                                        ? 'border-red-500/20 text-red-600 dark:text-red-400 bg-red-400/5'
+                                                        : 'border-emerald-500/10 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5'
+                                                        }`}>
+                                                        {room.members.length} / {room.capacity}
+                                                    </div>
+                                                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setEditingRoomId(room.id);
+                                                                setEditRoomNumber(room.room_number);
+                                                                setEditRoomType(room.type as any);
+                                                                setEditRoomCapacity(room.capacity);
+                                                                setEditRoomBreakfast(room.has_breakfast);
+                                                            }}
+                                                            className="p-1.5 text-emerald-500/60 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all"
+                                                            title="Modifier la chambre"
+                                                        >
+                                                            <Edit className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        {room.members.length === 0 && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteRoom(room.id);
+                                                                }}
+                                                                disabled={loading === room.id}
+                                                                className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                                title="Supprimer la chambre vide"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {[...Array(room.capacity)].map((_, i) => {
+                                                    const pilgrimId = room.members[i];
+                                                    const pilgrim = pilgrims.find(p => p.id === pilgrimId);
+
+                                                    return (
+                                                        <div 
+                                                            key={i} 
+                                                            draggable={!!pilgrim}
+                                                            onDragStart={pilgrim ? (e) => handleDragStart(e, pilgrim.id) : undefined}
+                                                            onDragEnd={() => setDraggedPilgrimId(null)}
+                                                            className={`p-4 rounded-2xl flex items-center justify-between border transition-all ${pilgrim ? 'bg-emerald-500/5 dark:bg-white/5 border-emerald-500/10 dark:border-white/10 shadow-inner cursor-grab active:cursor-grabbing' : 'border-dashed border-emerald-500/10 dark:border-white/5 text-dim opacity-30'
+                                                            } ${draggedPilgrimId === pilgrimId ? 'opacity-50 scale-95' : ''}`}
+                                                        >
+                                                            {pilgrim ? (
+                                                                <>
+                                                                    <div className="flex items-center gap-3 pointer-events-none">
+                                                                        {pilgrim.gender === 'F' && (
+                                                                            <span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block shrink-0 shadow-[0_0_8px_rgba(236,72,153,0.4)]" title="Féminin"></span>
+                                                                        )}
+                                                                        {pilgrim.gender === 'M' && (
+                                                                            <span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block shrink-0 shadow-[0_0_8px_rgba(96,165,250,0.4)]" title="Masculin"></span>
+                                                                        )}
+                                                                        <span className="text-xs font-black uppercase tracking-tight text-main">{pilgrim.name}</span>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); handleUnassign(pilgrim.id, room.id); }}
+                                                                        className="p-2 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                                                    >
+                                                                         <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <div className="flex items-center gap-3 pointer-events-none">
+                                                                    <div className="w-2 h-2 rounded-full bg-emerald-500/20" />
+                                                                    <span className="text-[10px] uppercase font-black tracking-widest">Lit {String.fromCharCode(65 + i)} disponible</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         ))

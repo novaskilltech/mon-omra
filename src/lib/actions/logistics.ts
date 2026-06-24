@@ -953,6 +953,51 @@ export async function createRoomAction(
     }
 }
 
+export async function updateRoomAction(
+    roomId: string,
+    updates: {
+        room_number?: string;
+        type?: 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'SUITE' | string;
+        capacity?: number;
+        has_breakfast?: boolean;
+    }
+) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        // Enforce that new capacity is not less than current occupants count
+        const { data: assignments } = await supabase
+            .from('room_assignments')
+            .select('id')
+            .eq('room_id', roomId);
+        
+        const occupantCount = assignments?.length || 0;
+        if (updates.capacity !== undefined && updates.capacity < occupantCount) {
+            return { error: `La capacité ne peut pas être inférieure au nombre d'occupants actuels (${occupantCount}).` };
+        }
+
+        const { error } = await supabase
+            .from('rooms')
+            .update({
+                room_number: updates.room_number,
+                type: updates.type,
+                capacity: updates.capacity,
+                has_breakfast: updates.has_breakfast
+            })
+            .eq('id', roomId);
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/logistics/hotels');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error updating room:", e);
+        return { error: e.message || "Erreur de mise à jour de la chambre." };
+    }
+}
+
 export async function deleteRoomAction(roomId: string) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };

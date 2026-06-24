@@ -5,7 +5,7 @@ import {
     Users, Plus, Search, User, CreditCard, 
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
     CheckCircle, XCircle, Clock, CheckCircle2,
-    DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel
+    DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, 
@@ -15,7 +15,7 @@ import {
     linkFamilyMember, unlinkFamilyMember, updatePilgrimAction,
     getAvailableFlightsAndHotels, saveIndividualHotelInfo
 } from '@/lib/actions/concierge';
-import { getPilgrimDocuments } from '@/lib/actions/documents';
+import { getPilgrimDocuments, deleteDocumentAction } from '@/lib/actions/documents';
 
 export default function ConciergeDashboard() {
     const [pilgrims, setPilgrims] = useState<any[]>([]);
@@ -167,6 +167,31 @@ export default function ConciergeDashboard() {
             }
         } catch (e) {
             console.error(e);
+        }
+    };
+
+    const handleDeleteDocument = async (docId: string, type: string) => {
+        const confirmMsg = type === 'INVOICE' 
+            ? "Voulez-vous vraiment supprimer cette facture ?" 
+            : "Voulez-vous vraiment supprimer ce document ?";
+        if (!confirm(confirmMsg)) return;
+
+        setLoading(true);
+        try {
+            const res = await deleteDocumentAction(docId);
+            if (res.success) {
+                alert("Document supprimé avec succès.");
+                if (selectedPilgrim) {
+                    await handleSelectPilgrim(selectedPilgrim);
+                }
+            } else {
+                alert(res.error || "Erreur de suppression");
+            }
+        } catch (err: any) {
+            console.error(err);
+            alert("Erreur technique lors de la suppression");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -685,7 +710,7 @@ export default function ConciergeDashboard() {
                                                         </a>
                                                     </div>
                                                 )}
-
+ 
                                                 {/* Uploaded Documents List */}
                                                 <div className="border-t border-emerald-500/10 pt-3 mt-3 space-y-2">
                                                     <span className="font-bold text-main block uppercase text-[10px] tracking-wider mb-2">Documents du Pèlerin :</span>
@@ -703,18 +728,27 @@ export default function ConciergeDashboard() {
                                                                             <span className="font-bold text-main block text-[11px] truncate">{labelMap[doc.type] || doc.type}</span>
                                                                             <span className="text-dim text-[10px] opacity-75 truncate block">{doc.file_name}</span>
                                                                         </div>
-                                                                        {doc.url ? (
-                                                                            <a 
-                                                                                href={doc.url} 
-                                                                                target="_blank" 
-                                                                                rel="noopener noreferrer" 
-                                                                                className="btn-premium px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest block text-center shrink-0"
+                                                                        <div className="flex items-center gap-2 shrink-0">
+                                                                            {doc.url ? (
+                                                                                <a 
+                                                                                    href={doc.url} 
+                                                                                    target="_blank" 
+                                                                                    rel="noopener noreferrer" 
+                                                                                    className="btn-premium px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest block text-center"
+                                                                                >
+                                                                                    Ouvrir
+                                                                                </a>
+                                                                            ) : (
+                                                                                <span className="text-dim text-[9px]">Lien expiré</span>
+                                                                            )}
+                                                                            <button 
+                                                                                onClick={() => handleDeleteDocument(doc.id, doc.type)}
+                                                                                className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                                                title="Supprimer le document"
                                                                             >
-                                                                                Ouvrir
-                                                                            </a>
-                                                                        ) : (
-                                                                            <span className="text-dim text-[9px] shrink-0">Lien expiré</span>
-                                                                        )}
+                                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
                                                                 );
                                                             })}
@@ -725,7 +759,7 @@ export default function ConciergeDashboard() {
                                                 </div>
                                             </div>
                                         </div>
-
+ 
                                         {/* Financial Calculator Block */}
                                         <div className="bg-emerald-500/5 p-6 rounded-3xl border border-emerald-500/10 space-y-4">
                                             <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
@@ -770,7 +804,7 @@ export default function ConciergeDashboard() {
                                                         {remainingBalance} €
                                                     </span>
                                                 </div>
-
+ 
                                                 <div className="border-t border-emerald-500/10 pt-3 mt-3 space-y-2">
                                                     <span className="font-bold text-main block uppercase text-[10px] tracking-wider mb-2">Factures Transmises :</span>
                                                     {pilgrimDocs && pilgrimDocs.filter((doc: any) => doc.type === 'INVOICE').length > 0 ? (
@@ -781,18 +815,27 @@ export default function ConciergeDashboard() {
                                                                         <span className="font-bold text-main block text-[11px] truncate">Facture #{idx + 1}</span>
                                                                         <span className="text-dim text-[10px] opacity-75 truncate block">{doc.file_name}</span>
                                                                     </div>
-                                                                    {doc.url ? (
-                                                                        <a 
-                                                                            href={doc.url} 
-                                                                            target="_blank" 
-                                                                            rel="noopener noreferrer" 
-                                                                            className="btn-premium px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest block text-center shrink-0"
+                                                                    <div className="flex items-center gap-2 shrink-0">
+                                                                        {doc.url ? (
+                                                                            <a 
+                                                                                href={doc.url} 
+                                                                                target="_blank" 
+                                                                                rel="noopener noreferrer" 
+                                                                                className="btn-premium px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest block text-center"
+                                                                            >
+                                                                                Ouvrir
+                                                                            </a>
+                                                                        ) : (
+                                                                            <span className="text-dim text-[9px]">Lien expiré</span>
+                                                                        )}
+                                                                        <button 
+                                                                            onClick={() => handleDeleteDocument(doc.id, doc.type)}
+                                                                            className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                                            title="Supprimer la facture"
                                                                         >
-                                                                            Ouvrir
-                                                                        </a>
-                                                                    ) : (
-                                                                        <span className="text-dim text-[9px] shrink-0">Lien expiré</span>
-                                                                    )}
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             ))}
                                                         </div>

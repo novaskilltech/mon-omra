@@ -242,8 +242,9 @@ export async function deleteDocumentAction(documentId: string) {
         return { error: 'Document introuvable' };
     }
 
-    // Ensure ownership or same family folder
-    let isAuthorized = doc.user_id === resolvedId;
+    // Ensure ownership or same family folder, or admin status
+    const isAdmin = await isAdminAuthenticated();
+    let isAuthorized = isAdmin || doc.user_id === resolvedId;
     if (!isAuthorized) {
         const { data: pilgrimRecords } = await supabase
             .from('pilgrims')

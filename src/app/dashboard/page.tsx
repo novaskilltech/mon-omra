@@ -13,6 +13,11 @@ const DownloadJournalButton = dynamic(
     { ssr: false }
 );
 
+const PermissionConsent = dynamic(
+    () => import('./_components/PermissionConsent'),
+    { ssr: false }
+);
+
 export default async function Dashboard() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -28,6 +33,7 @@ export default async function Dashboard() {
 
     return (
         <div className="min-h-screen">
+            <PermissionConsent />
             {/* Header */}
             <nav className="glass px-6 py-4 flex justify-between items-center sticky top-0 z-50 border-emerald-500/5">
                 <div className="flex items-center gap-2.5">
