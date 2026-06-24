@@ -1786,4 +1786,20 @@ export async function toggleRoomBreakfastAction(roomId: string, hasBreakfast: bo
     }
 }
 
+export async function getGroup(groupId: string) {
+    const supabase = createClient();
+    try {
+        const { data, error } = await supabase
+            .from('groups')
+            .select('*')
+            .eq('id', groupId)
+            .single();
+        if (error) throw error;
+        return { success: true, group: data };
+    } catch (e: any) {
+        console.error("Error in getGroup:", e);
+        return { success: false, error: e.message || "Erreur de récupération du groupe" };
+    }
+}
+
 

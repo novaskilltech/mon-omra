@@ -1,11 +1,30 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import BroadcastForm from './_components/BroadcastForm';
 import { ChevronLeft, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import { getGroup } from '@/lib/actions/logistics';
 
 export default function GroupNotificationsPage({ params }: { params: { id: string } }) {
-    const groupName = "Groupe Ramadan Premium";
+    const [groupName, setGroupName] = useState("Chargement...");
+
+    useEffect(() => {
+        async function loadGroup() {
+            try {
+                const res = await getGroup(params.id);
+                if (res.success && res.group) {
+                    setGroupName(res.group.name);
+                } else {
+                    setGroupName("Sans Groupe");
+                }
+            } catch (err) {
+                console.error(err);
+                setGroupName("Erreur de chargement");
+            }
+        }
+        loadGroup();
+    }, [params.id]);
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">

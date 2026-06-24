@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProgramEditor from './_components/ProgramEditor';
 import { ChevronLeft, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { getGroup } from '@/lib/actions/logistics';
 
 const DownloadJournalButton = dynamic(
     () => import('../_components/DownloadJournalButton'),
@@ -13,7 +14,24 @@ const DownloadJournalButton = dynamic(
 
 export default function GroupPlanningPage({ params }: { params: { id: string } }) {
     const [selectedDay, setSelectedDay] = useState(1);
-    const groupName = "Groupe Ramadan Premium";
+    const [groupName, setGroupName] = useState("Chargement...");
+
+    useEffect(() => {
+        async function loadGroup() {
+            try {
+                const res = await getGroup(params.id);
+                if (res.success && res.group) {
+                    setGroupName(res.group.name);
+                } else {
+                    setGroupName("Sans Groupe");
+                }
+            } catch (err) {
+                console.error(err);
+                setGroupName("Erreur de chargement");
+            }
+        }
+        loadGroup();
+    }, [params.id]);
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 p-6">
