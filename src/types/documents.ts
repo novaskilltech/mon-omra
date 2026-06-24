@@ -5,7 +5,7 @@ import { z } from 'zod';
  * Phase: Ready for Build (DoR)
  */
 
-export const DocumentTypeSchema = z.enum(['PASSPORT', 'PHOTO', 'RESIDENCE_PERMIT']);
+export const DocumentTypeSchema = z.enum(['PASSPORT', 'PHOTO', 'RESIDENCE_PERMIT', 'INVOICE']);
 
 export const UserDocumentSchema = z.object({
     id: z.string().uuid().optional(),

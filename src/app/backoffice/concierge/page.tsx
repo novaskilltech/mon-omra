@@ -689,9 +689,9 @@ export default function ConciergeDashboard() {
                                                 {/* Uploaded Documents List */}
                                                 <div className="border-t border-emerald-500/10 pt-3 mt-3 space-y-2">
                                                     <span className="font-bold text-main block uppercase text-[10px] tracking-wider mb-2">Documents du Pèlerin :</span>
-                                                    {pilgrimDocs && pilgrimDocs.length > 0 ? (
+                                                    {pilgrimDocs && pilgrimDocs.filter((doc: any) => doc.type !== 'INVOICE').length > 0 ? (
                                                         <div className="space-y-2">
-                                                            {pilgrimDocs.map((doc: any) => {
+                                                            {pilgrimDocs.filter((doc: any) => doc.type !== 'INVOICE').map((doc: any) => {
                                                                 const labelMap: Record<string, string> = {
                                                                     PASSPORT: "Passeport",
                                                                     PHOTO: "Photo d'identité",
@@ -769,6 +769,76 @@ export default function ConciergeDashboard() {
                                                     <span className={remainingBalance <= 0 ? "text-emerald-500" : "text-amber-500"}>
                                                         {remainingBalance} €
                                                     </span>
+                                                </div>
+
+                                                <div className="border-t border-emerald-500/10 pt-3 mt-3 space-y-2">
+                                                    <span className="font-bold text-main block uppercase text-[10px] tracking-wider mb-2">Factures Transmises :</span>
+                                                    {pilgrimDocs && pilgrimDocs.filter((doc: any) => doc.type === 'INVOICE').length > 0 ? (
+                                                        <div className="space-y-2">
+                                                            {pilgrimDocs.filter((doc: any) => doc.type === 'INVOICE').map((doc: any, idx: number) => (
+                                                                <div key={doc.id} className="flex justify-between items-center bg-[#0b0f0d]/30 p-2.5 rounded-xl border border-emerald-500/5">
+                                                                    <div className="min-w-0 flex-1 pr-2">
+                                                                        <span className="font-bold text-main block text-[11px] truncate">Facture #{idx + 1}</span>
+                                                                        <span className="text-dim text-[10px] opacity-75 truncate block">{doc.file_name}</span>
+                                                                    </div>
+                                                                    {doc.url ? (
+                                                                        <a 
+                                                                            href={doc.url} 
+                                                                            target="_blank" 
+                                                                            rel="noopener noreferrer" 
+                                                                            className="btn-premium px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest block text-center shrink-0"
+                                                                        >
+                                                                            Ouvrir
+                                                                        </a>
+                                                                    ) : (
+                                                                        <span className="text-dim text-[9px] shrink-0">Lien expiré</span>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-dim italic text-[11px] block">Aucune facture transmise.</span>
+                                                    )}
+                                                    
+                                                    {pilgrimDocs && pilgrimDocs.filter((doc: any) => doc.type === 'INVOICE').length < 10 && (
+                                                        <div className="pt-2">
+                                                            <label className="flex items-center justify-center gap-2 px-3 py-2 bg-[#0b0e0c] border border-emerald-500/30 hover:border-emerald-500 text-emerald-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition-colors">
+                                                                <Upload className="w-3.5 h-3.5" />
+                                                                <span>Uploader une Facture</span>
+                                                                <input 
+                                                                    type="file" 
+                                                                    accept=".pdf,image/*" 
+                                                                    className="hidden" 
+                                                                    onChange={async (e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (!file) return;
+                                                                        if (file.size > 5 * 1024 * 1024) {
+                                                                            alert("Le fichier ne doit pas dépasser 5 Mo.");
+                                                                            return;
+                                                                        }
+                                                                        const formData = new FormData();
+                                                                        formData.append('file', file);
+                                                                        formData.append('type', 'INVOICE');
+                                                                        formData.append('targetUserId', selectedPilgrim.id);
+                                                                        
+                                                                        try {
+                                                                            const { uploadDocument } = await import('@/lib/actions/documents');
+                                                                            const res = await uploadDocument(formData);
+                                                                            if (res.error) {
+                                                                                alert(res.error);
+                                                                            } else {
+                                                                                alert("Facture ajoutée et notification envoyée !");
+                                                                                handleSelectPilgrim(selectedPilgrim);
+                                                                            }
+                                                                        } catch (err: any) {
+                                                                            console.error(err);
+                                                                            alert("Erreur lors de l'upload de la facture");
+                                                                        }
+                                                                    }} 
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

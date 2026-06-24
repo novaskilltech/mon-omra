@@ -31,24 +31,29 @@ export async function uploadDocument(formData: FormData) {
 
     let uploadUserId = resolvedId;
     if (targetUserId && targetUserId !== resolvedId) {
-        const { data: pilgrimRecords } = await supabase
-            .from('pilgrims')
-            .select('id, family_head_id')
-            .in('id', [resolvedId, targetUserId]);
-            
-        if (pilgrimRecords && pilgrimRecords.length === 2) {
-            const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
-            const targetRecord = pilgrimRecords.find(p => p.id === targetUserId);
-            const selfHead = selfRecord?.family_head_id || resolvedId;
-            const targetHead = targetRecord?.family_head_id || targetUserId;
-            
-            if (selfHead === targetHead) {
-                uploadUserId = targetUserId;
-            } else {
-                throw new Error('Non autorisé à charger des documents pour ce pèlerin');
-            }
+        const isAdmin = await isAdminAuthenticated();
+        if (isAdmin) {
+            uploadUserId = targetUserId;
         } else {
-            throw new Error('Pèlerin ou relation de famille introuvable');
+            const { data: pilgrimRecords } = await supabase
+                .from('pilgrims')
+                .select('id, family_head_id')
+                .in('id', [resolvedId, targetUserId]);
+                
+            if (pilgrimRecords && pilgrimRecords.length === 2) {
+                const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
+                const targetRecord = pilgrimRecords.find(p => p.id === targetUserId);
+                const selfHead = selfRecord?.family_head_id || resolvedId;
+                const targetHead = targetRecord?.family_head_id || targetUserId;
+                
+                if (selfHead === targetHead) {
+                    uploadUserId = targetUserId;
+                } else {
+                    throw new Error('Non autorisé à charger des documents pour ce pèlerin');
+                }
+            } else {
+                throw new Error('Pèlerin ou relation de famille introuvable');
+            }
         }
     }
 
@@ -75,9 +80,9 @@ export async function uploadDocument(formData: FormData) {
             .eq('type', type)
             .order('created_at', { ascending: true });
 
-        const maxAllowed = type === 'RESIDENCE_PERMIT' ? 2 : 1;
+        const maxAllowed = type === 'RESIDENCE_PERMIT' ? 2 : type === 'INVOICE' ? 10 : 1;
         
-        if (existingDocs && existingDocs.length >= maxAllowed) {
+        if (type !== 'INVOICE' && existingDocs && existingDocs.length >= maxAllowed) {
             const docsToDelete = type === 'RESIDENCE_PERMIT' 
                 ? [existingDocs[0]] 
                 : existingDocs;
@@ -120,12 +125,39 @@ export async function uploadDocument(formData: FormData) {
                 file_name: file.name,
                 file_size: file.size,
                 content_type: file.type,
-                verified: false,
+                verified: type === 'INVOICE', // Invoices uploaded by admin are auto-verified
             });
 
         if (dbError) throw dbError;
 
+        // If it's an invoice, send notification to the pilgrim
+        if (type === 'INVOICE') {
+            try {
+                // Find agency admin user profile for notification agency_id
+                const { data: adminProfile } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('role', 'SUPER_ADMIN')
+                    .limit(1)
+                    .single();
+                const agencyId = adminProfile?.id || resolvedId;
+
+                await supabase
+                    .from('notifications')
+                    .insert({
+                        agency_id: agencyId,
+                        pilgrim_id: uploadUserId,
+                        type: 'PAYMENT',
+                        title: 'Nouvelle facture disponible',
+                        content: `Une nouvelle facture (${file.name}) a été mise en ligne dans votre dossier. Merci d'effectuer le virement sur le compte bancaire de l'agence.`
+                    });
+            } catch (notifErr) {
+                console.error("Error creating invoice notification:", notifErr);
+            }
+        }
+
         revalidatePath('/dashboard/documents');
+        revalidatePath('/backoffice/concierge');
         return { success: true, path: filePath };
 
     } catch (error: any) {

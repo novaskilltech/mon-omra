@@ -46,12 +46,21 @@ export default async function DocumentsPage() {
         .select('*')
         .in('user_id', pilgrimIds);
 
+    const { getDocumentUrl } = await import('@/lib/actions/documents');
+    const docsWithUrls = await Promise.all((allDocuments || []).map(async (doc: any) => {
+        if (doc.type === 'INVOICE') {
+            const signedUrl = await getDocumentUrl(doc.storage_path);
+            return { ...doc, url: signedUrl };
+        }
+        return doc;
+    }));
+
     // 5. Construct travelers array (sorted: self first)
     const travelers = (profiles || [])
         .map(p => ({
             id: p.id,
             name: p.id === resolvedId ? `${p.full_name} (Vous)` : p.full_name || 'Co-voyageur',
-            documents: (allDocuments || []).filter((d: any) => d.user_id === p.id)
+            documents: docsWithUrls.filter((d: any) => d.user_id === p.id)
         }))
         .sort((a, b) => {
             if (a.id === resolvedId) return -1;
