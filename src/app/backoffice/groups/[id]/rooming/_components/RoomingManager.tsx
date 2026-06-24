@@ -448,7 +448,15 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
                                                 {loading === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : p.name[0]}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-black text-main uppercase tracking-tight">{p.name}</p>
+                                                 <p className="text-sm font-black text-main uppercase tracking-tight flex items-center gap-2">
+                                                     {p.gender === 'F' && (
+                                                         <span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block shrink-0 shadow-[0_0_8px_rgba(236,72,153,0.4)]" title="Féminin"></span>
+                                                     )}
+                                                     {p.gender === 'M' && (
+                                                         <span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block shrink-0 shadow-[0_0_8px_rgba(96,165,250,0.4)]" title="Masculin"></span>
+                                                     )}
+                                                     <span>{p.name}</span>
+                                                 </p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="text-[9px] text-dim uppercase tracking-[0.1em] font-bold opacity-60">
                                                         Famille {p.family} ({p.gender === 'F' ? 'Femme' : 'Homme'})
@@ -569,7 +577,12 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
                                                     {pilgrim ? (
                                                         <>
                                                             <div className="flex items-center gap-3 pointer-events-none">
-                                                                <User className="w-4 h-4 text-emerald-500" />
+                                                                {pilgrim.gender === 'F' && (
+                                                                    <span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block shrink-0 shadow-[0_0_8px_rgba(236,72,153,0.4)]" title="Féminin"></span>
+                                                                )}
+                                                                {pilgrim.gender === 'M' && (
+                                                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block shrink-0 shadow-[0_0_8px_rgba(96,165,250,0.4)]" title="Masculin"></span>
+                                                                )}
                                                                 <span className="text-xs font-black uppercase tracking-tight text-main">{pilgrim.name}</span>
                                                             </div>
                                                             <button
