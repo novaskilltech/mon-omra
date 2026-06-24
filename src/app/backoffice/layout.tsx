@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Users, Plane, Hotel, LayoutDashboard, Settings, Bell, LogOut, Menu, X, Star } from 'lucide-react';
+import { Users, Plane, Hotel, LayoutDashboard, Settings, Bell, LogOut, Menu, X, Star, Route } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { logoutAdmin } from '@/lib/actions/auth';
@@ -33,6 +33,7 @@ export default function BackofficeLayout({
                         { icon: Users, label: 'Groupes', href: '/backoffice/groups' },
                         { icon: Plane, label: 'Vols', href: '/backoffice/logistics/flights' },
                         { icon: Hotel, label: 'Hôtels', href: '/backoffice/logistics/hotels' },
+                        { icon: Route, label: 'Transferts', href: '/backoffice/logistics/transfers' },
                         { icon: Star, label: 'Avis Pèlerins', href: '/backoffice/feedbacks' },
                         { icon: Bell, label: 'Notifications', href: '/backoffice/notifications' },
                         { icon: Settings, label: 'Paramètres', href: '/backoffice/settings' },
@@ -76,6 +77,7 @@ export default function BackofficeLayout({
                                     { icon: Users, label: 'Groupes', href: '/backoffice/groups' },
                                     { icon: Plane, label: 'Vols', href: '/backoffice/logistics/flights' },
                                     { icon: Hotel, label: 'Hôtels', href: '/backoffice/logistics/hotels' },
+                                    { icon: Route, label: 'Transferts', href: '/backoffice/logistics/transfers' },
                                     { icon: Star, label: 'Avis Pèlerins', href: '/backoffice/feedbacks' },
                                     { icon: Bell, label: 'Notifications', href: '/backoffice/notifications' },
                                     { icon: Settings, label: 'Paramètres', href: '/backoffice/settings' },

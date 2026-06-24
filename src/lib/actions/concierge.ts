@@ -19,6 +19,7 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
                 group_id,
                 individual_flight_info,
                 individual_hotel_info,
+                land_transfers,
                 package_price,
                 family_head_id,
                 groups(name)
@@ -54,6 +55,7 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
             group_id: pilgrimDetail?.group_id || null,
             individual_flight_info: pilgrimDetail?.individual_flight_info || null,
             individual_hotel_info: pilgrimDetail?.individual_hotel_info || null,
+            land_transfers: pilgrimDetail?.land_transfers || null,
             package_price: pilgrimDetail?.package_price !== null && pilgrimDetail?.package_price !== undefined ? Number(pilgrimDetail.package_price) : 2500,
             family_head_id: pilgrimDetail?.family_head_id || null
         };
@@ -1527,6 +1529,27 @@ export async function createNotificationAction(data: {
     } catch (e: any) {
         console.error("Error creating notification:", e);
         return { error: e.message || "Erreur de diffusion." };
+    }
+}
+
+export async function savePilgrimTransfers(pilgrimId: string, transfersData: any) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        const { error } = await supabase
+            .from('pilgrims')
+            .update({ land_transfers: transfersData })
+            .eq('id', pilgrimId);
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/logistics/transfers');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error saving pilgrim transfers:", e);
+        return { error: e.message || "Erreur lors de l'enregistrement des transferts." };
     }
 }
 
