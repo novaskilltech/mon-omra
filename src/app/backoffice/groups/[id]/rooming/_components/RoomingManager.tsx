@@ -42,6 +42,7 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
     // Click assignment state
     const [selectedPilgrimId, setSelectedPilgrimId] = useState<string | null>(null);
     const [draggedPilgrimId, setDraggedPilgrimId] = useState<string | null>(null);
+    const [showAmountsDue, setShowAmountsDue] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -331,7 +332,7 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
                     r.members.forEach((mId, idx) => {
                         const pilgrim = pilgrims.find(p => p.id === mId);
                         if (pilgrim) {
-                            const dueText = pilgrim.balanceDue > 0 
+                            const dueText = (showAmountsDue && pilgrim.balanceDue > 0) 
                                 ? ` (Reste à payer : ${pilgrim.balanceDue}€ / المتبقي للدفع : ${pilgrim.balanceDue}€)` 
                                 : '';
                             text += `  • ${pilgrim.name}${dueText}\n`;
@@ -389,14 +390,25 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
                         ))}
                     </div>
 
-                    {/* WhatsApp Export */}
-                    <button
-                        onClick={sendWhatsAppManifest}
-                        disabled={!currentStay}
-                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-[10px] uppercase tracking-widest px-5 py-3 rounded-2xl shadow-lg shadow-emerald-600/10 transition-all flex items-center gap-2"
-                    >
-                        <Send className="w-3.5 h-3.5" /> Manifeste WhatsApp
-                    </button>
+                    {/* WhatsApp Export Option & Button */}
+                    <div className="flex items-center gap-3">
+                        <label className="flex items-center gap-2 bg-emerald-500/5 px-4 py-2.5 rounded-2xl border border-emerald-500/10 cursor-pointer select-none text-[10px] font-black uppercase tracking-wider text-dim hover:text-main transition-colors">
+                            <input 
+                                type="checkbox"
+                                checked={showAmountsDue}
+                                onChange={(e) => setShowAmountsDue(e.target.checked)}
+                                className="w-4 h-4 rounded border-emerald-500/20 text-emerald-500 focus:ring-0 cursor-pointer bg-transparent"
+                            />
+                            <span>Afficher les soldes dus</span>
+                        </label>
+                        <button
+                            onClick={sendWhatsAppManifest}
+                            disabled={!currentStay}
+                            className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-[10px] uppercase tracking-widest px-5 py-3 rounded-2xl shadow-lg shadow-emerald-600/10 transition-all flex items-center gap-2"
+                        >
+                            <Send className="w-3.5 h-3.5" /> Manifeste WhatsApp
+                        </button>
+                    </div>
                 </div>
             </div>
 
