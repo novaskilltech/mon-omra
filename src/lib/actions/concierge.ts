@@ -1,9 +1,10 @@
 'use server';
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { isAdminAuthenticated } from './auth';
 import zlib from 'zlib';
+import crypto from 'crypto';
 
 export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?: string }) {
     const isAdmin = await isAdminAuthenticated();
@@ -74,16 +75,44 @@ export async function createPilgrim(data: {
     if (!isAdmin) return { error: "Non autorisé" };
 
     const supabase = createClient();
+    const supabaseAdmin = createAdminClient();
     try {
-        // Enregistrement d'un utilisateur factice dans profiles pour la démonstration locale
-        // (Dans une vraie app, on utiliserait supabase.auth.admin.createUser)
-        const fakeUserId = crypto.randomUUID();
+        let realUserId: string = crypto.randomUUID();
 
-        // 1. Insère le profil
+        // 1. Si un email est renseigné, créer un vrai utilisateur dans Supabase Auth
+        if (data.email) {
+            const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+                email: data.email,
+                email_confirm: true
+            });
+
+            if (authError) {
+                // En cas d'email déjà pris, on essaie de retrouver l'utilisateur existant
+                if (authError.message.includes("already registered") || authError.status === 422) {
+                    const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+                    if (!listError && listData?.users) {
+                        const matchedUser = listData.users.find(u => u.email === data.email);
+                        if (matchedUser) {
+                            realUserId = matchedUser.id;
+                        } else {
+                            throw authError;
+                        }
+                    } else {
+                        throw authError;
+                    }
+                } else {
+                    throw authError;
+                }
+            } else if (authUser?.user) {
+                realUserId = authUser.user.id;
+            }
+        }
+
+        // 2. Insère le profil avec le vrai UUID
         const { error: profileError } = await supabase
             .from('profiles')
             .insert({
-                id: fakeUserId,
+                id: realUserId,
                 full_name: `${data.firstName} ${data.familyName}`,
                 family_name: data.familyName,
                 gender: data.gender,
@@ -123,7 +152,7 @@ export async function createPilgrim(data: {
         const { error: pilgrimError } = await supabase
             .from('pilgrims')
             .insert({
-                id: fakeUserId,
+                id: realUserId,
                 group_id: data.groupId || null,
                 individual_flight_info: individualFlightInfo
             });
@@ -131,7 +160,7 @@ export async function createPilgrim(data: {
         if (pilgrimError) throw pilgrimError;
 
         revalidatePath('/backoffice/concierge');
-        return { success: true, id: fakeUserId };
+        return { success: true, id: realUserId };
     } catch (e: any) {
         console.error("Error creating pilgrim:", e);
         return { error: e.message || "Erreur lors de la création du pèlerin" };
@@ -433,33 +462,82 @@ export async function approveRegistrationRequest(requestId: string, groupId?: st
             throw new Error("Demande introuvable");
         }
 
-        const pilgrimId = crypto.randomUUID();
+        const supabaseAdmin = createAdminClient();
+        let pilgrimId: string = crypto.randomUUID();
 
-        // 2. Insert into profiles
-        const { error: profileError } = await supabase
+        // 1.5 Créer ou associer le compte d'authentification Supabase
+        if (request.email) {
+            const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+                email: request.email,
+                email_confirm: true
+            });
+
+            if (authError) {
+                if (authError.message.includes("already registered") || authError.status === 422) {
+                    const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+                    if (!listError && listData?.users) {
+                        const matchedUser = listData.users.find(u => u.email === request.email);
+                        if (matchedUser) {
+                            pilgrimId = matchedUser.id;
+                        } else {
+                            throw authError;
+                        }
+                    } else {
+                        throw authError;
+                    }
+                } else {
+                    throw authError;
+                }
+            } else if (authUser?.user) {
+                pilgrimId = authUser.user.id;
+            }
+        }
+
+        // 2. Vérifier si le profil existe déjà avant d'insérer
+        const { data: existingProfile } = await supabase
             .from('profiles')
-            .insert({
-                id: pilgrimId,
-                full_name: `${request.first_name} ${request.family_name}`,
-                family_name: request.family_name,
-                gender: request.gender,
-                role: 'PILGRIM',
-                visa_status: 'PENDING',
-                checkin_done: false,
-                email: request.email || null
-            });
+            .select('id')
+            .eq('email', request.email)
+            .single();
 
-        if (profileError) throw profileError;
+        if (existingProfile) {
+            // Mettre à jour l'ID si nécessaire ou réutiliser l'ID existant
+            pilgrimId = existingProfile.id;
+        } else {
+            // Insérer dans profiles
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .insert({
+                    id: pilgrimId,
+                    full_name: `${request.first_name} ${request.family_name}`,
+                    family_name: request.family_name,
+                    gender: request.gender,
+                    role: 'PILGRIM',
+                    visa_status: 'PENDING',
+                    checkin_done: false,
+                    email: request.email || null
+                });
 
-        // 3. Insert into pilgrims
-        const { error: pilgrimError } = await supabase
+            if (profileError) throw profileError;
+        }
+
+        // 3. Vérifier si le pèlerin existe déjà dans la table pilgrims
+        const { data: existingPilgrim } = await supabase
             .from('pilgrims')
-            .insert({
-                id: pilgrimId,
-                group_id: groupId || null
-            });
+            .select('id')
+            .eq('id', pilgrimId)
+            .single();
 
-        if (pilgrimError) throw pilgrimError;
+        if (!existingPilgrim) {
+            const { error: pilgrimError } = await supabase
+                .from('pilgrims')
+                .insert({
+                    id: pilgrimId,
+                    group_id: groupId || null
+                });
+
+            if (pilgrimError) throw pilgrimError;
+        }
 
         // 4. Update request status
         const { error: updateError } = await supabase
@@ -1552,5 +1630,150 @@ export async function savePilgrimTransfers(pilgrimId: string, transfersData: any
         return { error: e.message || "Erreur lors de l'enregistrement des transferts." };
     }
 }
+
+export async function getLogisticsDefaultsForPilgrim(pilgrimId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        // 1. Get Pilgrim's group and flight info
+        const { data: pilgrim, error: pilgrimError } = await supabase
+            .from('pilgrims')
+            .select(`
+                group_id, 
+                individual_flight_info, 
+                groups(departure_date)
+            `)
+            .eq('id', pilgrimId)
+            .single();
+
+        if (pilgrimError || !pilgrim) {
+            return { error: "Pèlerin introuvable" };
+        }
+
+        const defaults: any = {
+            arrival_airport: '',
+            arrival_time: '',
+            arrival_flight: '',
+            makkah_departure_time: '',
+            madinah_departure_time: '',
+            airport_name: '',
+            airport_departure_time: '',
+        };
+
+        // Resolve outbound flight segments
+        let outboundSegments: any[] = [];
+        let returnSegments: any[] = [];
+
+        if (pilgrim.individual_flight_info) {
+            const indFlight = pilgrim.individual_flight_info as any;
+            if (indFlight.flights && Array.isArray(indFlight.flights)) {
+                outboundSegments = indFlight.flights;
+            }
+        }
+
+        const groupId = pilgrim.group_id;
+        
+        // If no individual flight info, look up group flights
+        if (outboundSegments.length === 0 && groupId) {
+            const { data: groupLogistics } = await supabase
+                .from('group_logistics')
+                .select('flight_departure_id, flight_return_id')
+                .eq('group_id', groupId)
+                .maybeSingle();
+
+            if (groupLogistics) {
+                if (groupLogistics.flight_departure_id) {
+                    const { data: depFlight } = await supabase
+                        .from('flights')
+                        .select('*, flight_segments(*)')
+                        .eq('id', groupLogistics.flight_departure_id)
+                        .maybeSingle();
+                    if (depFlight && depFlight.flight_segments) {
+                        outboundSegments = [...depFlight.flight_segments].sort((a, b) => a.sequence_order - b.sequence_order);
+                    }
+                }
+                if (groupLogistics.flight_return_id) {
+                    const { data: retFlight } = await supabase
+                        .from('flights')
+                        .select('*, flight_segments(*)')
+                        .eq('id', groupLogistics.flight_return_id)
+                        .maybeSingle();
+                    if (retFlight && retFlight.flight_segments) {
+                        returnSegments = [...retFlight.flight_segments].sort((a, b) => a.sequence_order - b.sequence_order);
+                    }
+                }
+            }
+        }
+
+        // If it was individual flight info, we might want to split outbound and return if possible
+        if (pilgrim.individual_flight_info && outboundSegments.length > 0) {
+            const saudiAirports = ['JED', 'MED', 'RUH', 'DMM'];
+            const toSaudiIndex = outboundSegments.findIndex(s => saudiAirports.includes(s.arrival_airport?.toUpperCase()));
+            if (toSaudiIndex !== -1) {
+                returnSegments = outboundSegments.slice(toSaudiIndex + 1);
+                outboundSegments = outboundSegments.slice(0, toSaudiIndex + 1);
+            }
+        }
+
+        // 2. Extract outbound arrival info (Airport Arrival)
+        if (outboundSegments.length > 0) {
+            const lastOutbound = outboundSegments[outboundSegments.length - 1];
+            defaults.arrival_airport = lastOutbound.arrival_airport || '';
+            defaults.arrival_time = lastOutbound.arrival_time || '';
+            defaults.arrival_flight = lastOutbound.flight_number || '';
+        }
+
+        // 3. Extract return departure info (Departure to Return Airport)
+        if (returnSegments.length > 0) {
+            const firstReturn = returnSegments[0];
+            defaults.airport_name = firstReturn.departure_airport || '';
+            defaults.airport_departure_time = firstReturn.departure_time || '';
+        }
+
+        // 4. Extract Makkah / Madinah stays info
+        if (groupId) {
+            const { data: stays } = await supabase
+                .from('group_hotel_stays')
+                .select(`
+                    check_in, 
+                    check_out, 
+                    hotels(city)
+                `)
+                .eq('group_id', groupId);
+
+            if (stays && stays.length > 0) {
+                const makkahStay = stays.find(s => {
+                    const hotel: any = Array.isArray(s.hotels) ? s.hotels[0] : s.hotels;
+                    return hotel?.city?.toUpperCase() === 'MAKKAH';
+                });
+                const madinahStay = stays.find(s => {
+                    const hotel: any = Array.isArray(s.hotels) ? s.hotels[0] : s.hotels;
+                    return hotel?.city?.toUpperCase() === 'MADINAH';
+                });
+
+                if (makkahStay) {
+                    defaults.makkah_departure_time = makkahStay.check_in || '';
+                }
+                if (madinahStay) {
+                    defaults.madinah_departure_time = madinahStay.check_in || '';
+                }
+            }
+
+            // Fallback for Makkah departure if not found: use group departure date
+            const groupObj: any = Array.isArray(pilgrim.groups) ? pilgrim.groups[0] : pilgrim.groups;
+            if (!defaults.makkah_departure_time && groupObj?.departure_date) {
+                defaults.makkah_departure_time = groupObj.departure_date;
+            }
+        }
+
+        return { success: true, defaults };
+    } catch (e: any) {
+        console.error("Error getting logistics defaults:", e);
+        return { error: e.message || "Erreur de récupération des données par défaut" };
+    }
+}
+
 
 

@@ -55,30 +55,73 @@ export async function isAdminAuthenticated() {
     return cookies().get(SESSION_COOKIE)?.value === ADMIN_SECRET;
 }
 
-export async function loginPilgrim(email: string) {
+export async function sendOtpToPilgrim(email: string) {
     const supabase = createClient();
-    const { data, error } = await supabase
+    
+    // 1. Vérifier si le pèlerin existe bien dans la base de données
+    const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', email)
         .single();
-    
-    if (error || !data) {
+        
+    if (profileError || !profile) {
         return { error: "Pèlerin introuvable en base." };
     }
 
-    cookies().set('pilgrim_id', data.id, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 7, // 7 jours
-        path: '/',
+    // 2. Envoyer le vrai code OTP via Supabase Auth
+    const { error: authError } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+            shouldCreateUser: false // Ne pas inscrire de nouvel utilisateur inconnu
+        }
     });
+
+    if (authError) {
+        return { error: "Erreur lors de l'envoi du code de sécurité : " + authError.message };
+    }
+
+    return { success: true };
+}
+
+export async function verifyPilgrimOtp(email: string, token: string) {
+    const supabase = createClient();
+    
+    // 1. Vérifier le code OTP auprès de Supabase Auth
+    const { data, error: authError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+    });
+
+    if (authError || !data.session) {
+        return { error: "Code de sécurité incorrect ou expiré." };
+    }
+
+    // 2. Récupérer l'ID utilisateur
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+    if (profile) {
+        // Définir le cookie pilgrim_id requis par le reste du dashboard
+        cookies().set('pilgrim_id', profile.id, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 60 * 60 * 24 * 7, // 7 jours
+            path: '/',
+        });
+    }
 
     return { success: true };
 }
 
 export async function logoutPilgrim() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     cookies().delete('pilgrim_id');
     redirect('/login');
 }

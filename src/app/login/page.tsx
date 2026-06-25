@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Mail, ArrowRight, ShieldCheck, AlertCircle, CheckCircle, Lock, Users, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { checkEmailRegistration, loginAdmin, loginPilgrim } from '@/lib/actions/auth';
+import { sendOtpToPilgrim, verifyPilgrimOtp, loginAdmin } from '@/lib/actions/auth';
 import { requestRegistration } from '@/lib/actions/concierge';
 
 export default function LoginPage() {
@@ -37,19 +37,15 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            // Enforce administrator-approved signups check
-            const check = await checkEmailRegistration(email);
-            if (!check.allowed) {
-                setError("Cette adresse e-mail n'est pas enregistrée. Si vous êtes pèlerin, veuillez soumettre une demande d'inscription.");
+            const res = await sendOtpToPilgrim(email);
+            if (res.error) {
+                setError(res.error);
                 setLoading(false);
                 return;
             }
 
-            // Simule l'envoi de l'OTP
-            setTimeout(() => {
-                setLoading(false);
-                setStep('otp');
-            }, 1000);
+            setLoading(false);
+            setStep('otp');
         } catch (err) {
             setError("Une erreur est survenue lors de la vérification.");
             setLoading(false);
@@ -60,21 +56,16 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        if (otp === '786921') {
-            try {
-                const res = await loginPilgrim(email);
-                if (res.success) {
-                    window.location.href = '/dashboard';
-                } else {
-                    setError(res.error || "Erreur de connexion.");
-                    setLoading(false);
-                }
-            } catch (err) {
-                setError("Une erreur est survenue lors de la connexion.");
+        try {
+            const res = await verifyPilgrimOtp(email, otp);
+            if (res.success) {
+                window.location.href = '/dashboard';
+            } else {
+                setError(res.error || "Erreur de connexion.");
                 setLoading(false);
             }
-        } else {
-            setError("Code de sécurité incorrect. Utilisez le code '786921'.");
+        } catch (err) {
+            setError("Une erreur est survenue lors de la connexion.");
             setLoading(false);
         }
     };

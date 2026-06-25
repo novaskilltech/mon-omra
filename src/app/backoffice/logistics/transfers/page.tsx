@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { 
     Route, Search, User, Save, Loader2, ArrowRight, Phone, MessageSquare
 } from 'lucide-react';
-import { getPilgrimsList, savePilgrimTransfers, getGroups } from '@/lib/actions/concierge';
+import { getPilgrimsList, savePilgrimTransfers, getGroups, getLogisticsDefaultsForPilgrim } from '@/lib/actions/concierge';
 
 export default function TransfersPage() {
     const [pilgrims, setPilgrims] = useState<any[]>([]);
@@ -49,9 +49,35 @@ export default function TransfersPage() {
         }
     };
 
-    const handleSelectPilgrim = (p: any) => {
+    const handleSelectPilgrim = async (p: any) => {
         setSelectedPilgrim(p);
         const tf = p.land_transfers || {};
+        
+        // Vérifier si des données de transfert existent déjà
+        const hasData = Object.values(tf).some(val => val !== '' && val !== null && val !== undefined);
+        
+        if (!hasData) {
+            try {
+                const res = await getLogisticsDefaultsForPilgrim(p.id);
+                if (res.success && res.defaults) {
+                    const defs = res.defaults;
+                    setArrivalAirport(defs.arrival_airport || '');
+                    setArrivalTime(defs.arrival_time ? defs.arrival_time.slice(0, 16) : '');
+                    setArrivalFlight(defs.arrival_flight || '');
+                    setMakkahDepartureTime(defs.makkah_departure_time ? defs.makkah_departure_time.slice(0, 16) : '');
+                    setMakkahTransport('');
+                    setMadinahDepartureTime(defs.madinah_departure_time ? defs.madinah_departure_time.slice(0, 16) : '');
+                    setMadinahTransport('');
+                    setAirportDepartureTime(defs.airport_departure_time ? defs.airport_departure_time.slice(0, 16) : '');
+                    setAirportTransport('');
+                    setAirportName(defs.airport_name || '');
+                    return;
+                }
+            } catch (err) {
+                console.error("Error loading logistics defaults:", err);
+            }
+        }
+
         setArrivalAirport(tf.arrival_airport || '');
         setArrivalTime(tf.arrival_time ? tf.arrival_time.slice(0, 16) : '');
         setArrivalFlight(tf.arrival_flight || '');
@@ -252,6 +278,37 @@ export default function TransfersPage() {
                                     <p className="text-xs text-dim italic mt-0.5">Groupe : {selectedPilgrim.group_name}</p>
                                 </div>
                                 <div className="flex gap-2">
+                                    <button 
+                                        type="button"
+                                        onClick={async () => {
+                                            if (confirm("Voulez-vous écraser les champs actuels avec les horaires des vols et du programme ?")) {
+                                                try {
+                                                    const res = await getLogisticsDefaultsForPilgrim(selectedPilgrim.id);
+                                                    if (res.success && res.defaults) {
+                                                        const defs = res.defaults;
+                                                        setArrivalAirport(defs.arrival_airport || '');
+                                                        setArrivalTime(defs.arrival_time ? defs.arrival_time.slice(0, 16) : '');
+                                                        setArrivalFlight(defs.arrival_flight || '');
+                                                        setMakkahDepartureTime(defs.makkah_departure_time ? defs.makkah_departure_time.slice(0, 16) : '');
+                                                        setMakkahTransport(makkahTransport);
+                                                        setMadinahDepartureTime(defs.madinah_departure_time ? defs.madinah_departure_time.slice(0, 16) : '');
+                                                        setMadinahTransport(madinahTransport);
+                                                        setAirportDepartureTime(defs.airport_departure_time ? defs.airport_departure_time.slice(0, 16) : '');
+                                                        setAirportTransport(airportTransport);
+                                                        setAirportName(defs.airport_name || '');
+                                                    } else {
+                                                        alert(res.error || "Impossible de charger les données par défaut.");
+                                                    }
+                                                } catch (err) {
+                                                    console.error(err);
+                                                    alert("Erreur de chargement.");
+                                                }
+                                            }
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl font-bold uppercase tracking-wider text-[10px] transition-all border border-emerald-500/20"
+                                    >
+                                        Importer Vols & Programme
+                                    </button>
                                     <a 
                                         href={generateWhatsAppManifest()}
                                         target="_blank"
