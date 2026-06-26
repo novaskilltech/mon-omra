@@ -178,10 +178,11 @@ export default function GlobalNotificationsPage() {
                                         onChange={(e) => setSelectedGroupId(e.target.value)}
                                         required
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-main outline-none focus:border-emerald-500/50"
+                                        style={{ color: 'white' }}
                                     >
-                                        <option value="" disabled className="bg-[#050605] text-white">SÉLECTIONNER UN GROUPE...</option>
+                                        <option value="" disabled style={{ color: 'white', backgroundColor: '#050605' }}>SÉLECTIONNER UN GROUPE...</option>
                                         {groups.map((g) => (
-                                            <option key={g.id} value={g.id} className="bg-[#050605] text-white">{g.name}</option>
+                                            <option key={g.id} value={g.id} style={{ color: 'white', backgroundColor: '#050605' }}>{g.name}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -195,10 +196,11 @@ export default function GlobalNotificationsPage() {
                                         onChange={(e) => setSelectedPilgrimId(e.target.value)}
                                         required
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-main outline-none focus:border-emerald-500/50"
+                                        style={{ color: 'white' }}
                                     >
-                                        <option value="" disabled className="bg-[#050605] text-white">SÉLECTIONNER UN PÈLERIN...</option>
+                                        <option value="" disabled style={{ color: 'white', backgroundColor: '#050605' }}>SÉLECTIONNER UN PÈLERIN...</option>
                                         {pilgrims.map((p) => (
-                                            <option key={p.id} value={p.id} className="bg-[#050605] text-white">{p.full_name}</option>
+                                            <option key={p.id} value={p.id} style={{ color: 'white', backgroundColor: '#050605' }}>{p.full_name}</option>
                                         ))}
                                     </select>
                                 </div>
