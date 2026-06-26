@@ -1,6 +1,5 @@
 @media print {
   /* Hide standard web app UI elements */
-  body, 
   nav, 
   header, 
   footer, 
@@ -25,10 +24,7 @@
     transform: translate(-50%, -50%) !important;
     width: 85mm !important;
     height: 120mm !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 12px !important;
     box-shadow: none !important;
-    background: white !important;
     page-break-inside: avoid !important;
   }
 
