@@ -259,7 +259,7 @@ export default function LoginPage() {
                                             <input
                                                 required
                                                 type="text"
-                                                maxLength={6}
+                                                maxLength={8}
                                                 value={otp}
                                                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                                 placeholder="786921"
