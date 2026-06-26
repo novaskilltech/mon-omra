@@ -554,8 +554,24 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
             console.error("Error fetching family members:", familyErr);
         }
 
+        let visaUrl = profile.visa_url || null;
+        if (visaUrl && !visaUrl.startsWith('http')) {
+            try {
+                const { data: signedData } = await supabase.storage
+                    .from('pelerin-documents')
+                    .createSignedUrl(visaUrl, 3600);
+                if (signedData) {
+                    visaUrl = signedData.signedUrl;
+                }
+            } catch (err) {
+                console.error("Error signing visa URL:", err);
+            }
+        }
+
         return {
             pilgrimName: `${profile.full_name || ''}`.trim() || "Salah Lamkhannet",
+            visaUrl: visaUrl,
+            visaStatus: profile.visa_status || 'PENDING',
             groupId: pilgrim?.group_id || '1',
             groupName,
             daysToDeparture: daysToDeparture,

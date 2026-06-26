@@ -1775,5 +1775,48 @@ export async function getLogisticsDefaultsForPilgrim(pilgrimId: string) {
     }
 }
 
+export async function uploadVisaDocument(pilgrimId: string, formData: FormData) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const file = formData.get('file') as File;
+    if (!file) return { error: "Aucun fichier fourni" };
+
+    const supabase = createClient();
+    try {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `visas/${pilgrimId}_visa_${Date.now()}.${fileExt}`;
+        const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+        // 1. Upload du document de visa dans le bucket privé 'pelerin-documents'
+        const { error: uploadError } = await supabase.storage
+            .from('pelerin-documents')
+            .upload(filePath, fileBuffer, {
+                contentType: file.type,
+                duplex: 'half'
+            });
+
+        if (uploadError) throw uploadError;
+
+        // 2. Mise à jour de la table profiles avec le chemin d'accès privé
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+                visa_status: 'APPROVED',
+                visa_url: filePath
+            })
+            .eq('id', pilgrimId);
+
+        if (profileError) throw profileError;
+
+        revalidatePath('/backoffice/concierge');
+        revalidatePath('/dashboard');
+        return { success: true, path: filePath };
+    } catch (e: any) {
+        console.error("Error in uploadVisaDocument:", e);
+        return { error: e.message || "Erreur lors de l'upload du document de visa" };
+    }
+}
+
 
 

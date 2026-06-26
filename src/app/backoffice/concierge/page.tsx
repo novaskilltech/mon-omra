@@ -8,7 +8,7 @@ import {
     DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2
 } from 'lucide-react';
 import { 
-    getPilgrimsList, createPilgrim, updateVisaStatus, 
+    getPilgrimsList, createPilgrim, updateVisaStatus, uploadVisaDocument,
     addPayment, getPilgrimPayments, getGroups,
     getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
     extractFlightTicketOCR, saveIndividualFlightInfo, updatePilgrimPackagePrice,
@@ -91,6 +91,17 @@ export default function ConciergeDashboard() {
         status: 'APPROVED' as 'PENDING' | 'APPROVED' | 'REJECTED',
         visaUrl: 'https://supabase.co/storage/v1/object/public/visas/visa_approved_sample.pdf'
     });
+    const [selectedVisaFile, setSelectedVisaFile] = useState<File | null>(null);
+
+    const handleOpenVisaModal = () => {
+        if (!selectedPilgrim) return;
+        setVisaForm({
+            status: (selectedPilgrim.visa_status || 'PENDING') as any,
+            visaUrl: selectedPilgrim.visa_url || ''
+        });
+        setSelectedVisaFile(null);
+        setShowVisaModal(true);
+    };
 
     useEffect(() => {
         loadData();
@@ -277,17 +288,30 @@ export default function ConciergeDashboard() {
         if (!selectedPilgrim) return;
         setLoading(true);
         try {
+            let currentVisaUrl = visaForm.status === 'APPROVED' ? visaForm.visaUrl : undefined;
+
+            if (visaForm.status === 'APPROVED' && selectedVisaFile) {
+                const formData = new FormData();
+                formData.append('file', selectedVisaFile);
+                const uploadRes = await uploadVisaDocument(selectedPilgrim.id, formData);
+                if (uploadRes.error) {
+                    alert(uploadRes.error);
+                    return;
+                }
+                currentVisaUrl = uploadRes.path;
+            }
+
             const res = await updateVisaStatus(
                 selectedPilgrim.id, 
                 visaForm.status, 
-                visaForm.status === 'APPROVED' ? visaForm.visaUrl : undefined
+                currentVisaUrl
             );
             if (res.success) {
                 setShowVisaModal(false);
                 setSelectedPilgrim({
                     ...selectedPilgrim,
                     visa_status: visaForm.status,
-                    visa_url: visaForm.status === 'APPROVED' ? visaForm.visaUrl : ''
+                    visa_url: currentVisaUrl || ''
                 });
                 await loadData();
             } else {
@@ -668,7 +692,7 @@ export default function ConciergeDashboard() {
                                                 <Edit className="w-3.5 h-3.5 text-emerald-500" /> Modifier Profil
                                             </button>
                                             <button 
-                                                onClick={() => setShowVisaModal(true)}
+                                                onClick={() => handleOpenVisaModal()}
                                                 className="btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-emerald-500/10 hover:bg-emerald-500/5 transition-all text-main"
                                             >
                                                 Gérer le Visa
@@ -1661,14 +1685,23 @@ export default function ConciergeDashboard() {
                             
                             {visaForm.status === 'APPROVED' && (
                                 <div>
-                                    <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Lien URL du Visa PDF</label>
+                                    <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Document du Visa (PDF ou Image)</label>
                                     <input 
-                                        type="text" 
-                                        required
-                                        value={visaForm.visaUrl}
-                                        onChange={(e) => setVisaForm({ ...visaForm, visaUrl: e.target.value })}
+                                        type="file" 
+                                        accept=".pdf,image/*"
+                                        required={!visaForm.visaUrl}
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                setSelectedVisaFile(e.target.files[0]);
+                                            }
+                                        }}
                                         className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
                                     />
+                                    {visaForm.visaUrl && (
+                                        <p className="text-xs text-dim mt-2 truncate">
+                                            Document existant : {visaForm.visaUrl.split('/').pop()}
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>

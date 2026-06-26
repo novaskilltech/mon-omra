@@ -81,6 +81,31 @@ export default async function Dashboard() {
                     </div>
                 )}
 
+                {/* Visa Availability Banner */}
+                {(data as any).visaStatus === 'APPROVED' && (data as any).visaUrl && (
+                    <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-6 rounded-[2rem] border border-emerald-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 text-emerald-500">
+                                <FileText className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-main text-base">Votre Visa Omra est disponible ! 🕋</h3>
+                                <p className="text-dim text-[11px] font-medium leading-relaxed max-w-xl m-0">
+                                    Votre visa a été approuvé et émis par les autorités. Vous pouvez le télécharger dès maintenant pour votre voyage.
+                                </p>
+                            </div>
+                        </div>
+                        <a 
+                            href={(data as any).visaUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="w-full md:w-auto text-center bg-emerald-500 hover:bg-emerald-600 text-white dark:text-[#050605] font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-emerald-500/10 transition-all hover:scale-102"
+                        >
+                            Télécharger mon Visa
+                        </a>
+                    </div>
+                )}
+
                 {/* Main Status Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Next Flight Card */}
