@@ -6,6 +6,27 @@ import ThemeSelector from '@/components/ThemeSelector';
 export default function Home() {
     return (
         <main className="min-h-screen text-white selection:bg-emerald-500/30">
+            {/* Structured Data (JSON-LD) for Search Agents */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "TravelAgency",
+                        "name": "OMRAYANAIR",
+                        "description": "Plateforme Premium d'accompagnement et de gestion de voyage spirituel pour l'Omra et le Hajj.",
+                        "url": "https://omrayanair.vercel.app",
+                        "logo": "https://omrayanair.vercel.app/logo.png",
+                        "image": "https://omrayanair.vercel.app/og-image.png",
+                        "address": {
+                            "@type": "PostalAddress",
+                            "addressCountry": "FR"
+                        },
+                        "serviceType": ["Pèlerinage Omra", "Pèlerinage Hajj", "Accompagnement Spirituel", "Gestion Logistique"]
+                    })
+                }}
+            />
+
             {/* Background Glows */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full" />
