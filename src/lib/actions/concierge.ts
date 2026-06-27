@@ -1818,5 +1818,43 @@ export async function uploadVisaDocument(pilgrimId: string, formData: FormData) 
     }
 }
 
+export async function deletePilgrimAction(id: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabaseAdmin = createAdminClient();
+    try {
+        // 1. Supprimer de la table pilgrims
+        const { error: pilgrimError } = await supabaseAdmin
+            .from('pilgrims')
+            .delete()
+            .eq('id', id);
+
+        if (pilgrimError) throw pilgrimError;
+
+        // 2. Supprimer de la table profiles
+        const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .delete()
+            .eq('id', id);
+
+        if (profileError) throw profileError;
+
+        // 3. Supprimer de Supabase Auth
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id);
+        if (authError && authError.status !== 404) {
+            console.error("Auth delete error:", authError);
+        }
+
+        revalidatePath('/backoffice/concierge');
+        revalidatePath('/backoffice/notifications');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error in deletePilgrimAction:", e);
+        return { error: e.message || "Erreur lors de la suppression du pèlerin" };
+    }
+}
+
+
 
 

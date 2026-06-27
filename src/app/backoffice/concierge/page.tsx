@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, uploadVisaDocument,
+    deletePilgrimAction,
     addPayment, getPilgrimPayments, getGroups,
     getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
     extractFlightTicketOCR, saveIndividualFlightInfo, updatePilgrimPackagePrice,
@@ -92,6 +93,8 @@ export default function ConciergeDashboard() {
         visaUrl: 'https://supabase.co/storage/v1/object/public/visas/visa_approved_sample.pdf'
     });
     const [selectedVisaFile, setSelectedVisaFile] = useState<File | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
     const handleOpenVisaModal = () => {
         if (!selectedPilgrim) return;
@@ -316,6 +319,27 @@ export default function ConciergeDashboard() {
                 await loadData();
             } else {
                 alert(res.error || "Erreur de visa");
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeletePilgrim = async () => {
+        if (!selectedPilgrim || deleteConfirmText !== 'SUPPRIMER') return;
+        setLoading(true);
+        try {
+            const res = await deletePilgrimAction(selectedPilgrim.id);
+            if (res.success) {
+                setShowDeleteModal(false);
+                setSelectedPilgrim(null);
+                setDeleteConfirmText('');
+                await loadData();
+                alert("Pèlerin supprimé avec succès.");
+            } else {
+                alert(res.error || "Erreur de suppression");
             }
         } catch (err) {
             console.error(err);
@@ -1276,6 +1300,18 @@ export default function ConciergeDashboard() {
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Action de suppression critique tout en bas */}
+                                    <div className="pt-8 border-t border-red-500/10 flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowDeleteModal(true)}
+                                            className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 hover:border-red-500 font-black uppercase tracking-widest text-[10px] py-3.5 px-6 rounded-2xl transition-all shadow-lg hover:shadow-red-500/10 flex items-center gap-2"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            delete
+                                        </button>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="glass p-12 rounded-[2.5rem] border-emerald-500/5 text-center flex flex-col items-center justify-center min-h-[40vh]">
@@ -1722,6 +1758,60 @@ export default function ConciergeDashboard() {
                             </button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* Modal: Confirmer la Suppression (Double confirmation) */}
+            {showDeleteModal && selectedPilgrim && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+                    <div className="glass w-full max-w-md p-8 rounded-[2.5rem] border-red-500/10 space-y-6">
+                        <div className="flex items-center gap-3 text-red-500">
+                            <ShieldAlert className="w-6 h-6" />
+                            <h3 className="text-xl font-black uppercase tracking-tighter text-main m-0">Suppression Critique</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            <p className="text-xs text-sub leading-relaxed font-light">
+                                Vous êtes sur le point de supprimer définitivement le pèlerin <strong className="text-white uppercase font-black">{selectedPilgrim.first_name} {selectedPilgrim.family_name}</strong>.
+                            </p>
+                            <p className="text-xs text-red-500 font-bold uppercase tracking-wider bg-red-500/10 p-4 rounded-2xl border border-red-500/20">
+                                Attention : Cette action supprimera sa fiche, son profil et son compte d'accès Supabase Auth. Cette opération est irréversible.
+                            </p>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-2">
+                                    Veuillez écrire <strong className="text-white">SUPPRIMER</strong> pour confirmer :
+                                </label>
+                                <input 
+                                    type="text" 
+                                    placeholder="SUPPRIMER"
+                                    value={deleteConfirmText}
+                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-red-500/20 outline-none text-sm text-main font-bold uppercase tracking-widest text-center"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setDeleteConfirmText('');
+                                }}
+                                className="w-1/2 btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/10 text-main"
+                            >
+                                Annuler
+                            </button>
+                            <button 
+                                type="button"
+                                disabled={deleteConfirmText !== 'SUPPRIMER'}
+                                onClick={handleDeletePilgrim}
+                                className="w-1/2 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-20 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all"
+                            >
+                                Confirmer
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
