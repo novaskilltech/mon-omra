@@ -94,3 +94,44 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
 *   **Impacts** :
     *   Mise à jour des directives `script-src`, `img-src`, `connect-src` et `frame-src` dans [middleware.ts](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/middleware.ts).
 *   **Version** : v1.5.2
+
+---
+
+## 11. Gestion et Téléchargement Sécurisé des Visas PDF/Image (RGPD)
+*   **Décision** : Téléchargement des visas pèlerin dans un bucket de stockage privé (`pelerin-documents`) sous le dossier `/visas` et génération d'URLs signées temporaires (durée 1 heure).
+*   **Justification** : Conformité réglementaire RGPD pour sécuriser les données d'identité sensibles contenues sur les documents de visa.
+*   **Impacts** :
+    *   Création de l'action `uploadVisaDocument` et re-calcul des URLs signées dans `getPilgrimDashboardData`.
+    *   Intégration d'un bouton de téléchargement sécurisé sur le Dashboard pèlerin.
+*   **Version** : v1.6.0
+
+---
+
+## 12. Séparation Ergonomique du Bouton de Suppression Pèlerin ("delete")
+*   **Décision** : Ajout du bouton de suppression d'un pèlerin en bas de sa fiche détaillée avec un modal de double confirmation par saisie textuelle forcée ("SUPPRIMER").
+*   **Justification** : Évite les suppressions de comptes accidentelles tout en offrant un moyen de nettoyage de base de données synchrone et complet (table pèlerins, profils et Supabase Auth).
+*   **Impacts** :
+    *   Création de l'action serveur d'administration `deletePilgrimAction`.
+    *   Mise à jour de `/backoffice/concierge/page.tsx` avec placement du bouton en fin de document.
+*   **Version** : v1.7.0
+
+---
+
+## 13. Optimisation pour Google Agentic Search (Sitemap, Robots, Schema.org)
+*   **Décision** : Création automatique d'un sitemap XML dynamique, d'un fichier robots d'exploration de moteurs de recherche et inclusion de données structurées JSON-LD.
+*   **Justification** : Permettre aux moteurs de recherche et aux agents IA comme Google Gemini d'analyser, d'identifier et de citer les informations publiques du site web sans exposer les espaces privés.
+*   **Impacts** :
+    *   Création de [robots.ts](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/robots.ts).
+    *   Création de [sitemap.ts](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/sitemap.ts).
+    *   Inclusion de balises Schema.org `TravelAgency` sur la page d'accueil.
+*   **Version** : v1.8.0
+
+---
+
+## 14. Mise en place de la validation du formulaire de vol par Zod
+*   **Décision** : Intégration de schémas de validation Zod côté serveur pour les entrées de formulaires de vols.
+*   **Justification** : Garantir l'intégrité des données avant insertion en base et fournir des messages d'erreur explicites lors de la saisie manuelle des escales.
+*   **Impacts** :
+    *   Création du fichier de validation `src/lib/schemas/flight.ts`.
+    *   Refactoring de l'action serveur de création de vol pour inclure `safeParse`.
+*   **Version** : v1.8.1
