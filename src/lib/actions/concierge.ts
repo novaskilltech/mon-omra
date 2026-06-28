@@ -41,8 +41,23 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
         return [];
     }
 
-    return data.map((p: any) => {
+    const signedList = await Promise.all(data.map(async (p: any) => {
         const pilgrimDetail = Array.isArray(p.pilgrims) ? p.pilgrims[0] : p.pilgrims;
+        let visaUrl = p.visa_url || '';
+
+        if (visaUrl && !visaUrl.startsWith('http')) {
+            try {
+                const { data: signedData } = await supabase.storage
+                    .from('pelerin-documents')
+                    .createSignedUrl(visaUrl, 3600);
+                if (signedData) {
+                    visaUrl = signedData.signedUrl;
+                }
+            } catch (err) {
+                console.error("Error signing visa URL:", err);
+            }
+        }
+
         return {
             id: p.id,
             first_name: p.full_name?.split(' ')[0] || '',
@@ -50,7 +65,7 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
             gender: p.gender,
             email: p.email || '',
             visa_status: p.visa_status || 'PENDING',
-            visa_url: p.visa_url || '',
+            visa_url: visaUrl,
             checkin_done: !!p.checkin_done,
             group_name: pilgrimDetail?.groups?.name || 'Sans Groupe',
             group_id: pilgrimDetail?.group_id || null,
@@ -60,7 +75,9 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
             package_price: pilgrimDetail?.package_price !== null && pilgrimDetail?.package_price !== undefined ? Number(pilgrimDetail.package_price) : 2500,
             family_head_id: pilgrimDetail?.family_head_id || null
         };
-    });
+    }));
+
+    return signedList;
 }
 
 export async function createPilgrim(data: {

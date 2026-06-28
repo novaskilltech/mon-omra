@@ -317,12 +317,15 @@ export default function ConciergeDashboard() {
             );
             if (res.success) {
                 setShowVisaModal(false);
-                setSelectedPilgrim({
-                    ...selectedPilgrim,
-                    visa_status: visaForm.status,
-                    visa_url: currentVisaUrl || ''
+                const list = await getPilgrimsList({
+                    groupId: groupFilter || undefined,
+                    visaStatus: visaFilter || undefined
                 });
-                await loadData();
+                setPilgrims(list);
+                const updatedSelected = list.find((p: any) => p.id === selectedPilgrim.id);
+                if (updatedSelected) {
+                    setSelectedPilgrim(updatedSelected);
+                }
             } else {
                 alert(res.error || "Erreur de visa");
             }
