@@ -30,6 +30,7 @@ export default function ConciergeDashboard() {
     const [flights, setFlights] = useState<any[]>([
         { flight_number: '', airline: '', departure_airport: '', arrival_airport: '', departure_time: '', arrival_time: '' }
     ]);
+    const [pnr, setPnr] = useState<string>('');
     const [baggageSoute, setBaggageSoute] = useState<string>('');
     const [baggageCabine, setBaggageCabine] = useState<string>('');
     const [baggageMain, setBaggageMain] = useState<string>('');
@@ -160,6 +161,7 @@ export default function ConciergeDashboard() {
             ];
         }
         setFlights(flightsList);
+        setPnr(flightInfo.pnr || '');
 
         // Parse baggage policy
         const policy = flightInfo.baggage_policy || '';
@@ -449,6 +451,8 @@ export default function ConciergeDashboard() {
                     ]);
                 }
 
+                setPnr(parsed.pnr || '');
+
                 // Try to parse baggage_policy
                 const policy = parsed.baggage_policy || '';
                 const souteMatch = policy.match(/Soute:\s*([^|]+)/i);
@@ -506,6 +510,8 @@ export default function ConciergeDashboard() {
                     ]);
                 }
 
+                setPnr(parsed.pnr || '');
+
                 // Try to parse baggage_policy
                 const policy = parsed.baggage_policy || '';
                 const souteMatch = policy.match(/Soute:\s*([^|]+)/i);
@@ -542,6 +548,7 @@ export default function ConciergeDashboard() {
 
         const flightInfoToSave = {
             flights,
+            pnr,
             baggage_policy: finalBaggagePolicy || 'Aucun bagage'
         };
 
@@ -1314,6 +1321,19 @@ export default function ConciergeDashboard() {
                                             <p className="text-xs text-dim m-0">
                                                 Renseignez manuellement ou via l'assistant ci-dessus les différents segments de vol (escales) du pèlerin ainsi que les options de bagages allouées.
                                             </p>
+
+                                            {/* Code PNR */}
+                                            <div className="bg-white/[0.02] border border-emerald-500/5 rounded-2xl p-4 space-y-2">
+                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-emerald-400">Code de Réservation / PNR</label>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Ex: ABC12D, DXB89Q..."
+                                                    value={pnr} 
+                                                    onChange={(e) => setPnr(e.target.value.toUpperCase())}
+                                                    className="w-full max-w-xs bg-white/5 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500 uppercase font-mono tracking-wider" 
+                                                />
+                                                <p className="text-[9px] text-dim m-0 italic">Code de référence de la réservation de vol (6 caractères alphanumériques).</p>
+                                            </div>
 
                                             {/* Flight Segments List */}
                                             <div className="space-y-6">

@@ -458,6 +458,7 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
                 departureTime: activeSegment.departure_time ? new Date(activeSegment.departure_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
                 departureDateIso: activeSegment.departure_time ? new Date(activeSegment.departure_time).toISOString() : '',
                 carrier: activeSegment.airline,
+                pnr: indFlight.pnr || '',
                 baggage_policy: indFlight.baggage_policy,
                 segments
             };

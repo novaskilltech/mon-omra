@@ -985,13 +985,13 @@ export async function extractFlightTicketOCR(formData: FormData) {
             if (rawText && rawText.trim().length > 30) {
                 userContent.push({
                     type: "text",
-                    text: `Voici le contenu textuel extrait du billet d'avion : \n\n${rawText}\n\nExtrais TOUS les segments de vol présents dans ce billet d'avion. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), et baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg').`
+                    text: `Voici le contenu textuel extrait du billet d'avion : \n\n${rawText}\n\nExtrais TOUS les segments de vol présents dans ce billet d'avion. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg'), et pnr (le code de réservation ou dossier PNR s'il existe dans le billet, ex: 'ABC12D').`
                 });
             } else {
                 const base64Data = buffer.toString('base64');
                 userContent.push({
                     type: "text",
-                    text: "Extrais TOUS les segments de vol présents dans ce billet d'avion en format JSON. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), et baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg')."
+                    text: "Extrais TOUS les segments de vol présents dans ce billet d'avion en format JSON. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg'), et pnr (le code de réservation ou dossier PNR s'il existe dans le billet, ex: 'ABC12D')."
                 });
                 userContent.push({
                     type: "image_url",
@@ -1052,6 +1052,7 @@ export async function extractFlightTicketOCR(formData: FormData) {
                         departure_time: firstSeg.departure_time || parsedData.departure_time || "2026-06-25T11:15:00",
                         arrival_time: firstSeg.arrival_time || parsedData.arrival_time || "2026-06-25T19:30:00",
                         baggage_policy: parsedData.baggage_policy || "2 x 23kg",
+                        pnr: parsedData.pnr || "",
                         segments: flightSegments.map((s: any) => ({
                             flight_number: s.flight_number || "TK1822",
                             airline: s.airline || "Turkish Airlines",
@@ -1898,7 +1899,7 @@ export async function extractFlightTicketFromText(text: string) {
                     messages: [
                         {
                             role: "user",
-                            content: `Voici le texte brut d'un billet d'avion ou plan de vol : \n\n${text}\n\nExtrais TOUS les segments de vol présents. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), et baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg').`
+                            content: `Voici le texte brut d'un billet d'avion ou plan de vol : \n\n${text}\n\nExtrais TOUS les segments de vol présents. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg'), et pnr (le code de réservation ou dossier PNR s'il existe dans le texte, ex: 'ABC12D').`
                         }
                     ]
                 })
@@ -1936,6 +1937,7 @@ export async function extractFlightTicketFromText(text: string) {
                         departure_time: firstSeg.departure_time || parsedData.departure_time || "",
                         arrival_time: firstSeg.arrival_time || parsedData.arrival_time || "",
                         baggage_policy: parsedData.baggage_policy || "",
+                        pnr: parsedData.pnr || "",
                         segments: flightSegments.map((s: any) => ({
                             flight_number: s.flight_number || "",
                             airline: s.airline || "",

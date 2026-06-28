@@ -140,7 +140,7 @@ export default async function Dashboard() {
                                     <p className="text-dim text-[11px] uppercase tracking-[0.1em] font-semibold">{data.arrivalCity}</p>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[11px] font-bold uppercase tracking-widest">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-[11px] font-bold uppercase tracking-widest">
                                 <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
                                     <p className="text-dim mb-1 opacity-70">Date de départ</p>
                                     <p className="text-main">{data.departureDate}</p>
@@ -152,6 +152,10 @@ export default async function Dashboard() {
                                 <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
                                     <p className="text-dim mb-1 opacity-70">Compagnie</p>
                                     <p className="text-main">{data.carrier}</p>
+                                </div>
+                                <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
+                                    <p className="text-dim mb-1 opacity-70">Référence (PNR)</p>
+                                    <p className="text-main font-mono font-black text-emerald-500">{((data as any).pnr) || '-'}</p>
                                 </div>
                                 <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 col-span-2 md:col-span-1">
                                     <p className="text-dim mb-1 opacity-70">Bagages Autorisés</p>
