@@ -1855,6 +1855,90 @@ export async function deletePilgrimAction(id: string) {
     }
 }
 
+export async function extractFlightTicketFromText(text: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    if (!text || text.trim().length === 0) {
+        return { error: "Texte vide" };
+    }
+
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+
+    if (openrouterKey) {
+        console.log("Using OpenRouter API with google/gemini-2.5-flash for text extraction...");
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${openrouterKey}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://omrayanair.vercel.app",
+                    "X-Title": "OMRAYANAIR"
+                },
+                body: JSON.stringify({
+                    model: "google/gemini-2.5-flash",
+                    messages: [
+                        {
+                            role: "user",
+                            content: `Voici le texte brut d'un billet d'avion ou plan de vol : \n\n${text}\n\nExtrais TOUS les segments de vol présents. Donne uniquement l'objet JSON brut (sans bloc de code markdown, pas de \`\`\`json) avec les clés exactes : segments (un tableau d'objets, chaque objet ayant les clés exactes: flight_number, airline, departure_airport [IATA 3 lettres], arrival_airport [IATA 3 lettres], departure_time [format ISO YYYY-MM-DDTHH:MM:SS], arrival_time [format ISO YYYY-MM-DDTHH:MM:SS]), et baggage_policy (politique de bagage globale extraite, ex: '2 x 23kg').`
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error("OpenRouter API Error details:", errText);
+                throw new Error("Erreur de l'API OpenRouter");
+            }
+
+            const jsonRes = await response.json();
+            const textResponse = jsonRes.choices?.[0]?.message?.content;
+            if (textResponse) {
+                console.log("OpenRouter text response:", textResponse);
+                const cleanedText = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+                const parsedData = JSON.parse(cleanedText);
+                
+                let flightSegments = [];
+                if (parsedData.segments && Array.isArray(parsedData.segments)) {
+                    flightSegments = parsedData.segments;
+                } else if (parsedData.flight_number || parsedData.airline) {
+                    flightSegments = [parsedData];
+                }
+                
+                const firstSeg = flightSegments[0] || {};
+
+                return {
+                    success: true,
+                    data: {
+                        flight_number: firstSeg.flight_number || parsedData.flight_number || "",
+                        airline: firstSeg.airline || parsedData.airline || "",
+                        departure_airport: firstSeg.departure_airport || parsedData.departure_airport || "",
+                        arrival_airport: firstSeg.arrival_airport || parsedData.arrival_airport || "",
+                        departure_time: firstSeg.departure_time || parsedData.departure_time || "",
+                        arrival_time: firstSeg.arrival_time || parsedData.arrival_time || "",
+                        baggage_policy: parsedData.baggage_policy || "",
+                        segments: flightSegments.map((s: any) => ({
+                            flight_number: s.flight_number || "",
+                            airline: s.airline || "",
+                            departure_airport: s.departure_airport || "",
+                            arrival_airport: s.arrival_airport || "",
+                            departure_time: s.departure_time || "",
+                            arrival_time: s.arrival_time || ""
+                        }))
+                    }
+                };
+            }
+        } catch (e: any) {
+            console.error("Failed to parse ticket text using OpenRouter API", e);
+            return { error: "Impossible d'analyser le texte avec l'IA." };
+        }
+    }
+    return { error: "Clé d'API OpenRouter manquante." };
+}
+
+
 
 
 

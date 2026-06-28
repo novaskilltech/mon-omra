@@ -12,7 +12,7 @@ import {
     deletePilgrimAction,
     addPayment, getPilgrimPayments, getGroups,
     getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
-    extractFlightTicketOCR, saveIndividualFlightInfo, updatePilgrimPackagePrice,
+    extractFlightTicketOCR, extractFlightTicketFromText, saveIndividualFlightInfo, updatePilgrimPackagePrice,
     linkFamilyMember, unlinkFamilyMember, updatePilgrimAction,
     getAvailableFlightsAndHotels, saveIndividualHotelInfo
 } from '@/lib/actions/concierge';
@@ -33,6 +33,12 @@ export default function ConciergeDashboard() {
     const [baggageSoute, setBaggageSoute] = useState<string>('');
     const [baggageCabine, setBaggageCabine] = useState<string>('');
     const [baggageMain, setBaggageMain] = useState<string>('');
+
+    // AI Assistant Flight State
+    const [ocrLoading, setOcrLoading] = useState(false);
+    const [textToParse, setTextToParse] = useState('');
+    const [textLoading, setTextLoading] = useState(false);
+    const [showTextAiArea, setShowTextAiArea] = useState(false);
     
     // Family Link State
     const [familySearchText, setFamilySearchText] = useState('');
@@ -402,6 +408,123 @@ export default function ConciergeDashboard() {
 
     const handleFlightSegmentChange = (index: number, key: string, value: string) => {
         setFlights((prev) => prev.map((f, i) => i === index ? { ...f, [key]: value } : f));
+    };
+
+    const handleOcrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        try {
+            setOcrLoading(true);
+            const formData = new FormData();
+            formData.append('ticket', file);
+            
+            const res = await extractFlightTicketOCR(formData);
+            if (res.success && res.data) {
+                const parsed = res.data;
+                
+                // Set flights
+                if (parsed.segments && Array.isArray(parsed.segments) && parsed.segments.length > 0) {
+                    setFlights(parsed.segments.map((s: any) => ({
+                        flight_number: s.flight_number || '',
+                        airline: s.airline || '',
+                        departure_airport: s.departure_airport || '',
+                        arrival_airport: s.arrival_airport || '',
+                        departure_time: s.departure_time ? s.departure_time.substring(0, 16) : '',
+                        arrival_time: s.arrival_time ? s.arrival_time.substring(0, 16) : ''
+                    })));
+                } else {
+                    setFlights([
+                        {
+                            flight_number: parsed.flight_number || '',
+                            airline: parsed.airline || '',
+                            departure_airport: parsed.departure_airport || '',
+                            arrival_airport: parsed.arrival_airport || '',
+                            departure_time: parsed.departure_time ? parsed.departure_time.substring(0, 16) : '',
+                            arrival_time: parsed.arrival_time ? parsed.arrival_time.substring(0, 16) : ''
+                        }
+                    ]);
+                }
+
+                // Try to parse baggage_policy
+                const policy = parsed.baggage_policy || '';
+                const souteMatch = policy.match(/Soute:\s*([^|]+)/i);
+                const cabineMatch = policy.match(/Cabine:\s*([^|]+)/i);
+                const mainMatch = policy.match(/Sac:\s*([^|]+)/i);
+                
+                setBaggageSoute(souteMatch ? souteMatch[1].trim() : (policy.toLowerCase().includes('23kg') ? '23kg' : ''));
+                setBaggageCabine(cabineMatch ? cabineMatch[1].trim() : (policy.toLowerCase().includes('8kg') ? '8kg' : ''));
+                setBaggageMain(mainMatch ? mainMatch[1].trim() : '');
+
+                alert("Billet d'avion analysé et importé avec succès !");
+            } else {
+                alert(res.error || "Impossible d'analyser le billet.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Erreur lors de l'analyse du document.");
+        } finally {
+            setOcrLoading(false);
+        }
+    };
+
+    const handleTextAiParse = async () => {
+        if (!textToParse || textToParse.trim().length === 0) {
+            alert("Veuillez coller un texte à analyser.");
+            return;
+        }
+
+        try {
+            setTextLoading(true);
+            const res = await extractFlightTicketFromText(textToParse);
+            if (res.success && res.data) {
+                const parsed = res.data;
+
+                // Set flights
+                if (parsed.segments && Array.isArray(parsed.segments) && parsed.segments.length > 0) {
+                    setFlights(parsed.segments.map((s: any) => ({
+                        flight_number: s.flight_number || '',
+                        airline: s.airline || '',
+                        departure_airport: s.departure_airport || '',
+                        arrival_airport: s.arrival_airport || '',
+                        departure_time: s.departure_time ? s.departure_time.substring(0, 16) : '',
+                        arrival_time: s.arrival_time ? s.arrival_time.substring(0, 16) : ''
+                    })));
+                } else {
+                    setFlights([
+                        {
+                            flight_number: parsed.flight_number || '',
+                            airline: parsed.airline || '',
+                            departure_airport: parsed.departure_airport || '',
+                            arrival_airport: parsed.arrival_airport || '',
+                            departure_time: parsed.departure_time ? parsed.departure_time.substring(0, 16) : '',
+                            arrival_time: parsed.arrival_time ? parsed.arrival_time.substring(0, 16) : ''
+                        }
+                    ]);
+                }
+
+                // Try to parse baggage_policy
+                const policy = parsed.baggage_policy || '';
+                const souteMatch = policy.match(/Soute:\s*([^|]+)/i);
+                const cabineMatch = policy.match(/Cabine:\s*([^|]+)/i);
+                const mainMatch = policy.match(/Sac:\s*([^|]+)/i);
+                
+                setBaggageSoute(souteMatch ? souteMatch[1].trim() : (policy.toLowerCase().includes('23kg') ? '23kg' : ''));
+                setBaggageCabine(cabineMatch ? cabineMatch[1].trim() : (policy.toLowerCase().includes('8kg') ? '8kg' : ''));
+                setBaggageMain(mainMatch ? mainMatch[1].trim() : '');
+
+                alert("Plan de vol analysé et pré-rempli avec succès !");
+                setShowTextAiArea(false);
+                setTextToParse('');
+            } else {
+                alert(res.error || "Impossible d'analyser le plan de vol.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Erreur lors de l'analyse du plan de vol.");
+        } finally {
+            setTextLoading(false);
+        }
     };
 
     const handleSaveFlightInfo = async () => {
@@ -1119,8 +1242,74 @@ export default function ConciergeDashboard() {
                                             <Plane className="w-4 h-4 text-emerald-500" /> Détails des Vols & Bagages
                                         </h4>
                                         <div className="bg-emerald-500/[0.02] border border-emerald-500/10 rounded-3xl p-6 space-y-6">
+                                            {/* AI Flight Assistant Widget */}
+                                            <div className="bg-emerald-500/[0.03] border border-emerald-500/10 rounded-2xl p-5 space-y-4">
+                                                <div className="flex flex-wrap items-center justify-between gap-4">
+                                                    <div>
+                                                        <h5 className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
+                                                            <Brain className="w-3.5 h-3.5 animate-pulse" /> Assistant IA Remplissage de Vols
+                                                        </h5>
+                                                        <p className="text-[11px] text-dim m-0 mt-1">Extraire les vols automatiquement depuis vos documents ou du texte brut.</p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <label className="flex items-center gap-2 px-5 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400 cursor-pointer transition-all">
+                                                            {ocrLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                                                            <span>{ocrLoading ? "Analyse..." : "Assistant OCR (PDF/Capture)"}</span>
+                                                            <input 
+                                                                type="file" 
+                                                                accept="application/pdf,image/*" 
+                                                                onChange={handleOcrUpload} 
+                                                                className="hidden" 
+                                                                disabled={ocrLoading}
+                                                            />
+                                                        </label>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowTextAiArea(!showTextAiArea)}
+                                                            className="flex items-center gap-2 px-5 py-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-amber-500 hover:text-amber-400 transition-all"
+                                                        >
+                                                            <Brain className="w-3.5 h-3.5" />
+                                                            <span>Assistant Texte IA</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {showTextAiArea && (
+                                                    <div className="bg-[#0b0f0d]/50 p-4 rounded-2xl border border-emerald-500/10 space-y-3 animate-in slide-in-from-top duration-200">
+                                                        <textarea
+                                                            placeholder="Collez ici le plan de vol brut (ex: e-mail, SMS, plan de vol de l'agence)..."
+                                                            value={textToParse}
+                                                            onChange={(e) => setTextToParse(e.target.value)}
+                                                            className="w-full min-h-[100px] bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-main outline-none focus:border-emerald-500 transition-all [color-scheme:dark]"
+                                                        />
+                                                        <div className="flex justify-end gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setShowTextAiArea(false);
+                                                                    setTextToParse('');
+                                                                }}
+                                                                className="px-4 py-2 border border-white/10 hover:bg-white/5 text-dim rounded-xl text-[9px] font-black uppercase tracking-widest"
+                                                            >
+                                                                Annuler
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleTextAiParse}
+                                                                disabled={textLoading}
+                                                                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-black uppercase tracking-widest text-[9px] rounded-xl transition-all"
+                                                            >
+                                                                {textLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Brain className="w-3 h-3" />}
+                                                                <span>{textLoading ? "Analyse..." : "Extraire les Vols"}</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                             <p className="text-xs text-dim m-0">
-                                                Renseignez manuellement les différents segments de vol (escales) du pèlerin ainsi que les options de bagages allouées.
+                                                Renseignez manuellement ou via l'assistant ci-dessus les différents segments de vol (escales) du pèlerin ainsi que les options de bagages allouées.
                                             </p>
 
                                             {/* Flight Segments List */}
