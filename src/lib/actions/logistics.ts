@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { FlightSchema, Flight } from '@/types/logistics';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
@@ -11,7 +11,8 @@ async function getAuthUserId(supabase: any): Promise<string> {
     const isAdmin = await isAdminAuthenticated();
     if (isAdmin) {
         try {
-            const { data: adminProfile } = await supabase
+            const adminClient = createAdminClient();
+            const { data: adminProfile } = await adminClient
                 .from('profiles')
                 .select('id')
                 .eq('role', 'SUPER_ADMIN')
