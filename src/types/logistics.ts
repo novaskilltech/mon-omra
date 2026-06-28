@@ -19,7 +19,7 @@ export const FlightSegmentSchema = z.object({
 
 export const FlightSchema = z.object({
     id: z.string().uuid().optional(),
-    agency_id: z.string().uuid(),
+    agency_id: z.string().uuid().optional(),
     type: z.enum(['ALLER', 'RETOUR']),
     segments: z.array(FlightSegmentSchema).min(1),
 });

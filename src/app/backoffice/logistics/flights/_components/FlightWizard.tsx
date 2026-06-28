@@ -77,10 +77,35 @@ export default function FlightWizard({ agencyId }: { agencyId: string }) {
     const handleSubmit = async () => {
         try {
             setLoading(true);
+
+            const formatToUTC = (dateTimeStr: string) => {
+                if (!dateTimeStr) return '';
+                if (/[Z+-]/i.test(dateTimeStr.substring(10))) {
+                    return dateTimeStr;
+                }
+                if (dateTimeStr.length === 16) {
+                    return `${dateTimeStr}:00Z`;
+                }
+                if (dateTimeStr.length === 19) {
+                    return `${dateTimeStr}Z`;
+                }
+                try {
+                    return new Date(dateTimeStr).toISOString();
+                } catch {
+                    return dateTimeStr;
+                }
+            };
+
+            const formattedSegments = segments.map(s => ({
+                ...s,
+                departure_time: formatToUTC(s.departure_time || ''),
+                arrival_time: formatToUTC(s.arrival_time || '')
+            }));
+
             const flightData = {
                 agency_id: agencyId,
                 type,
-                segments: segments as FlightSegment[]
+                segments: formattedSegments as FlightSegment[]
             };
 
             await createFlight(flightData);
