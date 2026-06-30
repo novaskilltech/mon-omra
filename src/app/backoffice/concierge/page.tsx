@@ -1605,14 +1605,13 @@ export default function ConciergeDashboard() {
                         
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Associer à un Groupe de Voyage</label>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Associer à un Groupe de Voyage (Optionnel)</label>
                                 <select 
                                     value={approveForm.groupId}
                                     onChange={(e) => setApproveForm({ ...approveForm, groupId: e.target.value })}
                                     className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
-                                    required
                                 >
-                                    <option value="" className="bg-[#0b0e0c] text-main">Choisir un groupe</option>
+                                    <option value="" className="bg-[#0b0e0c] text-main">Sans groupe (à assigner plus tard)</option>
                                     {groups.map(g => (
                                         <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
                                     ))}
@@ -1687,13 +1686,13 @@ export default function ConciergeDashboard() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Groupe de Voyage</label>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Groupe de Voyage (Optionnel)</label>
                                 <select 
                                     value={addForm.groupId}
                                     onChange={(e) => setAddForm({ ...addForm, groupId: e.target.value })}
                                     className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
                                 >
-                                    <option value="" className="bg-[#0b0e0c] text-main">Sélectionner un groupe</option>
+                                    <option value="" className="bg-[#0b0e0c] text-main">Aucun groupe (à assigner plus tard)</option>
                                     {groups.map(g => (
                                         <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
                                     ))}
@@ -1792,13 +1791,13 @@ export default function ConciergeDashboard() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Groupe de Voyage</label>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Groupe de Voyage (Optionnel)</label>
                                 <select 
                                     value={editForm.groupId}
                                     onChange={(e) => setEditForm({ ...editForm, groupId: e.target.value })}
                                     className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
                                 >
-                                    <option value="" className="bg-[#0b0e0c] text-main">Sélectionner un groupe</option>
+                                    <option value="" className="bg-[#0b0e0c] text-main">Aucun groupe (retirer du groupe)</option>
                                     {groups.map(g => (
                                         <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
                                     ))}
