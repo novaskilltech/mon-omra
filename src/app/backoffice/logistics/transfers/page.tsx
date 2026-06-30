@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import { 
     getPilgrimsList, savePilgrimTransfers, getGroups, 
-    getLogisticsDefaultsForPilgrim, getGroupsDetailed 
+    getLogisticsDefaultsForPilgrim, getGroupsDetailed,
+    generateDriverShareLink
 } from '@/lib/actions/concierge';
 import { getAgencyFlights } from '@/lib/actions/logistics';
 
@@ -483,6 +484,29 @@ export default function TransfersPage() {
                                         >
                                             <MessageSquare className="w-3.5 h-3.5" /> Manifeste WhatsApp
                                         </a>
+                                        {selectedPilgrim.group_id && (
+                                            <button 
+                                                type="button"
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await generateDriverShareLink(selectedPilgrim.group_id);
+                                                        if (res.success && res.link) {
+                                                            const fullLink = `${window.location.origin}${res.link}`;
+                                                            navigator.clipboard.writeText(fullLink);
+                                                            alert("Lien d'accès chauffeur (visas/hôtels) copié !");
+                                                        } else {
+                                                            alert(res.error || "Erreur de génération.");
+                                                        }
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                        alert("Erreur de génération.");
+                                                    }
+                                                }}
+                                                className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl font-bold uppercase tracking-wider text-[10px] transition-all border border-blue-500/20"
+                                            >
+                                                <Users className="w-3.5 h-3.5" /> Lien Chauffeur
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -685,15 +709,41 @@ export default function TransfersPage() {
                                         </div>
                                     </div>
 
-                                    <div className="pt-2">
+                                    <div className="pt-2 flex gap-2">
                                         <a 
                                             href={generateGroupWhatsAppManifest(g, activeTab === 'arrival_groups')}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 text-white dark:text-[#050605] rounded-xl font-bold uppercase tracking-wider text-[10px] transition-all shadow-md"
+                                            className="w-1/2 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 text-white dark:text-[#050605] rounded-xl font-bold uppercase tracking-wider text-[10px] transition-all shadow-md"
                                         >
-                                            <MessageSquare className="w-3.5 h-3.5" /> Envoyer Manifeste
+                                            <MessageSquare className="w-3.5 h-3.5" /> Manifeste
                                         </a>
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                const firstP = pelerins[0];
+                                                if (firstP && firstP.group_id) {
+                                                    try {
+                                                        const res = await generateDriverShareLink(firstP.group_id);
+                                                        if (res.success && res.link) {
+                                                            const fullLink = `${window.location.origin}${res.link}`;
+                                                            navigator.clipboard.writeText(fullLink);
+                                                            alert("Lien d'accès chauffeur (visas/hôtels) copié !");
+                                                        } else {
+                                                            alert(res.error || "Erreur de génération.");
+                                                        }
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                        alert("Erreur de génération.");
+                                                    }
+                                                } else {
+                                                    alert("Aucun groupe de voyage associé aux pèlerins de ce vol.");
+                                                }
+                                            }}
+                                            className="w-1/2 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl font-bold uppercase tracking-wider text-[10px] transition-all border border-blue-500/20"
+                                        >
+                                            Lien Chauffeur
+                                        </button>
                                     </div>
                                 </div>
                             );

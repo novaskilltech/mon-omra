@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { isAdminAuthenticated } from './auth';
 import zlib from 'zlib';
 import crypto from 'crypto';
+import { encryptToken, decryptToken } from '../utils/crypto';
 
 export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?: string }) {
     const isAdmin = await isAdminAuthenticated();
@@ -1955,6 +1956,134 @@ export async function extractFlightTicketFromText(text: string) {
         }
     }
     return { error: "Clé d'API OpenRouter manquante." };
+}
+
+export async function generateDriverShareLink(groupId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+    const payload = {
+        groupId,
+        expiresAt
+    };
+
+    const token = encryptToken(payload);
+    const link = `/shared/transfer/${encodeURIComponent(token)}`;
+    return { success: true, link };
+}
+
+export async function getDriverDashboardData(token: string) {
+    const payload = decryptToken(token);
+    if (!payload || !payload.groupId || !payload.expiresAt) {
+        return { error: "Lien invalide ou expiré" };
+    }
+
+    if (Date.now() > payload.expiresAt) {
+        return { error: "Ce lien a expiré" };
+    }
+
+    const supabase = createClient();
+    try {
+        const { data: group, error: groupError } = await supabase
+            .from('groups')
+            .select('*')
+            .eq('id', payload.groupId)
+            .single();
+
+        if (groupError || !group) {
+            return { error: "Groupe introuvable" };
+        }
+
+        const { data: groupStays } = await supabase
+            .from('group_hotel_stays')
+            .select(`
+                *,
+                hotels (*)
+            `)
+            .eq('group_id', payload.groupId);
+
+        const { data: groupLogistics } = await supabase
+            .from('group_logistics')
+            .select('flight_departure_id, flight_return_id')
+            .eq('group_id', payload.groupId)
+            .maybeSingle();
+
+        let outboundFlight = null;
+        let returnFlight = null;
+
+        if (groupLogistics) {
+            if (groupLogistics.flight_departure_id) {
+                const { data: dep } = await supabase
+                    .from('flights')
+                    .select('*, flight_segments(*)')
+                    .eq('id', groupLogistics.flight_departure_id)
+                    .single();
+                outboundFlight = dep;
+            }
+            if (groupLogistics.flight_return_id) {
+                const { data: ret } = await supabase
+                    .from('flights')
+                    .select('*, flight_segments(*)')
+                    .eq('id', groupLogistics.flight_return_id)
+                    .single();
+                returnFlight = ret;
+            }
+        }
+
+        const { data: pilgrimsList, error: pError } = await supabase
+            .from('profiles')
+            .select(`
+                id,
+                full_name,
+                family_name,
+                gender,
+                visa_status,
+                visa_url,
+                pilgrims!inner(
+                    id,
+                    group_id
+                )
+            `)
+            .eq('pilgrims.group_id', payload.groupId);
+
+        if (pError) throw pError;
+
+        const mappedPilgrims = await Promise.all((pilgrimsList || []).map(async (p: any) => {
+            let signedVisaUrl = null;
+            if (p.visa_url && p.visa_status === 'APPROVED') {
+                try {
+                    const { data: signedData } = await supabase.storage
+                        .from('pelerin-documents')
+                        .createSignedUrl(p.visa_url, 3600);
+                    if (signedData) signedVisaUrl = signedData.signedUrl;
+                } catch (err) {
+                    console.error("Error signing visa URL for driver:", err);
+                }
+            }
+            return {
+                id: p.id,
+                name: p.full_name,
+                gender: p.gender,
+                visaStatus: p.visa_status,
+                visaUrl: signedVisaUrl
+            };
+        }));
+
+        return {
+            success: true,
+            groupName: group.name,
+            departureDate: group.departure_date,
+            stays: groupStays || [],
+            outboundFlight,
+            returnFlight,
+            pilgrims: mappedPilgrims
+        };
+
+    } catch (e: any) {
+        console.error("Error fetching driver dashboard data:", e);
+        return { error: "Erreur lors du chargement des données." };
+    }
 }
 
 
