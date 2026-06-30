@@ -170,54 +170,6 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                     </span>
                 </header>
 
-                {/* Hotels Block */}
-                <section className="glass p-6 sm:p-8 rounded-[2.5rem] border border-emerald-500/5 space-y-6">
-                    <h2 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2 border-b border-emerald-500/10 pb-3">
-                        <Hotel className="w-4 h-4 text-emerald-500" /> Hébergements & Hôtels
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {makkahStay ? (
-                            <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 flex flex-col justify-between space-y-4">
-                                <div>
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500">LA MECQUE / MAKKAH</span>
-                                    <h3 className="font-bold text-main mt-1">{makkahStay.hotels?.name}</h3>
-                                    <p className="text-xs text-dim mt-1">{makkahStay.hotels?.address || 'Adresse non spécifiée'}</p>
-                                </div>
-                                <a 
-                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(makkahStay.hotels?.name + ' ' + (makkahStay.hotels?.address || 'Makkah'))}`}
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="inline-flex justify-center items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl font-bold uppercase tracking-wider text-[10px] transition-all border border-emerald-500/20"
-                                >
-                                    Itinéraire Google Maps
-                                </a>
-                            </div>
-                        ) : (
-                            <p className="text-xs text-dim italic">Aucun hôtel à Makkah associé.</p>
-                        )}
-
-                        {madinahStay ? (
-                            <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 flex flex-col justify-between space-y-4">
-                                <div>
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500">MÉDINE / MADINAH</span>
-                                    <h3 className="font-bold text-main mt-1">{madinahStay.hotels?.name}</h3>
-                                    <p className="text-xs text-dim mt-1">{madinahStay.hotels?.address || 'Adresse non spécifiée'}</p>
-                                </div>
-                                <a 
-                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(madinahStay.hotels?.name + ' ' + (madinahStay.hotels?.address || 'Madinah'))}`}
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="inline-flex justify-center items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl font-bold uppercase tracking-wider text-[10px] transition-all border border-emerald-500/20"
-                                >
-                                    Itinéraire Google Maps
-                                </a>
-                            </div>
-                        ) : (
-                            <p className="text-xs text-dim italic">Aucun hôtel à Madinah associé.</p>
-                        )}
-                    </div>
-                </section>
-
                 {/* Flights Block */}
                 {(data.outboundFlight || data.returnFlight) && (
                     <section className="glass p-6 sm:p-8 rounded-[2.5rem] border border-emerald-500/5 space-y-6">
@@ -261,7 +213,7 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                 {/* Pilgrims & Visas Block */}
                 <section className="glass p-6 sm:p-8 rounded-[2.5rem] border border-emerald-500/5 space-y-6">
                     <h2 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2 border-b border-emerald-500/10 pb-3">
-                        <FileCheck className="w-4 h-4 text-emerald-500" /> Manifeste des Pèlerins & Visas
+                        <FileCheck className="w-4 h-4 text-emerald-500" /> Manifeste des Pèlerins & Hébergements (Rooming)
                     </h2>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -269,6 +221,7 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                                 <tr className="border-b border-emerald-500/10">
                                     <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim">Nom Complet</th>
                                     <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim text-center">Genre</th>
+                                    <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim">Hébergement / Chambre</th>
                                     <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim text-right">Document Visa</th>
                                 </tr>
                             </thead>
@@ -280,6 +233,19 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                                         </td>
                                         <td className="py-4 text-xs text-dim text-center">
                                             {p.gender === 'F' ? 'Femme' : 'Homme'}
+                                        </td>
+                                        <td className="py-4 text-xs text-dim">
+                                            <div className="space-y-1">
+                                                {p.makkahHotel && p.makkahHotel !== 'N/A' && (
+                                                    <p className="text-[11px] text-amber-500/90 font-medium">🕋 {p.makkahHotel}</p>
+                                                )}
+                                                {p.madinahHotel && p.madinahHotel !== 'N/A' && (
+                                                    <p className="text-[11px] text-emerald-500/90 font-medium">🕌 {p.madinahHotel}</p>
+                                                )}
+                                                {(!p.makkahHotel || p.makkahHotel === 'N/A') && (!p.madinahHotel || p.madinahHotel === 'N/A') && (
+                                                    <span className="text-[10px] italic opacity-40">Non assigné</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="py-4 text-right">
                                             {p.visaUrl ? (

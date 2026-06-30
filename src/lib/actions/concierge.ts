@@ -2060,6 +2060,83 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
 
         if (pError) throw pError;
 
+        const pilgrimIds = (pilgrimsList || []).map((p: any) => p.id);
+        
+        // 1. Fetch room assignments for these pilgrims
+        let assignments: any[] = [];
+        if (pilgrimIds.length > 0) {
+            const { data: assignData } = await supabase
+                .from('room_assignments')
+                .select(`
+                    pilgrim_id,
+                    rooms (
+                        room_number,
+                        hotels (
+                            name,
+                            city
+                        )
+                    )
+                `)
+                .in('pilgrim_id', pilgrimIds);
+            if (assignData) assignments = assignData;
+        }
+
+        const roomingMap: Record<string, { makkah: string, madinah: string }> = {};
+        assignments.forEach((item: any) => {
+            const pId = item.pilgrim_id;
+            const room = item.rooms as any;
+            if (!room) return;
+            const hotel = room.hotels as any;
+            if (!hotel) return;
+
+            if (!roomingMap[pId]) {
+                roomingMap[pId] = { makkah: '', madinah: '' };
+            }
+
+            const city = (hotel.city || '').toUpperCase();
+            if (city === 'MAKKAH') {
+                roomingMap[pId].makkah = `${hotel.name}${room.room_number ? ` (Ch. ${room.room_number})` : ''}`;
+            } else if (city === 'MADINAH') {
+                roomingMap[pId].madinah = `${hotel.name}${room.room_number ? ` (Ch. ${room.room_number})` : ''}`;
+            }
+        });
+
+        // 2. Fetch individual hotels fallback
+        let pilgrimsHotels: any[] = [];
+        if (pilgrimIds.length > 0) {
+            const { data: pList } = await supabase
+                .from('pilgrims')
+                .select('id, individual_hotel_info')
+                .in('id', pilgrimIds);
+            if (pList) pilgrimsHotels = pList;
+        }
+
+        const { data: hotelsList } = await supabase
+            .from('hotels')
+            .select('id, name, city');
+
+        const hotelNamesMap: Record<string, { name: string, city: string }> = {};
+        (hotelsList || []).forEach(h => {
+            hotelNamesMap[h.id] = { name: h.name || '', city: h.city || '' };
+        });
+
+        const pilgrimFallbackHotels: Record<string, { makkah: string, madinah: string }> = {};
+        pilgrimsHotels.forEach((p: any) => {
+            const info = p.individual_hotel_info;
+            if (!info) return;
+            const pId = p.id;
+            pilgrimFallbackHotels[pId] = { makkah: '', madinah: '' };
+
+            if (info.makkah_hotel_id) {
+                const h = hotelNamesMap[info.makkah_hotel_id];
+                if (h) pilgrimFallbackHotels[pId].makkah = h.name;
+            }
+            if (info.madinah_hotel_id) {
+                const h = hotelNamesMap[info.madinah_hotel_id];
+                if (h) pilgrimFallbackHotels[pId].madinah = h.name;
+            }
+        });
+
         const mappedPilgrims = await Promise.all((pilgrimsList || []).map(async (p: any) => {
             let signedVisaUrl = null;
             if (p.visa_url && p.visa_status === 'APPROVED') {
@@ -2072,12 +2149,18 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
                     console.error("Error signing visa URL for driver:", err);
                 }
             }
+
+            const rInfo = roomingMap[p.id] || { makkah: '', madinah: '' };
+            const fallback = pilgrimFallbackHotels[p.id] || { makkah: '', madinah: '' };
+
             return {
                 id: p.id,
                 name: p.full_name,
                 gender: p.gender,
                 visaStatus: p.visa_status,
-                visaUrl: signedVisaUrl
+                visaUrl: signedVisaUrl,
+                makkahHotel: rInfo.makkah || fallback.makkah || 'N/A',
+                madinahHotel: rInfo.madinah || fallback.madinah || 'N/A'
             };
         }));
 

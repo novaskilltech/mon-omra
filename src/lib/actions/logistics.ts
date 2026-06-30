@@ -1865,4 +1865,110 @@ export async function getGroup(groupId: string) {
     }
 }
 
+export async function getRoomingAssignmentsForTransfers() {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) throw new Error("Non autorisé");
+
+    const supabase = createClient();
+    
+    // 1. Get all room assignments with rooms and hotels details
+    const { data: assignments, error } = await supabase
+        .from('room_assignments')
+        .select(`
+            pilgrim_id,
+            room_id,
+            rooms (
+                room_number,
+                type,
+                hotels (
+                    id,
+                    name,
+                    city
+                )
+            )
+        `);
+
+    if (error) {
+        console.error("Error fetching room assignments:", error);
+        return {};
+    }
+
+    const result: Record<string, {
+        makkahHotel: string;
+        makkahRoom: string;
+        madinahHotel: string;
+        madinahRoom: string;
+    }> = {};
+
+    (assignments || []).forEach((item: any) => {
+        const pId = item.pilgrim_id;
+        const room = item.rooms as any;
+        if (!room) return;
+        const hotel = room.hotels as any;
+        if (!hotel) return;
+
+        if (!result[pId]) {
+            result[pId] = {
+                makkahHotel: '',
+                makkahRoom: '',
+                madinahHotel: '',
+                madinahRoom: ''
+            };
+        }
+
+        const city = (hotel.city || '').toUpperCase();
+        if (city === 'MAKKAH') {
+            result[pId].makkahHotel = hotel.name || '';
+            result[pId].makkahRoom = room.room_number || '';
+        } else if (city === 'MADINAH') {
+            result[pId].madinahHotel = hotel.name || '';
+            result[pId].madinahRoom = room.room_number || '';
+        }
+    });
+
+    // 2. Fallback to individual_hotel_info from pilgrims table
+    const { data: pilgrims } = await supabase
+        .from('pilgrims')
+        .select(`
+            id,
+            individual_hotel_info
+        `);
+
+    const { data: hotelsList } = await supabase
+        .from('hotels')
+        .select('id, name, city');
+
+    const hotelMap: Record<string, { name: string, city: string }> = {};
+    (hotelsList || []).forEach(h => {
+        hotelMap[h.id] = { name: h.name || '', city: h.city || '' };
+    });
+
+    (pilgrims || []).forEach((p: any) => {
+        const info = p.individual_hotel_info;
+        if (!info) return;
+
+        const pId = p.id;
+        if (!result[pId]) {
+            result[pId] = {
+                makkahHotel: '',
+                makkahRoom: '',
+                madinahHotel: '',
+                madinahRoom: ''
+            };
+        }
+
+        if (!result[pId].makkahHotel && info.makkah_hotel_id) {
+            const h = hotelMap[info.makkah_hotel_id];
+            if (h) result[pId].makkahHotel = h.name;
+        }
+
+        if (!result[pId].madinahHotel && info.madinah_hotel_id) {
+            const h = hotelMap[info.madinah_hotel_id];
+            if (h) result[pId].madinahHotel = h.name;
+        }
+    });
+
+    return result;
+}
+
 

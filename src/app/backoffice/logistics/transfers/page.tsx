@@ -9,13 +9,19 @@ import {
     getLogisticsDefaultsForPilgrim, getGroupsDetailed,
     generateDriverShareLink
 } from '@/lib/actions/concierge';
-import { getAgencyFlights } from '@/lib/actions/logistics';
+import { getAgencyFlights, getRoomingAssignmentsForTransfers } from '@/lib/actions/logistics';
 
 export default function TransfersPage() {
     const [pilgrims, setPilgrims] = useState<any[]>([]);
     const [groups, setGroups] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedPilgrim, setSelectedPilgrim] = useState<any>(null);
+    const [roomingMap, setRoomingMap] = useState<Record<string, {
+        makkahHotel: string;
+        makkahRoom: string;
+        madinahHotel: string;
+        madinahRoom: string;
+    }>>({});
     
     // New local states for flights and detailed groups
     const [agencyFlights, setAgencyFlights] = useState<any[]>([]);
@@ -58,6 +64,9 @@ export default function TransfersPage() {
 
             const flights = await getAgencyFlights();
             setAgencyFlights(flights || []);
+
+            const rooming = await getRoomingAssignmentsForTransfers();
+            setRoomingMap(rooming || {});
         } catch (e) {
             console.error(e);
         } finally {
@@ -170,7 +179,12 @@ export default function TransfersPage() {
         
         group.pilgrims.forEach((p: any, idx: number) => {
             const genderStr = p.gender === 'F' ? 'Femme' : 'Homme';
-            msg += `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr}) - ${p.email || 'Pas d\'email'}\n`;
+            const roomInfo = roomingMap[p.id] || { makkahHotel: '', makkahRoom: '', madinahHotel: '', madinahRoom: '' };
+            let hotelDetails = '';
+            if (roomInfo.makkahHotel) hotelDetails += ` | Makkah: ${roomInfo.makkahHotel}${roomInfo.makkahRoom ? ` (Ch. ${roomInfo.makkahRoom})` : ''}`;
+            if (roomInfo.madinahHotel) hotelDetails += ` | Madinah: ${roomInfo.madinahHotel}${roomInfo.madinahRoom ? ` (Ch. ${roomInfo.madinahRoom})` : ''}`;
+            
+            msg += `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr})${hotelDetails} - ${p.email || 'Pas d\'email'}\n`;
         });
         
         return `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
@@ -267,12 +281,20 @@ export default function TransfersPage() {
 
         const passengerList = groupPilgrims.map((p, idx) => {
             const genderStr = p.gender === 'F' ? 'Femme' : 'Homme';
-            return `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr})`;
+            const roomInfo = roomingMap[p.id] || { makkahHotel: '', makkahRoom: '', madinahHotel: '', madinahRoom: '' };
+            let hotelDetails = '';
+            if (roomInfo.makkahHotel) hotelDetails += ` | Makkah: ${roomInfo.makkahHotel}${roomInfo.makkahRoom ? ` (Ch. ${roomInfo.makkahRoom})` : ''}`;
+            if (roomInfo.madinahHotel) hotelDetails += ` | Madinah: ${roomInfo.madinahHotel}${roomInfo.madinahRoom ? ` (Ch. ${roomInfo.madinahRoom})` : ''}`;
+            return `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr})${hotelDetails}`;
         }).join('\n');
 
         const passengerListAR = groupPilgrims.map((p, idx) => {
             const genderStr = p.gender === 'F' ? 'أنثى' : 'ذكر';
-            return `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr})`;
+            const roomInfo = roomingMap[p.id] || { makkahHotel: '', makkahRoom: '', madinahHotel: '', madinahRoom: '' };
+            let hotelDetails = '';
+            if (roomInfo.makkahHotel) hotelDetails += ` | مكة: ${roomInfo.makkahHotel}${roomInfo.makkahRoom ? ` (غرفة ${roomInfo.makkahRoom})` : ''}`;
+            if (roomInfo.madinahHotel) hotelDetails += ` | المدينة: ${roomInfo.madinahHotel}${roomInfo.madinahRoom ? ` (غرفة ${roomInfo.madinahRoom})` : ''}`;
+            return `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr})${hotelDetails}`;
         }).join('\n');
 
         // English manifest
@@ -295,7 +317,7 @@ export default function TransfersPage() {
             `- Transport/Driver: ${airportTransport || 'N/A'}`;
 
         // Arabic manifest
-        const manifestAR = `*بيان النقل البري (Land Transfer)*\n` +
+        const manifestAR = `*بيان Nقل البري (Land Transfer)*\n` +
             `*المجموعة:* ${selectedPilgrim.group_name || 'غير محدد'}\n\n` +
             `*الركاب (${groupPilgrims.length}):*\n${passengerListAR}\n\n` +
             `*1. الوصول إلى المطار:*\n` +
