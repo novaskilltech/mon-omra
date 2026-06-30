@@ -259,11 +259,25 @@ export default function TransfersPage() {
     const generateWhatsAppManifest = () => {
         if (!selectedPilgrim) return '';
 
-        const name = `${selectedPilgrim.first_name} ${selectedPilgrim.family_name}`;
-        
+        // Find all pilgrims in the same group
+        const groupPilgrims = selectedPilgrim.group_id 
+            ? pilgrims.filter(p => p.group_id === selectedPilgrim.group_id)
+            : [selectedPilgrim];
+
+        const passengerList = groupPilgrims.map((p, idx) => {
+            const genderStr = p.gender === 'F' ? 'Femme' : 'Homme';
+            return `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr})`;
+        }).join('\n');
+
+        const passengerListAR = groupPilgrims.map((p, idx) => {
+            const genderStr = p.gender === 'F' ? 'أنثى' : 'ذكر';
+            return `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr})`;
+        }).join('\n');
+
         // English manifest
         const manifestEN = `*LAND TRANSFER MANIFEST*\n` +
-            `*Name:* ${name}\n\n` +
+            `*Group:* ${selectedPilgrim.group_name || 'N/A'}\n\n` +
+            `*Passengers (${groupPilgrims.length}):*\n${passengerList}\n\n` +
             `*1. Airport Arrival:*\n` +
             `- Airport: ${arrivalAirport || 'N/A'}\n` +
             `- Date/Time: ${arrivalTime ? new Date(arrivalTime).toLocaleString('en-US') : 'N/A'}\n` +
@@ -281,7 +295,8 @@ export default function TransfersPage() {
 
         // Arabic manifest
         const manifestAR = `*بيان النقل البري (Land Transfer)*\n` +
-            `*الاسم:* ${name}\n\n` +
+            `*المجموعة:* ${selectedPilgrim.group_name || 'غير محدد'}\n\n` +
+            `*الركاب (${groupPilgrims.length}):*\n${passengerListAR}\n\n` +
             `*1. الوصول إلى المطار:*\n` +
             `- مطار الوصول: ${arrivalAirport || 'غير محدد'}\n` +
             `- التاريخ والوقت: ${arrivalTime ? new Date(arrivalTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
