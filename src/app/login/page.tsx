@@ -11,6 +11,11 @@ export default function LoginPage() {
     const [role, setRole] = useState<'pilgrim' | 'agency'>('pilgrim');
     const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
     
+    // Agency Sub-tabs
+    const [agencySubTab, setAgencySubTab] = useState<'admin' | 'driver'>('admin');
+    const [driverLink, setDriverLink] = useState('');
+    const [driverPin, setDriverPin] = useState('');
+
     // Pilgrim Login State
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -30,6 +35,32 @@ export default function LoginPage() {
         phone: ''
     });
     const [regSuccess, setRegSuccess] = useState(false);
+
+    const handleDriverLoginSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        
+        let token = '';
+        if (driverLink.includes('/shared/transfer/')) {
+            const parts = driverLink.split('/shared/transfer/');
+            token = parts[1] ? decodeURIComponent(parts[1]).split('?')[0] : '';
+        } else {
+            token = driverLink.trim();
+        }
+
+        if (!token) {
+            setError("Le lien de transfert ou jeton fourni est invalide.");
+            return;
+        }
+
+        if (driverPin.length !== 6) {
+            setError("Le code PIN doit comporter 6 chiffres.");
+            return;
+        }
+
+        sessionStorage.setItem(`driver_pin_${token}`, driverPin);
+        window.location.href = `/shared/transfer/${encodeURIComponent(token)}`;
+    };
 
     const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -174,37 +205,111 @@ export default function LoginPage() {
 
                     {role === 'agency' ? (
                         <div>
-                            <div className="mb-8">
-                                <h1 className="text-2xl font-black mb-2 text-main uppercase tracking-tighter">Espace Agence</h1>
-                                <p className="text-sub text-xs leading-relaxed font-light">
-                                    Accédez au backoffice d'administration de l'agence OMRAYANAIR.
-                                </p>
+                            {/* Agency Sub-Tabs */}
+                            <div className="flex gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl mb-6">
+                                <button
+                                    onClick={() => { setAgencySubTab('admin'); setError(null); }}
+                                    className={`flex-1 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all ${agencySubTab === 'admin' ? 'bg-white/10 text-main shadow' : 'text-dim hover:text-main'}`}
+                                >
+                                    Administrateur
+                                </button>
+                                <button
+                                    onClick={() => { setAgencySubTab('driver'); setError(null); }}
+                                    className={`flex-1 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all ${agencySubTab === 'driver' ? 'bg-white/10 text-main shadow' : 'text-dim hover:text-main'}`}
+                                >
+                                    Chauffeur
+                                </button>
                             </div>
 
-                            <form onSubmit={handleAgencyLoginSubmit} className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Mot de passe</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/30" />
-                                        <input
-                                            required
-                                            type="password"
-                                            value={adminPassword}
-                                            onChange={(e) => setAdminPassword(e.target.value)}
-                                            placeholder="••••••••"
-                                            className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
-                                        />
+                            {agencySubTab === 'admin' ? (
+                                <>
+                                    <div className="mb-8">
+                                        <h1 className="text-2xl font-black mb-2 text-main uppercase tracking-tighter">Espace Agence</h1>
+                                        <p className="text-sub text-xs leading-relaxed font-light">
+                                            Accédez au backoffice d'administration de l'agence OMRAYANAIR.
+                                        </p>
                                     </div>
-                                </div>
 
-                                <button
-                                    disabled={loading}
-                                    className="w-full bg-emerald-500 hover:bg-emerald-600 dark:hover:bg-emerald-400 text-[#050605] py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
-                                >
-                                    {loading ? "Connexion..." : "Se connecter"}
-                                    {!loading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
-                                </button>
-                            </form>
+                                    <form onSubmit={handleAgencyLoginSubmit} className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Mot de passe</label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/30" />
+                                                <input
+                                                    required
+                                                    type="password"
+                                                    value={adminPassword}
+                                                    onChange={(e) => setAdminPassword(e.target.value)}
+                                                    placeholder="••••••••"
+                                                    className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            disabled={loading}
+                                            className="w-full bg-emerald-500 hover:bg-emerald-600 dark:hover:bg-emerald-400 text-[#050605] py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                        >
+                                            {loading ? "Connexion..." : "Se connecter"}
+                                            {!loading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
+                                        </button>
+                                    </form>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="mb-8">
+                                        <h1 className="text-2xl font-black mb-2 text-main uppercase tracking-tighter">Espace Chauffeur</h1>
+                                        <p className="text-sub text-xs leading-relaxed font-light">
+                                            Entrez le lien de transfert ou le jeton de sécurité et le code PIN associé.
+                                        </p>
+                                    </div>
+
+                                    <form onSubmit={handleDriverLoginSubmit} className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Lien de transfert ou Jeton</label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/30" />
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    value={driverLink}
+                                                    onChange={(e) => setDriverLink(e.target.value)}
+                                                    placeholder="https://... ou jeton"
+                                                    className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Code PIN à 6 chiffres</label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/30" />
+                                                <input
+                                                    required
+                                                    type="password"
+                                                    pattern="[0-9]*"
+                                                    inputMode="numeric"
+                                                    maxLength={6}
+                                                    value={driverPin}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^0-9]/g, '');
+                                                        if (val.length <= 6) setDriverPin(val);
+                                                    }}
+                                                    placeholder="••••••"
+                                                    className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm tracking-[0.4em] font-bold focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white placeholder:opacity-20"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            className="w-full bg-emerald-500 hover:bg-emerald-600 dark:hover:bg-emerald-400 text-[#050605] py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 group"
+                                        >
+                                            Valider & Entrer
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </button>
+                                    </form>
+                                </>
+                            )}
                         </div>
                     ) : activeTab === 'login' ? (
                         step === 'email' ? (
