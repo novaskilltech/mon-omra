@@ -2,43 +2,82 @@
 
 import React, { useEffect, useState } from 'react';
 import { getDriverDashboardData } from '@/lib/actions/concierge';
-import { Loader2, Route, Hotel, Plane, FileCheck, Phone, Eye, ShieldAlert } from 'lucide-react';
+import { Loader2, Route, Hotel, Plane, FileCheck, Eye, ShieldAlert, Lock, Unlock } from 'lucide-react';
 
 export default function DriverDashboardPage({ params }: { params: { token: string } }) {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    // PIN Authentication States
+    const [pin, setPin] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [pinError, setPinError] = useState<string | null>(null);
+    const [submittingPin, setSubmittingPin] = useState(false);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await getDriverDashboardData(params.token);
-                if (res.error) {
-                    setError(res.error);
-                } else {
-                    setData(res);
+        const checkAutoAuth = async () => {
+            const savedPin = sessionStorage.getItem(`driver_pin_${params.token}`);
+            if (savedPin) {
+                try {
+                    const res = await getDriverDashboardData(params.token, savedPin);
+                    if (!res.error) {
+                        setData(res);
+                        setIsAuthenticated(true);
+                    } else {
+                        // Saved PIN is no longer valid, clear it
+                        sessionStorage.removeItem(`driver_pin_${params.token}`);
+                    }
+                } catch (err) {
+                    console.error("Auto auth error:", err);
                 }
-            } catch (err) {
-                console.error(err);
-                setError("Erreur technique lors du chargement des données.");
-            } finally {
-                setLoading(false);
             }
+            setLoading(false);
         };
 
-        fetchData();
+        checkAutoAuth();
     }, [params.token]);
+
+    const handlePinSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (pin.length !== 6) {
+            setPinError("Le code PIN doit comporter 6 chiffres.");
+            return;
+        }
+
+        setSubmittingPin(true);
+        setPinError(null);
+        try {
+            const res = await getDriverDashboardData(params.token, pin);
+            if (res.error) {
+                if (res.error === 'INVALID_PIN') {
+                    setPinError("Code PIN incorrect. Veuillez réessayer.");
+                } else {
+                    setError(res.error);
+                }
+            } else {
+                setData(res);
+                setIsAuthenticated(true);
+                sessionStorage.setItem(`driver_pin_${params.token}`, pin);
+            }
+        } catch (err) {
+            console.error(err);
+            setPinError("Erreur lors de la validation du code.");
+        } finally {
+            setSubmittingPin(false);
+        }
+    };
 
     if (loading) {
         return (
             <div className="min-h-screen bg-[#050605] flex flex-col justify-center items-center gap-4 text-main p-6 font-inter">
                 <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
-                <p className="text-sm font-black uppercase tracking-widest text-dim animate-pulse">Chargement de la feuille de route...</p>
+                <p className="text-sm font-black uppercase tracking-widest text-dim animate-pulse">Validation de la clé de sécurité...</p>
             </div>
         );
     }
 
-    if (error || !data) {
+    if (error) {
         return (
             <div className="min-h-screen bg-[#050605] flex flex-col justify-center items-center text-center p-6 font-inter space-y-4">
                 <ShieldAlert className="w-16 h-16 text-red-500 animate-bounce" />
@@ -46,6 +85,66 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                 <p className="text-sm text-dim max-w-sm">{error || "Ce lien est invalide ou expiré."}</p>
                 <div className="pt-4">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/50">OMRAYANAIR SÉCURITÉ</span>
+                </div>
+            </div>
+        );
+    }
+
+    // Lock Screen View (Unauthenticated)
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-[#050605] flex flex-col justify-center items-center p-6 font-inter">
+                <div className="glass w-full max-w-md p-8 rounded-[2.5rem] border border-emerald-500/10 space-y-6 shadow-2xl text-center">
+                    <div className="mx-auto w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
+                        <Lock className="w-8 h-8 text-emerald-500" />
+                    </div>
+                    
+                    <div>
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500">ACCÈS SÉCURISÉ</span>
+                        <h2 className="text-2xl font-black uppercase tracking-tighter text-main mt-1">Code PIN requis</h2>
+                        <p className="text-xs text-dim mt-2 max-w-xs mx-auto">
+                            Veuillez saisir le code PIN à 6 chiffres transmis par l'agence pour déverrouiller cette feuille de route.
+                        </p>
+                    </div>
+
+                    <form onSubmit={handlePinSubmit} className="space-y-4">
+                        <div>
+                            <input 
+                                type="text"
+                                pattern="[0-9]*"
+                                inputMode="numeric"
+                                maxLength={6}
+                                placeholder="******"
+                                required
+                                value={pin}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                    if (val.length <= 6) setPin(val);
+                                }}
+                                className="w-full bg-[#0b0e0c]/60 border border-emerald-500/10 focus:border-emerald-500 outline-none text-center text-2xl tracking-[0.4em] font-black py-4 rounded-2xl text-main placeholder-emerald-500/20"
+                            />
+                        </div>
+
+                        {pinError && (
+                            <p className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/15 py-2.5 rounded-xl">
+                                {pinError}
+                            </p>
+                        )}
+
+                        <button 
+                            type="submit"
+                            disabled={submittingPin || pin.length !== 6}
+                            className="w-full flex items-center justify-center gap-2 py-4 bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 disabled:bg-emerald-800 disabled:opacity-50 text-white dark:text-[#050605] rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-emerald-500/20"
+                        >
+                            {submittingPin ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <>
+                                    <Unlock className="w-4 h-4" /> Déverrouiller l'accès
+                                </>
+                            )}
+                        </button>
+                    </form>
                 </div>
             </div>
         );

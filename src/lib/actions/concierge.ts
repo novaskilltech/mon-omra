@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { isAdminAuthenticated } from './auth';
 import zlib from 'zlib';
 import crypto from 'crypto';
-import { encryptToken, decryptToken } from '../utils/crypto';
+import { encryptToken, decryptToken, hashPIN } from '../utils/crypto';
 
 export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?: string }) {
     const isAdmin = await isAdminAuthenticated();
@@ -1962,25 +1962,36 @@ export async function generateDriverShareLink(groupId: string) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
 
+    // Generate random 6-digit PIN
+    const passcode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
     const payload = {
         groupId,
-        expiresAt
+        expiresAt,
+        passcodeHash: hashPIN(passcode)
     };
 
     const token = encryptToken(payload);
     const link = `/shared/transfer/${encodeURIComponent(token)}`;
-    return { success: true, link };
+    return { success: true, link, passcode };
 }
 
-export async function getDriverDashboardData(token: string) {
+export async function getDriverDashboardData(token: string, enteredPasscode?: string) {
     const payload = decryptToken(token);
-    if (!payload || !payload.groupId || !payload.expiresAt) {
+    if (!payload || !payload.groupId || !payload.expiresAt || !payload.passcodeHash) {
         return { error: "Lien invalide ou expiré" };
     }
 
     if (Date.now() > payload.expiresAt) {
         return { error: "Ce lien a expiré" };
+    }
+
+    if (!enteredPasscode) {
+        return { error: "AUTH_REQUIRED" };
+    }
+
+    if (hashPIN(enteredPasscode) !== payload.passcodeHash) {
+        return { error: "INVALID_PIN" };
     }
 
     const supabase = createClient();

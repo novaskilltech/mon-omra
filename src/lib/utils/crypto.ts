@@ -29,3 +29,7 @@ export function decryptToken(token: string): any | null {
         return null;
     }
 }
+
+export function hashPIN(pin: string): string {
+    return crypto.createHash('sha256').update(pin).digest('hex');
+}

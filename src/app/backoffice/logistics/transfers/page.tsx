@@ -492,8 +492,8 @@ export default function TransfersPage() {
                                                         const res = await generateDriverShareLink(selectedPilgrim.group_id);
                                                         if (res.success && res.link) {
                                                             const fullLink = `${window.location.origin}${res.link}`;
-                                                            navigator.clipboard.writeText(fullLink);
-                                                            alert("Lien d'accès chauffeur (visas/hôtels) copié !");
+                                                            navigator.clipboard.writeText(`${fullLink}\nCode PIN : ${res.passcode}`);
+                                                            alert(`Lien d'accès chauffeur copié avec code PIN !\n\nLien : ${fullLink}\nCode PIN : ${res.passcode}`);
                                                         } else {
                                                             alert(res.error || "Erreur de génération.");
                                                         }
@@ -727,8 +727,8 @@ export default function TransfersPage() {
                                                         const res = await generateDriverShareLink(firstP.group_id);
                                                         if (res.success && res.link) {
                                                             const fullLink = `${window.location.origin}${res.link}`;
-                                                            navigator.clipboard.writeText(fullLink);
-                                                            alert("Lien d'accès chauffeur (visas/hôtels) copié !");
+                                                            navigator.clipboard.writeText(`${fullLink}\nCode PIN : ${res.passcode}`);
+                                                            alert(`Lien d'accès chauffeur copié avec code PIN !\n\nLien : ${fullLink}\nCode PIN : ${res.passcode}`);
                                                         } else {
                                                             alert(res.error || "Erreur de génération.");
                                                         }
