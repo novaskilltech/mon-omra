@@ -21,7 +21,7 @@ export function decryptToken(token: string): any | null {
         const encryptedText = Buffer.from(parts[1], 'hex');
         const key = crypto.createHash('sha256').update(SECRET_KEY).digest();
         const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-        let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+        let decrypted = decipher.update(encryptedText).toString('utf8');
         decrypted += decipher.final('utf8');
         return JSON.parse(decrypted);
     } catch (e) {
