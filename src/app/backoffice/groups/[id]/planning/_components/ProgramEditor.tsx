@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, GripVertical, Clock, MapPin, Sparkles, Bus, Utensils, Coffee, Loader2 } from 'lucide-react';
-import { getGroupPlanningAction, saveGroupPlanningAction } from '@/lib/actions/logistics';
+import { Plus, Trash2, Save, GripVertical, Clock, MapPin, Sparkles, Bus, Utensils, Coffee, Loader2, Wand2 } from 'lucide-react';
+import { getGroupPlanningAction, saveGroupPlanningAction, parsePlanningTextAction } from '@/lib/actions/logistics';
 
 const TYPES = [
     { label: 'Rituel', value: 'RITUEL', icon: Sparkles, color: 'text-amber-500' },
@@ -17,6 +17,12 @@ export default function ProgramEditor({ groupId, dayNumber }: { groupId: string,
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+    // Assistant States
+    const [assistantText, setAssistantText] = useState('');
+    const [isParsing, setIsParsing] = useState(false);
+    const [parserError, setParserError] = useState('');
+    const [showAssistant, setShowAssistant] = useState(false);
 
     useEffect(() => {
         async function loadPlanning() {
@@ -64,6 +70,31 @@ export default function ProgramEditor({ groupId, dayNumber }: { groupId: string,
             setSaveStatus('error');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleParse = async () => {
+        if (!assistantText.trim()) return;
+        setIsParsing(true);
+        setParserError('');
+        try {
+            const res = await parsePlanningTextAction(assistantText);
+            if (res.success && res.activities) {
+                const activitiesWithIds = res.activities.map((act: any, idx: number) => ({
+                    ...act,
+                    id: act.id || `${Date.now()}-${idx}`
+                }));
+                setActivities(activitiesWithIds);
+                setShowAssistant(false);
+                setAssistantText('');
+            } else {
+                setParserError(res.error || "Une erreur est survenue lors de l'analyse.");
+            }
+        } catch (err) {
+            console.error(err);
+            setParserError("Erreur de communication avec l'assistant.");
+        } finally {
+            setIsParsing(false);
         }
     };
 
@@ -115,6 +146,58 @@ export default function ProgramEditor({ groupId, dayNumber }: { groupId: string,
                         {isSaving ? 'Enregistrement...' : 'Publier le Planning'}
                     </button>
                 </div>
+            </div>
+
+            {/* Assistant Panel Toggle */}
+            <div className="glass p-6 rounded-[2rem] border-emerald-500/10 dark:border-white/5 bg-emerald-500/[0.02] mb-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-500">
+                            <Wand2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-main text-sm">Assistant de Saisie IA</h3>
+                            <p className="text-dim text-xs">Collez votre texte brut pour générer le planning automatiquement.</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setShowAssistant(!showAssistant)}
+                        className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl border border-emerald-500/20 text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all"
+                    >
+                        {showAssistant ? 'Fermer l\'assistant' : 'Ouvrir l\'assistant'}
+                    </button>
+                </div>
+
+                {showAssistant && (
+                    <div className="mt-6 space-y-4 border-t border-emerald-500/10 dark:border-white/5 pt-6">
+                        <textarea
+                            value={assistantText}
+                            onChange={(e) => setAssistantText(e.target.value)}
+                            placeholder="Exemple : 04h30 — Arrivée à La Mecque. À l’arrivée, chacun doit rester calme...&#10;05h30 – 06h30 — Repos court à l’hôtel..."
+                            rows={8}
+                            className="w-full bg-[#0a0e0c] border border-emerald-500/10 dark:border-white/10 rounded-2xl p-4 text-sm text-main outline-none focus:border-emerald-500 transition-all font-mono placeholder:text-sub placeholder:opacity-30"
+                        />
+                        {parserError && (
+                            <div className="text-xs text-red-500 font-bold bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-xl">
+                                {parserError}
+                            </div>
+                        )}
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={handleParse}
+                                disabled={isParsing || !assistantText.trim()}
+                                className="btn-premium py-2.5 px-6 flex items-center gap-2 text-xs shadow-xl disabled:opacity-50"
+                            >
+                                {isParsing ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Wand2 className="w-4 h-4" />
+                                )}
+                                {isParsing ? 'Analyse en cours...' : 'Générer le Planning'}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="space-y-6">

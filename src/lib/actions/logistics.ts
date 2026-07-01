@@ -1989,6 +1989,81 @@ export async function getRoomingAssignmentsForTransfers() {
     return result;
 }
 
+export async function parsePlanningTextAction(text: string) {
+    if (!text || text.trim().length === 0) {
+        return { error: "Texte vide" };
+    }
+
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openrouterKey) {
+        return { error: "Clé API OpenRouter manquante" };
+    }
+
+    console.log("Using OpenRouter to parse raw planning text...");
+    try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${openrouterKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://omrayanair.vercel.app",
+                "X-Title": "OMRAYANAIR"
+            },
+            body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                messages: [
+                    {
+                        role: "user",
+                        content: `Tu es un assistant spécialisé dans l'organisation de l'Omra. Analyse le texte brut décrivant le programme d'une journée et extrais-en la liste ordonnée chronologiquement des activités.
+Pour chaque activité identifiée, détermine avec précision :
+- time : l'heure ou plage horaire (ex: "04:30" ou "05:30 - 06:30" ou "12:25")
+- title : le titre de l'activité (ex: "Arrivée à La Mecque" ou "Repos obligatoire")
+- location : le lieu où se déroule l'activité (ex: "Hôtel", "Masjid al-Haram", "Miqat")
+- type : le type approprié parmi ces valeurs exactes : "RITUEL", "ZIYARAT", "TRANSPORT", "REPAS", "REPOS"
+- description : les consignes, détails pratiques, interdictions et rappels importants associés à cette étape (garde les consignes importantes sous forme textuelle synthétique claire).
+
+Donne uniquement le tableau JSON d'objets brut (sans bloc de code markdown, pas de \`\`\`json et pas d'autre texte autour) avec la structure exacte suivante :
+[
+  {
+    "id": "un identifiant unique (ex: chaine numérique aléatoire ou index)",
+    "time": "...",
+    "title": "...",
+    "location": "...",
+    "type": "...",
+    "description": "..."
+  }
+]`
+                    },
+                    {
+                        role: "user",
+                        content: `Voici le texte à analyser :\n\n${text}`
+                    }
+                ]
+            })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error("OpenRouter API error:", errText);
+            throw new Error("Erreur de l'API OpenRouter");
+        }
+
+        const jsonRes = await response.json();
+        const textResponse = jsonRes.choices?.[0]?.message?.content;
+        if (textResponse) {
+            const cleanedText = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+            const parsedActivities = JSON.parse(cleanedText);
+            if (Array.isArray(parsedActivities)) {
+                return { success: true, activities: parsedActivities };
+            }
+        }
+        return { error: "Format de réponse invalide" };
+    } catch (e: any) {
+        console.error("Error parsing planning text:", e);
+        return { error: e.message || "Erreur de traitement du planning" };
+    }
+}
+
 export async function getGroupPlanningAction(groupId: string) {
     const supabase = createClient();
     try {
