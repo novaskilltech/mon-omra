@@ -2133,4 +2133,73 @@ export async function saveGroupPlanningAction(groupId: string, dayNumber: number
     }
 }
 
+export async function getAssistanceRequestsAction() {
+    const supabase = createClient();
+    try {
+        const { data, error } = await supabase
+            .from('assistance_requests')
+            .select(`
+                id,
+                category,
+                priority,
+                message,
+                status,
+                created_at,
+                pilgrim_id,
+                profiles:pilgrim_id (
+                    full_name,
+                    phone
+                )
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Fetch pilgrims and groups to attach group names
+        const { data: pilgrims } = await supabase
+            .from('pilgrims')
+            .select(`
+                id,
+                groups (
+                    name
+                )
+            `);
+
+        const pilgrimGroupMap: Record<string, string> = {};
+        if (pilgrims) {
+            pilgrims.forEach((p: any) => {
+                pilgrimGroupMap[p.id] = p.groups?.name || 'Sans groupe';
+            });
+        }
+
+        const requests = (data || []).map((req: any) => ({
+            ...req,
+            pilgrim_name: req.profiles?.full_name || 'Pèlerin inconnu',
+            pilgrim_phone: req.profiles?.phone || 'Non renseigné',
+            group_name: pilgrimGroupMap[req.pilgrim_id] || 'Sans groupe'
+        }));
+
+        return { success: true, requests };
+    } catch (e: any) {
+        console.error("getAssistanceRequestsAction error:", e);
+        return { error: e.message || "Erreur lors du chargement des demandes d'assistance" };
+    }
+}
+
+export async function resolveAssistanceRequestAction(id: string) {
+    const supabase = createClient();
+    try {
+        const { error } = await supabase
+            .from('assistance_requests')
+            .update({ status: 'CLOSED' })
+            .eq('id', id);
+
+        if (error) throw error;
+        return { success: true };
+    } catch (e: any) {
+        console.error("resolveAssistanceRequestAction error:", e);
+        return { error: e.message || "Impossible de clore la demande d'assistance" };
+    }
+}
+
 

@@ -1535,7 +1535,7 @@ export default function ConciergeDashboard() {
                         </div>
                     </div>
                 </>
-            ) : (
+            ) : activeView === 'requests' ? (
                 <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 space-y-6">
                     <h3 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
                         <Users className="w-4 h-4 text-emerald-500 animate-pulse" /> Demandes d'inscription en attente ({requests.length})
@@ -1581,6 +1581,103 @@ export default function ConciergeDashboard() {
                                                 >
                                                     Rejeter
                                                 </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 space-y-6">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                        <ShieldAlert className="w-4 h-4 text-red-500 animate-pulse" /> Urgences & SOS Pèlerins ({assistanceRequests.length})
+                    </h3>
+
+                    {loading ? (
+                        <div className="flex justify-center items-center py-12">
+                            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                        </div>
+                    ) : assistanceRequests.length === 0 ? (
+                        <p className="text-center text-dim text-sm italic py-12">Aucune alerte d'assistance enregistrée.</p>
+                    ) : (
+                        <div className="overflow-x-auto animate-in fade-in duration-500">
+                            <table className="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr className="border-b border-emerald-500/10 text-dim">
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Statut</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Date & Heure</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Pèlerin / Groupe</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Catégorie</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Priorité</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Message</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {assistanceRequests.map((req: any) => (
+                                        <tr key={req.id} className={`border-b border-emerald-500/5 hover:bg-emerald-500/[0.02] transition-colors ${req.status === 'CLOSED' ? 'opacity-50' : ''}`}>
+                                            <td className="py-4">
+                                                {req.status === 'OPEN' ? (
+                                                    <span className="flex items-center gap-1.5 text-red-500 font-bold uppercase tracking-widest text-[9px]">
+                                                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse outline outline-4 outline-red-500/10" />
+                                                        En cours
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1.5 text-emerald-500 font-bold uppercase tracking-widest text-[9px]">
+                                                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                                                        Résolu
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="py-4 text-dim font-mono">
+                                                {new Date(req.created_at).toLocaleString('fr-FR', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </td>
+                                            <td className="py-4">
+                                                <div className="font-bold text-main">{req.pilgrim_name}</div>
+                                                <div className="text-[10px] text-dim font-mono">{req.pilgrim_phone}</div>
+                                                <div className="text-[9px] text-emerald-500 font-semibold">{req.group_name}</div>
+                                            </td>
+                                            <td className="py-4">
+                                                <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                                    req.category === 'SANTE' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
+                                                    req.category === 'GROUPE_PERDU' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
+                                                    req.category === 'BAGAGES' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
+                                                    req.category === 'LOGEMENT' ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20' :
+                                                    'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                                }`}>
+                                                    {req.category === 'SANTE' ? 'Santé' :
+                                                     req.category === 'GROUPE_PERDU' ? 'Groupe Perdu' :
+                                                     req.category === 'BAGAGES' ? 'Bagages' :
+                                                     req.category === 'LOGEMENT' ? 'Logement' :
+                                                     req.category || 'Autre'}
+                                                </span>
+                                            </td>
+                                            <td className="py-4">
+                                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                                                    req.priority === 'CRITIQUE' ? 'bg-red-600 text-white animate-pulse' : 'bg-white/10 text-dim'
+                                                }`}>
+                                                    {req.priority}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 max-w-xs font-light text-main whitespace-pre-line leading-relaxed italic">
+                                                "{req.message}"
+                                            </td>
+                                            <td className="py-4 text-right">
+                                                {req.status === 'OPEN' && (
+                                                    <button
+                                                        onClick={() => handleResolveAssistance(req.id)}
+                                                        className="px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-[#050605] border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
+                                                    >
+                                                        Résoudre
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
