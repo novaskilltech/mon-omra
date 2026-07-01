@@ -1196,6 +1196,20 @@ export async function getPilgrimProgram(pilgrimId: string, email?: string) {
             }
         }
 
+        // Load custom planning for the group if it exists
+        let customPlanning: any = null;
+        if (groupId) {
+            const { data: logisticsList } = await supabase
+                .from('group_logistics')
+                .select('custom_planning')
+                .eq('group_id', groupId)
+                .limit(1);
+            const logistics = logisticsList?.[0];
+            if (logistics && logistics.custom_planning) {
+                customPlanning = logistics.custom_planning;
+            }
+        }
+
         // Build list of days
         const days = [];
         for (let d = 1; d <= duration; d++) {
@@ -1215,7 +1229,7 @@ export async function getPilgrimProgram(pilgrimId: string, email?: string) {
                 else activeCity = 'MAKKAH';
             }
 
-            const guidedActivities: any[] = [];
+            let guidedActivities: any[] = [];
             const spiritualActivities: any[] = [];
 
             // Add standard spiritual activities based on the city
@@ -1330,6 +1344,10 @@ export async function getPilgrimProgram(pilgrimId: string, email?: string) {
                         { time: '11:00', title: 'Check-out & Transfert Retour', location: 'Lobby Hôtel', type: 'TRANSPORT', description: 'Transfert vers l\'aéroport de Jeddah (JED) pour le vol de retour.' }
                     );
                 }
+            }
+
+            if (customPlanning && customPlanning[d.toString()] && Array.isArray(customPlanning[d.toString()])) {
+                guidedActivities = customPlanning[d.toString()];
             }
 
             // If no guided activities are scheduled for this day, add a placeholder indicating free time
@@ -1969,6 +1987,75 @@ export async function getRoomingAssignmentsForTransfers() {
     });
 
     return result;
+}
+
+export async function getGroupPlanningAction(groupId: string) {
+    const supabase = createClient();
+    try {
+        const { data: logisticsList } = await supabase
+            .from('group_logistics')
+            .select('custom_planning')
+            .eq('group_id', groupId)
+            .limit(1);
+
+        const logistics = logisticsList?.[0];
+        return { success: true, customPlanning: logistics?.custom_planning || {} };
+    } catch (e: any) {
+        console.error("Error in getGroupPlanningAction:", e);
+        return { error: e.message || "Erreur de chargement du planning" };
+    }
+}
+
+export async function saveGroupPlanningAction(groupId: string, dayNumber: number, activities: any[]) {
+    const supabase = createClient();
+    try {
+        const { data: logisticsList, error: fetchErr } = await supabase
+            .from('group_logistics')
+            .select('custom_planning')
+            .eq('group_id', groupId)
+            .limit(1);
+
+        const logistics = logisticsList?.[0];
+        let currentPlanning: any = {};
+        if (logistics && logistics.custom_planning) {
+            currentPlanning = logistics.custom_planning;
+        }
+
+        // Update the specific day with sanitization
+        const sanitizedActivities = activities.map((act: any) => ({
+            id: act.id,
+            time: act.time || '',
+            title: act.title || '',
+            location: act.location || '',
+            type: act.type || 'RITUEL',
+            description: act.description || ''
+        }));
+
+        currentPlanning[dayNumber.toString()] = sanitizedActivities;
+
+        if (logistics) {
+            await supabase
+                .from('group_logistics')
+                .update({
+                    custom_planning: currentPlanning,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('group_id', groupId);
+        } else {
+            await supabase
+                .from('group_logistics')
+                .insert({
+                    group_id: groupId,
+                    custom_planning: currentPlanning,
+                    updated_at: new Date().toISOString()
+                });
+        }
+
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error in saveGroupPlanningAction:", e);
+        return { error: e.message || "Erreur lors de l'enregistrement du planning" };
+    }
 }
 
 

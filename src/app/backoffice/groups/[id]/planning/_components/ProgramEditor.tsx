@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Trash2, Save, GripVertical, Clock, MapPin, Sparkles, Bus, Utensils, Coffee } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Trash2, Save, GripVertical, Clock, MapPin, Sparkles, Bus, Utensils, Coffee, Loader2 } from 'lucide-react';
+import { getGroupPlanningAction, saveGroupPlanningAction } from '@/lib/actions/logistics';
 
 const TYPES = [
     { label: 'Rituel', value: 'RITUEL', icon: Sparkles, color: 'text-amber-500' },
@@ -12,9 +13,59 @@ const TYPES = [
 ];
 
 export default function ProgramEditor({ groupId, dayNumber }: { groupId: string, dayNumber: number }) {
-    const [activities, setActivities] = useState<any[]>([
-        { id: '1', time: '08:00', title: '', location: '', type: 'RITUEL', description: '' }
-    ]);
+    const [activities, setActivities] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+    useEffect(() => {
+        async function loadPlanning() {
+            setLoading(true);
+            setSaveStatus('idle');
+            try {
+                const res = await getGroupPlanningAction(groupId);
+                if (res.success && res.customPlanning) {
+                    const dayPlanning = res.customPlanning[dayNumber.toString()];
+                    if (dayPlanning && Array.isArray(dayPlanning) && dayPlanning.length > 0) {
+                        setActivities(dayPlanning);
+                    } else {
+                        // Fallback to one empty activity if no planning is defined yet
+                        setActivities([
+                            { id: '1', time: '08:00', title: '', location: '', type: 'RITUEL', description: '' }
+                        ]);
+                    }
+                } else {
+                    setActivities([
+                        { id: '1', time: '08:00', title: '', location: '', type: 'RITUEL', description: '' }
+                    ]);
+                }
+            } catch (err) {
+                console.error("Failed to load group planning:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadPlanning();
+    }, [groupId, dayNumber]);
+
+    const handlePublish = async () => {
+        setIsSaving(true);
+        setSaveStatus('idle');
+        try {
+            const res = await saveGroupPlanningAction(groupId, dayNumber, activities);
+            if (res.success) {
+                setSaveStatus('success');
+                setTimeout(() => setSaveStatus('idle'), 3000);
+            } else {
+                setSaveStatus('error');
+            }
+        } catch (err) {
+            console.error("Failed to save planning:", err);
+            setSaveStatus('error');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const addActivity = () => {
         setActivities([...activities, { id: Date.now().toString(), time: '09:00', title: '', location: '', type: 'ZIYARAT', description: '' }]);
@@ -28,6 +79,15 @@ export default function ProgramEditor({ groupId, dayNumber }: { groupId: string,
         setActivities(activities.map(a => a.id === id ? { ...a, [field]: value } : a));
     };
 
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-dim">
+                <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                <p className="text-xs uppercase tracking-widest font-black opacity-60">Chargement du planning...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
@@ -35,9 +95,26 @@ export default function ProgramEditor({ groupId, dayNumber }: { groupId: string,
                     <h2 className="text-3xl font-black uppercase tracking-tighter text-main">Édition <span className="text-emerald-500">Jour {dayNumber}</span></h2>
                     <p className="text-sub text-xs mt-1 uppercase tracking-widest font-black opacity-40">Configurez les étapes clés de cette journée.</p>
                 </div>
-                <button className="btn-premium py-3 px-8 flex items-center gap-2 shadow-xl shadow-emerald-500/10">
-                    <Save className="w-4 h-4" /> Publier le Planning
-                </button>
+                <div className="flex items-center gap-4">
+                    {saveStatus === 'success' && (
+                        <span className="text-xs text-emerald-500 font-bold bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">Planning Enregistré !</span>
+                    )}
+                    {saveStatus === 'error' && (
+                        <span className="text-xs text-red-500 font-bold bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-xl">Erreur de sauvegarde</span>
+                    )}
+                    <button 
+                        onClick={handlePublish}
+                        disabled={isSaving}
+                        className="btn-premium py-3 px-8 flex items-center gap-2 shadow-xl shadow-emerald-500/10 disabled:opacity-50"
+                    >
+                        {isSaving ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Save className="w-4 h-4" />
+                        )}
+                        {isSaving ? 'Enregistrement...' : 'Publier le Planning'}
+                    </button>
+                </div>
             </div>
 
             <div className="space-y-6">
