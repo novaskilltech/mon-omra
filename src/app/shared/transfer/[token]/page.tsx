@@ -171,36 +171,44 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                 </header>
 
                 {/* Flights Block */}
-                {(data.outboundFlight || data.returnFlight) && (
+                {data.flights && data.flights.length > 0 && (
                     <section className="glass p-6 sm:p-8 rounded-[2.5rem] border border-emerald-500/5 space-y-6">
                         <h2 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2 border-b border-emerald-500/10 pb-3">
-                            <Plane className="w-4 h-4 text-emerald-500" /> Informations de Vol du Groupe
+                            <Plane className="w-4 h-4 text-emerald-500" /> Informations de Vol de la Feuille de Route
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {data.outboundFlight && (
+                            {data.flights.filter((f: any) => f.type === 'ARRIVÉE').length > 0 && (
                                 <div className="space-y-3">
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500">VOL DE DÉPART (ALLER)</span>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500">VOLS D'ARRIVÉE</span>
                                     <div className="bg-[#0b0e0c]/40 p-4 rounded-xl border border-emerald-500/10 space-y-2">
-                                        {data.outboundFlight.flight_segments?.map((s: any, idx: number) => (
+                                        {data.flights.filter((f: any) => f.type === 'ARRIVÉE').map((s: any, idx: number) => (
                                             <div key={idx} className="text-xs text-dim">
-                                                <p className="font-bold text-main">• Segment #{idx + 1} : {s.airline} ({s.flight_number})</p>
-                                                <p className="ml-3">{s.departure_airport} ➔ {s.arrival_airport}</p>
-                                                <p className="ml-3 text-[10px]">Départ : {new Date(s.departure_time).toLocaleString('fr-FR')}</p>
+                                                <p className="font-bold text-main">• Vol : {s.airline || 'N/A'} {s.flight_number}</p>
+                                                {s.departure_airport && s.arrival_airport && (
+                                                    <p className="ml-3">{s.departure_airport} ➔ {s.arrival_airport}</p>
+                                                )}
+                                                {s.arrival_time && (
+                                                    <p className="ml-3 text-[10px]">Arrivée : {new Date(s.arrival_time).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {data.returnFlight && (
+                            {data.flights.filter((f: any) => f.type === 'RETOUR').length > 0 && (
                                 <div className="space-y-3">
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500">VOL DE RETOUR</span>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500">VOLS DE RETOUR</span>
                                     <div className="bg-[#0b0e0c]/40 p-4 rounded-xl border border-emerald-500/10 space-y-2">
-                                        {data.returnFlight.flight_segments?.map((s: any, idx: number) => (
+                                        {data.flights.filter((f: any) => f.type === 'RETOUR').map((s: any, idx: number) => (
                                             <div key={idx} className="text-xs text-dim">
-                                                <p className="font-bold text-main">• Segment #{idx + 1} : {s.airline} ({s.flight_number})</p>
-                                                <p className="ml-3">{s.departure_airport} ➔ {s.arrival_airport}</p>
-                                                <p className="ml-3 text-[10px]">Départ : {new Date(s.departure_time).toLocaleString('fr-FR')}</p>
+                                                <p className="font-bold text-main">• Vol : {s.airline || 'N/A'} {s.flight_number}</p>
+                                                {s.departure_airport && s.arrival_airport && (
+                                                    <p className="ml-3">{s.departure_airport} ➔ {s.arrival_airport}</p>
+                                                )}
+                                                {s.departure_time && (
+                                                    <p className="ml-3 text-[10px]">Départ : {new Date(s.departure_time).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -221,6 +229,7 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                                 <tr className="border-b border-emerald-500/10">
                                     <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim">Nom Complet</th>
                                     <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim text-center">Genre</th>
+                                    <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim">Vol / Arrivée</th>
                                     <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim">Hébergement / Chambre</th>
                                     <th className="py-4 text-[9px] font-black uppercase tracking-widest text-dim text-right">Document Visa</th>
                                 </tr>
@@ -233,6 +242,14 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                                         </td>
                                         <td className="py-4 text-xs text-dim text-center">
                                             {p.gender === 'F' ? 'Femme' : 'Homme'}
+                                        </td>
+                                        <td className="py-4 text-xs text-dim">
+                                            <div className="space-y-0.5">
+                                                <p className="font-bold text-main">{p.arrivalFlight || 'N/A'}</p>
+                                                {p.arrivalTime && p.arrivalTime !== 'N/A' && (
+                                                    <p className="text-[10px] opacity-60">Vol du : {p.arrivalTime}</p>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="py-4 text-xs text-dim">
                                             <div className="space-y-1">

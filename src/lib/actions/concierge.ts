@@ -2053,7 +2053,9 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
                 visa_url,
                 pilgrims!inner(
                     id,
-                    group_id
+                    group_id,
+                    individual_flight_info,
+                    land_transfers
                 )
             `)
             .eq('pilgrims.group_id', payload.groupId);
@@ -2137,6 +2139,16 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
             }
         });
 
+        const uniqueFlights: Record<string, {
+            flight_number: string;
+            airline: string;
+            departure_airport: string;
+            arrival_airport: string;
+            departure_time: string;
+            arrival_time: string;
+            type: string;
+        }> = {};
+
         const mappedPilgrims = await Promise.all((pilgrimsList || []).map(async (p: any) => {
             let signedVisaUrl = null;
             if (p.visa_url && p.visa_status === 'APPROVED') {
@@ -2153,6 +2165,75 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
             const rInfo = roomingMap[p.id] || { makkah: '', madinah: '' };
             const fallback = pilgrimFallbackHotels[p.id] || { makkah: '', madinah: '' };
 
+            const pilgrimObj = p.pilgrims;
+            let arrivalFlightStr = 'N/A';
+            let arrivalTimeStr = 'N/A';
+            let arrivalAirportStr = 'N/A';
+            let airlineStr = 'N/A';
+
+            if (pilgrimObj) {
+                const lt = pilgrimObj.land_transfers || {};
+                if (lt.arrival_flight) {
+                    arrivalFlightStr = lt.arrival_flight;
+                    arrivalTimeStr = lt.arrival_time ? new Date(lt.arrival_time).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                    arrivalAirportStr = lt.arrival_airport || 'N/A';
+                    
+                    const fKey = `${lt.arrival_flight}-${lt.arrival_time}`;
+                    if (!uniqueFlights[fKey]) {
+                        uniqueFlights[fKey] = {
+                            flight_number: lt.arrival_flight,
+                            airline: '',
+                            departure_airport: '',
+                            arrival_airport: lt.arrival_airport || '',
+                            departure_time: '',
+                            arrival_time: lt.arrival_time,
+                            type: 'ARRIVÉE'
+                        };
+                    }
+                } else {
+                    const flights = pilgrimObj.individual_flight_info?.flights || [];
+                    const arrSegment = flights.find((s: any) => ['JED', 'MED'].includes(s.arrival_airport?.toUpperCase()));
+                    if (arrSegment) {
+                        arrivalFlightStr = arrSegment.flight_number || 'N/A';
+                        airlineStr = arrSegment.airline || 'N/A';
+                        arrivalAirportStr = arrSegment.arrival_airport || 'N/A';
+                        arrivalTimeStr = arrSegment.arrival_time ? new Date(arrSegment.arrival_time).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        
+                        const fKey = `${arrSegment.flight_number}-${arrSegment.departure_time}`;
+                        if (!uniqueFlights[fKey]) {
+                            uniqueFlights[fKey] = {
+                                flight_number: arrSegment.flight_number || '',
+                                airline: arrSegment.airline || '',
+                                departure_airport: arrSegment.departure_airport || '',
+                                arrival_airport: arrSegment.arrival_airport || '',
+                                departure_time: arrSegment.departure_time || '',
+                                arrival_time: arrSegment.arrival_time || '',
+                                type: 'ARRIVÉE'
+                            };
+                        }
+                    } else if (outboundFlight && outboundFlight.flight_segments && outboundFlight.flight_segments.length > 0) {
+                        const s = outboundFlight.flight_segments[0];
+                        arrivalFlightStr = s.flight_number || 'N/A';
+                        airlineStr = s.airline || 'N/A';
+                        arrivalAirportStr = s.arrival_airport || 'N/A';
+                        arrivalTimeStr = s.arrival_time ? new Date(s.arrival_time).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        
+                        const fKey = `${s.flight_number}-${s.departure_time}`;
+                        if (!uniqueFlights[fKey]) {
+                            uniqueFlights[fKey] = {
+                                flight_number: s.flight_number || '',
+                                airline: s.airline || '',
+                                departure_airport: s.departure_airport || '',
+                                arrival_airport: s.arrival_airport || '',
+                                departure_time: s.departure_time || '',
+                                arrival_time: s.arrival_time || '',
+                                type: 'ARRIVÉE'
+                            };
+                        }
+                    }
+                }
+            }
+
             return {
                 id: p.id,
                 name: p.full_name,
@@ -2160,9 +2241,52 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
                 visaStatus: p.visa_status,
                 visaUrl: signedVisaUrl,
                 makkahHotel: rInfo.makkah || fallback.makkah || 'N/A',
-                madinahHotel: rInfo.madinah || fallback.madinah || 'N/A'
+                madinahHotel: rInfo.madinah || fallback.madinah || 'N/A',
+                arrivalFlight: arrivalFlightStr,
+                arrivalAirport: arrivalAirportStr,
+                arrivalTime: arrivalTimeStr,
+                airline: airlineStr
             };
         }));
+
+        (pilgrimsList || []).forEach((p: any) => {
+            const pilgrimObj = p.pilgrims;
+            if (pilgrimObj) {
+                const flights = pilgrimObj.individual_flight_info?.flights || [];
+                const retSegment = flights.find((s: any) => !['JED', 'MED'].includes(s.arrival_airport?.toUpperCase()) && ['JED', 'MED'].includes(s.departure_airport?.toUpperCase()));
+                if (retSegment) {
+                    const fKey = `${retSegment.flight_number}-${retSegment.departure_time}`;
+                    if (!uniqueFlights[fKey]) {
+                        uniqueFlights[fKey] = {
+                            flight_number: retSegment.flight_number || '',
+                            airline: retSegment.airline || '',
+                            departure_airport: retSegment.departure_airport || '',
+                            arrival_airport: retSegment.arrival_airport || '',
+                            departure_time: retSegment.departure_time || '',
+                            arrival_time: retSegment.arrival_time || '',
+                            type: 'RETOUR'
+                        };
+                    }
+                }
+            }
+        });
+
+        if (returnFlight && returnFlight.flight_segments) {
+            returnFlight.flight_segments.forEach((s: any) => {
+                const fKey = `${s.flight_number}-${s.departure_time}`;
+                if (!uniqueFlights[fKey]) {
+                    uniqueFlights[fKey] = {
+                        flight_number: s.flight_number || '',
+                        airline: s.airline || '',
+                        departure_airport: s.departure_airport || '',
+                        arrival_airport: s.arrival_airport || '',
+                        departure_time: s.departure_time || '',
+                        arrival_time: s.arrival_time || '',
+                        type: 'RETOUR'
+                    };
+                }
+            });
+        }
 
         return {
             success: true,
@@ -2171,7 +2295,8 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
             stays: groupStays || [],
             outboundFlight,
             returnFlight,
-            pilgrims: mappedPilgrims
+            pilgrims: mappedPilgrims,
+            flights: Object.values(uniqueFlights)
         };
 
     } catch (e: any) {
