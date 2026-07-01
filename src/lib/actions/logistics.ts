@@ -2179,4 +2179,26 @@ export async function resolveAssistanceRequestAction(id: string) {
     }
 }
 
+export async function updatePilgrimCheckinStatusAction(pilgrimId: string, checkinDone: boolean) {
+    const supabase = createClient();
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Non authentifié");
 
+        const isAdmin = await isAdminAuthenticated();
+        if (user.id !== pilgrimId && !isAdmin) {
+            throw new Error("Non autorisé à modifier ce dossier");
+        }
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ checkin_done: checkinDone })
+            .eq('id', pilgrimId);
+
+        if (error) throw error;
+        return { success: true };
+    } catch (e: any) {
+        console.error("updatePilgrimCheckinStatusAction error:", e);
+        return { success: false, error: e.message || "Erreur de mise à jour" };
+    }
+}

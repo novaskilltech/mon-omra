@@ -19,6 +19,7 @@ const PermissionConsent = dynamic(
 );
 
 import { isAdminAuthenticated } from '@/lib/actions/auth';
+import ChecklistEditor from './_components/ChecklistEditor';
 
 export default async function Dashboard({ searchParams }: { searchParams: { pilgrimId?: string } }) {
     const supabase = createClient();
@@ -178,33 +179,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                     </div>
 
                     {/* Preparation Checklist */}
-                    <div className="glass p-8 rounded-[2.5rem] flex flex-col justify-between border-emerald-500/10 bg-emerald-500/[0.02] shadow-sm">
-                        <div>
-                            <h3 className="text-xs font-bold mb-6 flex items-center gap-2 uppercase tracking-[0.2em] text-main">
-                                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                                Ma Préparation
-                            </h3>
-                            <div className="space-y-6">
-                                {data.checklist.map((d: any, i: number) => (
-                                    <div key={i} className="flex flex-col gap-2">
-                                        <div className="flex justify-between items-center text-[11px] font-semibold uppercase tracking-tight">
-                                            <span className="text-dim opacity-80">{d.label}</span>
-                                            <span className={d.ok ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-amber-600 font-bold"}>{d.status}</span>
-                                        </div>
-                                        <div className="h-1.5 w-full bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full overflow-hidden border border-emerald-500/10">
-                                            <div className={`h-full transition-all duration-1000 ${d.ok ? 'w-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'w-1/4 bg-amber-500'}`} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="mt-8 flex items-center gap-4 p-5 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/10 shadow-inner">
-                            <div className="text-3xl font-black text-emerald-500 drop-shadow-sm">{completionPercentage}%</div>
-                            <div className="text-[10px] font-bold uppercase tracking-widest leading-tight text-dim opacity-80">
-                                {completionPercentage === 100 ? "Prêt pour le grand départ insha'Allah" : "Dossier en cours de finalisation"}
-                            </div>
-                        </div>
-                    </div>
+                    <ChecklistEditor initialChecklist={data.checklist} pilgrimId={targetPilgrimId} />
                 </div>
 
                 {/* Family Members Section */}
