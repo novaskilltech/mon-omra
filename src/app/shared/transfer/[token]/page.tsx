@@ -245,9 +245,16 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                                         </td>
                                         <td className="py-4 text-xs text-dim">
                                             <div className="space-y-0.5">
-                                                <p className="font-bold text-main">{p.arrivalFlight || 'N/A'}</p>
+                                                <p className="font-bold text-main">
+                                                    ✈️ {p.arrivalFlight || 'N/A'} {p.airline && p.airline !== 'N/A' ? `(${p.airline})` : ''}
+                                                </p>
+                                                <p className="text-[11px] text-emerald-500/90 font-medium">
+                                                    📍 {p.arrivalAirport || 'N/A'}
+                                                </p>
                                                 {p.arrivalTime && p.arrivalTime !== 'N/A' && (
-                                                    <p className="text-[10px] opacity-60">Vol du : {p.arrivalTime}</p>
+                                                    <p className="text-[10px] opacity-60">
+                                                        ⏱️ {p.arrivalTime}
+                                                    </p>
                                                 )}
                                             </div>
                                         </td>
