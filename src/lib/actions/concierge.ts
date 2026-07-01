@@ -1990,7 +1990,13 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
         return { error: "AUTH_REQUIRED" };
     }
 
-    if (hashPIN(enteredPasscode) !== payload.passcodeHash) {
+    const inputHash = hashPIN(enteredPasscode);
+    const expectedHash = payload.passcodeHash;
+    const isMatched = expectedHash.length === 16 
+        ? inputHash.startsWith(expectedHash) 
+        : inputHash === expectedHash;
+
+    if (!isMatched) {
         return { error: "INVALID_PIN" };
     }
 
