@@ -241,7 +241,7 @@ export default function LoginPage() {
                                                     value={adminPassword}
                                                     onChange={(e) => setAdminPassword(e.target.value)}
                                                     placeholder="••••••••"
-                                                    className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
+                                                    className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
                                                 />
                                             </div>
                                         </div>
@@ -275,7 +275,7 @@ export default function LoginPage() {
                                                     value={driverLink}
                                                     onChange={(e) => setDriverLink(e.target.value)}
                                                     placeholder="https://... ou jeton"
-                                                    className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
+                                                    className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
                                                 />
                                             </div>
                                         </div>
@@ -283,7 +283,7 @@ export default function LoginPage() {
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Code PIN à 6 chiffres</label>
                                             <div className="relative">
-                                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/30" />
+                                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4" />
                                                 <input
                                                     required
                                                     type="password"
@@ -296,7 +296,7 @@ export default function LoginPage() {
                                                         if (val.length <= 6) setDriverPin(val);
                                                     }}
                                                     placeholder="••••••"
-                                                    className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm tracking-[0.4em] font-bold focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white placeholder:opacity-20"
+                                                    className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm tracking-[0.4em] font-bold focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white placeholder:opacity-20"
                                                 />
                                             </div>
                                         </div>
@@ -333,7 +333,7 @@ export default function LoginPage() {
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 placeholder="exemple@site.com"
                                                 autoComplete="off"
-                                                className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
+                                                className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-sm focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white"
                                             />
                                         </div>
                                     </div>
@@ -368,7 +368,7 @@ export default function LoginPage() {
                                                 value={otp}
                                                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                                 placeholder="786921"
-                                                className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-2xl tracking-[0.5em] font-black focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white placeholder:opacity-20"
+                                                className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-2xl tracking-[0.5em] font-black focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white placeholder:opacity-20"
                                             />
                                         </div>
                                     </div>
@@ -424,7 +424,7 @@ export default function LoginPage() {
                                             value={regForm.firstName}
                                             onChange={(e) => setRegForm({ ...regForm, firstName: e.target.value })}
                                             placeholder="Salah"
-                                            className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
+                                            className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                         />
                                     </div>
                                     <div className="space-y-1">
@@ -435,7 +435,7 @@ export default function LoginPage() {
                                             value={regForm.familyName}
                                             onChange={(e) => setRegForm({ ...regForm, familyName: e.target.value })}
                                             placeholder="Lamkhannet"
-                                            className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
+                                            className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                         />
                                     </div>
                                 </div>
@@ -469,7 +469,7 @@ export default function LoginPage() {
                                         onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
                                         placeholder="exemple@site.com"
                                         autoComplete="off"
-                                        className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
+                                        className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                     />
                                 </div>
 
@@ -481,7 +481,7 @@ export default function LoginPage() {
                                         value={regForm.phone}
                                         onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
                                         placeholder="+33 6 12 34 56 78"
-                                        className="w-full bg-emerald-500/[0.03] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
+                                        className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                     />
                                 </div>
 
