@@ -54,7 +54,7 @@ export default function ProgramEditor({ groupId, dayNumber }: { groupId: string,
                                         type="time"
                                         value={activity.time}
                                         onChange={(e) => updateActivity(activity.id, 'time', e.target.value)}
-                                        className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all"
+                                        className="w-full bg-[#0a0e0c] border border-emerald-500/10 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm font-black text-main outline-none focus:border-emerald-500 transition-all"
                                     />
                                 </div>
                                 <div className="grid grid-cols-5 gap-2 p-1 bg-emerald-500/5 dark:bg-white/5 rounded-2xl border border-emerald-500/10 dark:border-white/10">
@@ -94,7 +94,7 @@ export default function ProgramEditor({ groupId, dayNumber }: { groupId: string,
                                             placeholder="Lieu de rendez-vous"
                                             value={activity.location}
                                             onChange={(e) => updateActivity(activity.id, 'location', e.target.value)}
-                                            className="w-full bg-emerald-500/5 dark:bg-white/5 border border-emerald-500/10 dark:border-white/5 rounded-xl pl-12 pr-4 py-3 text-xs font-bold text-main outline-none focus:border-emerald-500"
+                                            className="w-full bg-[#0a0e0c] border border-emerald-500/10 dark:border-white/5 rounded-xl pl-12 pr-4 py-3 text-xs font-bold text-main outline-none focus:border-emerald-500"
                                         />
                                     </div>
                                     <button
@@ -110,7 +110,7 @@ export default function ProgramEditor({ groupId, dayNumber }: { groupId: string,
                                     placeholder="Description détaillée, conseils logistiques ou spirituels pour les pèlerins..."
                                     value={activity.description}
                                     onChange={(e) => updateActivity(activity.id, 'description', e.target.value)}
-                                    className="w-full bg-emerald-500/[0.02] dark:bg-white/5 border border-emerald-500/10 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-medium text-sub outline-none focus:border-emerald-500/30 min-h-[100px] resize-none shadow-inner"
+                                    className="w-full bg-[#0a0e0c] border border-emerald-500/10 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-medium text-sub outline-none focus:border-emerald-500/30 min-h-[100px] resize-none shadow-inner"
                                 />
                             </div>
                         </div>
