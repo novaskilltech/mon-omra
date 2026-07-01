@@ -17,6 +17,7 @@ import {
     getAvailableFlightsAndHotels, saveIndividualHotelInfo
 } from '@/lib/actions/concierge';
 import { getPilgrimDocuments, deleteDocumentAction } from '@/lib/actions/documents';
+import { getAssistanceRequestsAction, resolveAssistanceRequestAction } from '@/lib/actions/logistics';
 
 export default function ConciergeDashboard() {
     const [pilgrims, setPilgrims] = useState<any[]>([]);
@@ -52,8 +53,9 @@ export default function ConciergeDashboard() {
     const [availableFlights, setAvailableFlights] = useState<any[]>([]);
     
     // Tab active view
-    const [activeView, setActiveView] = useState<'pilgrims' | 'requests'>('pilgrims');
+    const [activeView, setActiveView] = useState<'pilgrims' | 'requests' | 'urgences'>('pilgrims');
     const [requests, setRequests] = useState<any[]>([]);
+    const [assistanceRequests, setAssistanceRequests] = useState<any[]>([]);
     const [selectedRequest, setSelectedRequest] = useState<any>(null);
     const [showApproveModal, setShowApproveModal] = useState(false);
     const [approveForm, setApproveForm] = useState({
@@ -133,12 +135,36 @@ export default function ConciergeDashboard() {
             const reqs = await getRegistrationRequests();
             setRequests(reqs);
 
+            // Load emergency assistance requests
+            const ast = await getAssistanceRequestsAction();
+            if (ast.success && ast.requests) {
+                setAssistanceRequests(ast.requests);
+            }
+
             // Fetch hotels and flights
             const { hotels, flights: fls } = await getAvailableFlightsAndHotels();
             setDbHotels(hotels || []);
             setAvailableFlights(fls || []);
         } catch (e) {
             console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResolveAssistance = async (id: string) => {
+        if (!confirm("Voulez-vous vraiment marquer cette alerte comme résolue ?")) return;
+        setLoading(true);
+        try {
+            const res = await resolveAssistanceRequestAction(id);
+            if (res.success) {
+                await loadData();
+            } else {
+                alert(res.error || "Impossible de résoudre la demande.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Une erreur inattendue est survenue.");
         } finally {
             setLoading(false);
         }
