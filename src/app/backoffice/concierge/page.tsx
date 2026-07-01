@@ -5,7 +5,7 @@ import {
     Users, Plus, Search, User, CreditCard, 
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
     CheckCircle, XCircle, Clock, CheckCircle2,
-    DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2
+    DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2, Eye
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, uploadVisaDocument,
@@ -886,6 +886,14 @@ export default function ConciergeDashboard() {
                                             >
                                                 Encaisser Règlement
                                             </button>
+                                            <a 
+                                                href={`/dashboard?pilgrimId=${selectedPilgrim.id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="btn-premium py-3.5 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg hover:shadow-emerald-500/20 text-[#050605] font-black"
+                                            >
+                                                <Eye className="w-3.5 h-3.5" /> Voir comme pèlerin
+                                            </a>
                                         </div>
                                     </div>
 

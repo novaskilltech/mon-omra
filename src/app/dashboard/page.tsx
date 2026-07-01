@@ -18,14 +18,20 @@ const PermissionConsent = dynamic(
     { ssr: false }
 );
 
-export default async function Dashboard() {
+import { isAdminAuthenticated } from '@/lib/actions/auth';
+
+export default async function Dashboard({ searchParams }: { searchParams: { pilgrimId?: string } }) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+
+    const isAdmin = await isAdminAuthenticated();
+    const isPreview = isAdmin && !!searchParams?.pilgrimId;
+    const targetPilgrimId = isPreview ? searchParams.pilgrimId! : (pilgrimCookieId || user?.id || 'demo-pilgrim-id');
     
     // Rapatriement des données réelles ou de démo via l'action
-    const data = await getPilgrimDashboardData(pilgrimCookieId || user?.id || 'demo-pilgrim-id', user?.email || undefined);
-    const feedbackStatus = await checkFeedbackStatus(pilgrimCookieId || user?.id || 'demo-pilgrim-id', user?.email || undefined);
+    const data = await getPilgrimDashboardData(targetPilgrimId, isPreview ? undefined : (user?.email || undefined));
+    const feedbackStatus = await checkFeedbackStatus(targetPilgrimId, isPreview ? undefined : (user?.email || undefined));
 
     // Calcul du pourcentage de préparation pour l'UI
     const completedTasksCount = data.checklist.filter(item => item.ok).length;
@@ -33,6 +39,12 @@ export default async function Dashboard() {
 
     return (
         <div className="min-h-screen">
+            {isPreview && (
+                <div className="bg-amber-500/15 border-b border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] py-3.5 px-6 text-center flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                    <span>Aperçu Administrateur : Vous visualisez le tableau de bord de {data.pilgrimName}</span>
+                </div>
+            )}
             <PermissionConsent />
             {/* Header */}
             <nav className="glass px-6 py-4 flex justify-between items-center sticky top-0 z-50 border-emerald-500/5">
