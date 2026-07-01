@@ -122,7 +122,9 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
             {/* Flights Section */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>1. VÉHICULES & VOLS</Text>
-                {data.flights.map((flight: any, idx: number) => (
+                {data.flights.length === 0 ? (
+                    <Text style={{ fontSize: 9, color: '#6b7280', fontStyle: 'italic', padding: 5 }}>Aucun vol ou transfert planifié pour le moment.</Text>
+                ) : data.flights.map((flight: any, idx: number) => (
                     <View key={idx} style={styles.card}>
                         <Text style={{ fontSize: 9, fontWeight: 'bold', marginBottom: 5, color: '#10b981' }}>
                             VOL {flight.type} - {flight.carrier}
@@ -140,7 +142,9 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
             {/* Hotels Section */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>2. HÉBERGEMENTS</Text>
-                {data.hotels.map((hotel: any, idx: number) => (
+                {data.hotels.length === 0 ? (
+                    <Text style={{ fontSize: 9, color: '#6b7280', fontStyle: 'italic', padding: 5 }}>Aucun hébergement planifié pour le moment.</Text>
+                ) : data.hotels.map((hotel: any, idx: number) => (
                     <View key={idx} style={styles.card}>
                         <View style={styles.row}>
                             <Text style={styles.value}>{hotel.name}</Text>
@@ -157,7 +161,9 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
             {/* Planning Summary */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>3. PROGRAMME DES PREMIERS JOURS</Text>
-                {data.program.slice(0, 3).map((day: any, idx: number) => (
+                {data.program.length === 0 ? (
+                    <Text style={{ fontSize: 9, color: '#6b7280', fontStyle: 'italic', padding: 5 }}>Aucune activité programmée pour le moment.</Text>
+                ) : data.program.slice(0, 3).map((day: any, idx: number) => (
                     <View key={idx} style={{ marginBottom: 15 }}>
                         <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#10b981', marginBottom: 8 }}>
                             JOUR {day.day} - {day.date}

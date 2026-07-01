@@ -1089,26 +1089,36 @@ export async function unassignPilgrimFromRoomFromHotel(pilgrimId: string, roomId
     return { success: true };
 }
 
-export async function getPilgrimProgram(pilgrimId: string, email?: string) {
+export async function getPilgrimProgram(pilgrimId?: string | null, email?: string, directGroupId?: string) {
     const supabase = createClient();
     try {
-        const resolvedId = await resolvePilgrimIdByEmail(pilgrimId, email);
+        let groupId = directGroupId;
+        let pilgrim: any = null;
+        let profile: any = null;
 
-        // Fetch profile
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', resolvedId)
-            .single();
+        if (pilgrimId) {
+            const resolvedId = await resolvePilgrimIdByEmail(pilgrimId, email);
 
-        // Fetch pilgrim and group
-        const { data: pilgrim } = await supabase
-            .from('pilgrims')
-            .select('group_id, individual_flight_info, individual_hotel_info')
-            .eq('id', resolvedId)
-            .single();
+            // Fetch profile
+            const { data: p } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', resolvedId)
+                .single();
+            profile = p;
 
-        let groupId = pilgrim?.group_id;
+            // Fetch pilgrim and group
+            const { data: pil } = await supabase
+                .from('pilgrims')
+                .select('group_id, individual_flight_info, individual_hotel_info')
+                .eq('id', resolvedId)
+                .single();
+            pilgrim = pil;
+            if (pilgrim && !groupId) {
+                groupId = pilgrim.group_id;
+            }
+        }
+
         let groupName = "";
         let departureDate = new Date();
 
@@ -1764,67 +1774,34 @@ export async function getPilgrimJournalData(groupId: string, pilgrimId?: string)
 
         // 3. Resolve Program
         let programList: any[] = [];
-        if (pilgrimId && pilgrimId !== 'demo-pilgrim-id') {
-            const progResult = await getPilgrimProgram(pilgrimId);
-            if (progResult && progResult.days) {
-                programList = progResult.days.map((d: any) => ({
-                    day: d.day,
-                    date: d.date,
-                    activities: d.guidedActivities.map((act: any) => ({
-                        time: act.time,
-                        title: act.title,
-                        description: act.description
-                    }))
-                }));
-            }
+        const progResult = await getPilgrimProgram(
+            (pilgrimId && pilgrimId !== 'demo-pilgrim-id') ? pilgrimId : null,
+            undefined,
+            groupId
+        );
+        if (progResult && progResult.days) {
+            programList = progResult.days.map((d: any) => ({
+                day: d.day,
+                date: d.date,
+                activities: d.guidedActivities.map((act: any) => ({
+                    time: act.time,
+                    title: act.title,
+                    description: act.description
+                }))
+            }));
         }
 
-        // Fallbacks for empty results
+        // Fallbacks for empty results - Return empty arrays instead of mock/fake data
         if (flightsList.length === 0) {
-            flightsList = [
-                {
-                    type: 'ALLER',
-                    carrier: 'Turkish Airlines',
-                    segments: [
-                        { from: 'CDG', to: 'IST', flightNum: 'TK1822', date: '15/05', time: '11:40' },
-                        { from: 'IST', to: 'JED', flightNum: 'TK96', date: '15/05', time: '20:15' }
-                    ]
-                },
-                {
-                    type: 'RETOUR',
-                    carrier: 'Saudi Arabian',
-                    segments: [
-                        { from: 'MED', to: 'CDG', flightNum: 'SV143', date: '30/05', time: '09:20' }
-                    ]
-                }
-            ];
+            flightsList = [];
         }
 
         if (hotelsList.length === 0) {
-            hotelsList = [
-                { name: 'Hilton Convention', city: 'Makkah', checkIn: '15/05', checkOut: '22/05' },
-                { name: 'Pullman Zamzam', city: 'Madinah', checkIn: '22/05', checkOut: '30/05' }
-            ];
+            hotelsList = [];
         }
 
         if (programList.length === 0) {
-            programList = [
-                {
-                    day: 1,
-                    date: '15 Mai',
-                    activities: [
-                        { time: '20:15', title: 'Atterrissage Jeddah', description: 'Accueil terminal Hajj.' },
-                        { time: '23:30', title: 'Arrivée Makkah', description: 'Check-in et repos rapide.' }
-                    ]
-                },
-                {
-                    day: 2,
-                    date: '16 Mai',
-                    activities: [
-                        { time: '09:00', title: 'Omra Collective', description: 'Rendez-vous dans le lobby en Ihram.' }
-                    ]
-                }
-            ];
+            programList = [];
         }
 
         return {
