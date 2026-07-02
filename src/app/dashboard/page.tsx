@@ -1,19 +1,21 @@
 import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle, Users, Shield } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
 import { getPilgrimDashboardData } from '@/lib/actions/logistics';
 import { checkFeedbackStatus } from '@/lib/actions/feedback';
 import Countdown from '@/components/Countdown';
 
-const DownloadJournalButton = dynamic(
+export const dynamic = 'force-dynamic';
+
+const DownloadJournalButton = nextDynamic(
     () => import('../backoffice/groups/[id]/_components/DownloadJournalButton'),
     { ssr: false }
 );
 
-const PermissionConsent = dynamic(
+const PermissionConsent = nextDynamic(
     () => import('./_components/PermissionConsent'),
     { ssr: false }
 );

@@ -6,6 +6,8 @@ import { createClient } from '@/utils/supabase/server';
 import { resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
 import DocumentsClient from './_components/DocumentsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DocumentsPage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();

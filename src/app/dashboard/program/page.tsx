@@ -3,6 +3,8 @@ import { createClient } from '@/utils/supabase/server';
 import { getPilgrimProgram } from '@/lib/actions/logistics';
 import ProgramClient from './_components/ProgramClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Mon Programme - Omrayanair',
   description: 'Suivez votre itinéraire spirituel et les activités planifiées jour par jour.',

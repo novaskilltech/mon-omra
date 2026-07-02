@@ -3,6 +3,8 @@ import { createClient } from '@/utils/supabase/server';
 import { getPilgrimBadgeData } from '@/lib/actions/logistics';
 import BadgeClient from './_components/BadgeClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Mon Badge Pèlerin - Omrayanair',
   description: 'Générez et imprimez votre pass d\'identité et d\'assistance pèlerin.',
