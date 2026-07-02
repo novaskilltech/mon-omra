@@ -98,6 +98,42 @@ const styles = StyleSheet.create({
     }
 });
 
+function cleanText(text: string): string {
+    if (!text) return '';
+    return text
+        // Clean Arabic transliteration characters to standard Latin equivalents
+        .replace(/[ḥḤ]/g, 'h')
+        .replace(/[īĪ]/g, 'i')
+        .replace(/[āĀ]/g, 'a')
+        .replace(/[ūŪ]/g, 'u')
+        .replace(/[ṣṢ]/g, 's')
+        .replace(/[ṭṬ]/g, 't')
+        .replace(/[ḍḌ]/g, 'd')
+        .replace(/[ẓẒ]/g, 'z')
+        .replace(/’/g, "'")
+        .replace(/‘/g, "'")
+        // Specific garbled pattern replacements
+        .replace(/i%rm/gi, 'ihram')
+        .replace(/¿umra/gi, 'umra')
+        .replace(/shar\+ka/gi, 'sharika')
+        .replace(/l-%amda/gi, 'l-hamda')
+        .replace(/ni¿mata/gi, 'nimata')
+        .replace(/Jumu¿a/gi, 'Joumoua')
+        .replace(/al-\$arm/gi, 'al-Haram')
+        .replace(/Ka¿ba/gi, 'Kaaba')
+        .replace(/raka¿t/gi, 'rakaat')
+        .replace(/Sa¿y/gi, 'Say')
+        .replace(/baf/gi, 'Safa')
+        .replace(/Allhumma/g, 'Allahumma')
+        .replace(/All\+humma/g, 'Allahumma')
+        .replace(/l\+/g, 'la')
+        .replace(/ú/g, '')
+        .replace(/%/g, 'h')
+        .replace(/\$/g, 'H')
+        .replace(/\+/g, 'i')
+        .replace(/¿/g, "'");
+}
+
 export const TravelJournalDocument = ({ data }: { data: any }) => (
     <Document>
         <Page size="A4" style={styles.page}>
@@ -114,7 +150,7 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
                     </View>
                 </View>
                 <View style={{ textAlign: 'right' }}>
-                    <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{data.groupName}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{cleanText(data.groupName)}</Text>
                     <Text style={{ fontSize: 8, color: '#6b7280' }}>Réf: {data.groupId.slice(0, 8).toUpperCase()}</Text>
                 </View>
             </View>
@@ -127,12 +163,12 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
                 ) : data.flights.map((flight: any, idx: number) => (
                     <View key={idx} style={styles.card}>
                         <Text style={{ fontSize: 9, fontWeight: 'bold', marginBottom: 5, color: '#10b981' }}>
-                            VOL {flight.type} - {flight.carrier}
+                            VOL {cleanText(flight.type)} - {cleanText(flight.carrier)}
                         </Text>
                         {flight.segments.map((seg: any, sIdx: number) => (
                             <View key={sIdx} style={styles.row}>
-                                <Text style={styles.value}>{seg.from} ➔ {seg.to}</Text>
-                                <Text style={styles.value}>{seg.flightNum} | {seg.date} à {seg.time}</Text>
+                                <Text style={styles.value}>{cleanText(seg.from)} ➔ {cleanText(seg.to)}</Text>
+                                <Text style={styles.value}>{cleanText(seg.flightNum)} | {cleanText(seg.date)} à {cleanText(seg.time)}</Text>
                             </View>
                         ))}
                     </View>
@@ -147,12 +183,12 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
                 ) : data.hotels.map((hotel: any, idx: number) => (
                     <View key={idx} style={styles.card}>
                         <View style={styles.row}>
-                            <Text style={styles.value}>{hotel.name}</Text>
-                            <Text style={styles.value}>{hotel.city}</Text>
+                            <Text style={styles.value}>{cleanText(hotel.name)}</Text>
+                            <Text style={styles.value}>{cleanText(hotel.city)}</Text>
                         </View>
                         <View style={styles.row}>
-                            <Text style={styles.label}>Check-in: {hotel.checkIn}</Text>
-                            <Text style={styles.label}>Check-out: {hotel.checkOut}</Text>
+                            <Text style={styles.label}>Check-in: {cleanText(hotel.checkIn)}</Text>
+                            <Text style={styles.label}>Check-out: {cleanText(hotel.checkOut)}</Text>
                         </View>
                     </View>
                 ))}
@@ -166,14 +202,14 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
                 ) : data.program.slice(0, 3).map((day: any, idx: number) => (
                     <View key={idx} style={{ marginBottom: 15 }}>
                         <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#10b981', marginBottom: 8 }}>
-                            JOUR {day.day} - {day.date}
+                            JOUR {day.day} - {cleanText(day.date)}
                         </Text>
                         {day.activities.map((act: any, aIdx: number) => (
                             <View key={aIdx} style={styles.activityRow}>
-                                <Text style={styles.timeCol}>{act.time}</Text>
+                                <Text style={styles.timeCol}>{cleanText(act.time)}</Text>
                                 <View style={styles.contentCol}>
-                                    <Text style={styles.activityTitle}>{act.title}</Text>
-                                    <Text style={styles.activityDesc}>{act.description}</Text>
+                                    <Text style={styles.activityTitle}>{cleanText(act.title)}</Text>
+                                    <Text style={styles.activityDesc}>{cleanText(act.description)}</Text>
                                 </View>
                             </View>
                         ))}
@@ -182,7 +218,7 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
             </View>
 
             <Text style={styles.footer}>
-                Ce document est généré par Mon Omra pour {data.pilgrimName}.
+                Ce document est généré par Mon Omra pour {cleanText(data.pilgrimName)}.
                 Bon voyage spirituel. Hajj Mabroor & Omra Maqbula.
             </Text>
         </Page>
