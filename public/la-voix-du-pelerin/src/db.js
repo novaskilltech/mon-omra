@@ -94,6 +94,53 @@ const SEED_ARTICLES = [
     status: "published",
     imageUrl: "/la-voix-du-pelerin/assets/rites_omra.png", // Illustration de la grande mosquée de la mecque (Rites)
     publishedAt: "2026-06-24T09:00:00.000Z"
+  },
+  {
+    id: "art-5",
+    title: "Guide pratique de l'assurance médicale du visa Omra (Ch. 1 à 5)",
+    summary: "Comment fonctionne l'assurance médicale obligatoire associée à votre visa Omra ? Retrouvez votre compagnie, comprenez les garanties et découvrez les exclusions.",
+    category: "Conseils pratiques",
+    content: `<h3>1. Introduction</h3>
+<p>Les autorités du Royaume d'Arabie saoudite incluent automatiquement une assurance médicale avec la plupart des visas Omra. Cette assurance est destinée à protéger les pèlerins en cas de problème médical survenant durant leur séjour.</p>
+<p>Cependant, de nombreux voyageurs ignorent comment retrouver leur assurance, ce qu'elle couvre réellement, comment contacter leur compagnie d'assurance, ou quelles démarches effectuer en cas de maladie ou d'accident. Ce guide répond à ces questions et vous explique les principales procédures à suivre.</p>
+<blockquote><strong>Important :</strong> Ce guide est fourni à titre informatif. Les garanties exactes dépendent de la compagnie d'assurance qui vous a été attribuée par les autorités saoudiennes.</blockquote>
+
+<h3>2. Comprendre votre assurance</h3>
+<h4>Une assurance obligatoire</h4>
+<p>Lorsque votre visa Omra est délivré, une assurance médicale est automatiquement associée à celui-ci. Vous n'avez aucune démarche supplémentaire à effectuer. L'objectif de cette assurance est de permettre la prise en charge des <strong>urgences médicales</strong> pendant votre séjour.</p>
+<p>⚠️ Cette assurance n'est <strong>pas</strong> une assurance santé classique. Elle est principalement prévue pour les urgences médicales, les accidents, les hospitalisations, et certaines interventions médicales urgentes. Les consultations de confort ou les soins non urgents peuvent ne pas être couverts.</p>
+<h4>Pourquoi ne reçoit-on pas toujours la police d'assurance ?</h4>
+<p>Il est fréquent que le portail officiel du visa transmette uniquement le visa électronique et le document d'autorisation de voyage, sans joindre la police d'assurance détaillée. Cela est normal. Votre assurance existe bien et peut être retrouvée grâce aux services officiels des autorités saoudiennes.</p>
+
+<h3>3. Comment retrouver votre assurance ?</h3>
+<p>Deux sites officiels permettent de consulter votre assurance :</p>
+<ul>
+  <li><strong>Méthode n°1 (recommandée) via l'Insurance Authority :</strong> <a href="https://www.ia.gov.sa/en/Health-Insurance-Hajj-Umrah" target="_blank" style="color:var(--color-primary-light); font-weight:700; text-decoration:underline;">ia.gov.sa/en/Health-Insurance-Hajj-Umrah</a>. Vous pourrez effectuer une recherche avec votre numéro de passeport, votre numéro de visa ou votre Border Number (numéro d'entrée) pour consulter le nom de votre compagnie et la validité de votre couverture.</li>
+  <li><strong>Méthode n°2 via le Council of Health Insurance (CHI) :</strong> <a href="https://www.chi.gov.sa/en/servicesdirectory/pages/eservices-checkvisitorsinsurance.aspx" target="_blank" style="color:var(--color-primary-light); font-weight:700; text-decoration:underline;">chi.gov.sa/en/servicesdirectory</a>. Ce portail permet de vérifier l'activation de votre assurance et d'obtenir les coordonnées de votre assureur.</li>
+</ul>
+<blockquote><strong>Notre conseil :</strong> Nous vous recommandons d'effectuer cette recherche dès votre arrivée en Arabie saoudite et de prendre une capture d'écran des informations de votre assureur.</blockquote>
+
+<h3>4. Que couvre cette assurance ?</h3>
+<p>Cette assurance est principalement destinée aux situations d'urgence. Selon la compagnie d'assurance, elle peut notamment couvrir :</p>
+<ul>
+  <li>Les urgences médicales et consultations d'urgence ;</li>
+  <li>Les hospitalisations et examens médicaux urgents ;</li>
+  <li>Les analyses et médicaments prescrits lors d'une urgence ;</li>
+  <li>Les interventions chirurgicales urgentes, fractures, accidents ou brûlures ;</li>
+  <li>Les transports en ambulance lorsque nécessaires et le rapatriement.</li>
+</ul>
+
+<h3>5. Ce qui n'est généralement pas couvert</h3>
+<p>Comme la plupart des assurances voyage, cette assurance comporte certaines exclusions. Dans la majorité des contrats, ne sont généralement pas pris en charge :</p>
+<ul>
+  <li>Les consultations de confort et bilans médicaux ;</li>
+  <li>Les traitements programmés ou maladies préexistantes ;</li>
+  <li>Les soins dentaires non urgents et médicaments achetés sans prescription médicale.</li>
+</ul>
+<p>Chaque compagnie applique ses propres conditions générales. Les garanties exactes figurent dans votre police d'assurance.</p>`,
+    status: "published",
+    imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
+    publishedAt: "2026-07-06T00:00:00.000Z"
   }
 ];
 
