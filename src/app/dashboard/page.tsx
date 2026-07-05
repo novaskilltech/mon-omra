@@ -29,12 +29,49 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
     const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
 
     const isAdmin = await isAdminAuthenticated();
-    const isPreview = isAdmin && !!searchParams?.pilgrimId;
-    const targetPilgrimId = isPreview ? searchParams.pilgrimId! : (pilgrimCookieId || user?.id || 'demo-pilgrim-id');
+    const currentPilgrimId = pilgrimCookieId || user?.id || 'demo-pilgrim-id';
+
+    let targetPilgrimId = currentPilgrimId;
+    let isPreview = isAdmin && !!searchParams?.pilgrimId;
+    let isFamilyPreview = false;
+
+    // Check if logged in user is family head
+    let isCurrentUserHead = false;
+    if (currentPilgrimId && currentPilgrimId !== 'demo-pilgrim-id') {
+        const { data: currentPilgrim } = await supabase
+            .from('pilgrims')
+            .select('id, family_head_id')
+            .eq('id', currentPilgrimId)
+            .maybeSingle();
+        if (currentPilgrim && (!currentPilgrim.family_head_id || currentPilgrim.family_head_id === currentPilgrim.id)) {
+            isCurrentUserHead = true;
+        }
+    }
+
+    if (searchParams?.pilgrimId && !isAdmin) {
+        // Authenticate family head check
+        const { data: requestedPilgrim } = await supabase
+            .from('pilgrims')
+            .select('id, family_head_id')
+            .eq('id', searchParams.pilgrimId)
+            .maybeSingle();
+            
+        if (requestedPilgrim) {
+            const requestedHeadId = requestedPilgrim.family_head_id || requestedPilgrim.id;
+
+            // They must share the same family folder and the current logged-in user must be the head
+            if (currentPilgrimId === requestedHeadId && isCurrentUserHead) {
+                targetPilgrimId = searchParams.pilgrimId;
+                isFamilyPreview = true;
+            }
+        }
+    } else if (isPreview) {
+        targetPilgrimId = searchParams.pilgrimId!;
+    }
     
     // Rapatriement des données réelles ou de démo via l'action
-    const data = await getPilgrimDashboardData(targetPilgrimId, isPreview ? undefined : (user?.email || undefined));
-    const feedbackStatus = await checkFeedbackStatus(targetPilgrimId, isPreview ? undefined : (user?.email || undefined));
+    const data = await getPilgrimDashboardData(targetPilgrimId, (isPreview || isFamilyPreview) ? undefined : (user?.email || undefined));
+    const feedbackStatus = await checkFeedbackStatus(targetPilgrimId, (isPreview || isFamilyPreview) ? undefined : (user?.email || undefined));
 
     // Calcul du pourcentage de préparation pour l'UI
     const completedTasksCount = data.checklist.filter(item => item.ok).length;
@@ -46,6 +83,17 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                 <div className="bg-amber-500/15 border-b border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] py-3.5 px-6 text-center flex items-center justify-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
                     <span>Aperçu Administrateur : Vous visualisez le tableau de bord de {data.pilgrimName}</span>
+                </div>
+            )}
+            {isFamilyPreview && (
+                <div className="bg-emerald-500/10 border-b border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-[0.2em] py-3.5 px-6 text-center flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                        <span>Espace Famille : Vous visualisez le dossier de {data.pilgrimName}</span>
+                    </div>
+                    <Link href="/dashboard" className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-lg text-[9px] font-black border border-emerald-500/20 uppercase tracking-widest transition-all">
+                        Retour à mon dossier
+                    </Link>
                 </div>
             )}
             <PermissionConsent />
@@ -133,10 +181,10 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                                 PROCHAIN VOL
                             </span>
                             <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                                <Link href="/dashboard/documents" className="glass py-4 px-8 rounded-2xl font-bold text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-500/10 transition-all text-main shadow-sm">
+                                <Link href={`/dashboard/documents?pilgrimId=${targetPilgrimId}`} className="glass py-4 px-8 rounded-2xl font-bold text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-500/10 transition-all text-main shadow-sm">
                                     Mes Documents
                                 </Link>
-                                <DownloadJournalButton groupName={data.groupName || "Groupe Ramadan A"} groupId={data.groupId || "1"} pilgrimName={data.pilgrimName} pilgrimId={pilgrimCookieId || user?.id} />
+                                <DownloadJournalButton groupName={data.groupName || "Groupe Ramadan A"} groupId={data.groupId || "1"} pilgrimName={data.pilgrimName} pilgrimId={targetPilgrimId} />
                             </div>
                             <div className="flex justify-between items-center mb-10">
                                 <div>
@@ -222,6 +270,24 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                                             </div>
                                         ))}
                                     </div>
+
+                                    {/* Action to switch dashboard */}
+                                    {isCurrentUserHead && (
+                                        <div className="mt-4 pt-3 border-t border-white/5">
+                                            {member.id === targetPilgrimId ? (
+                                                <span className="w-full text-center block bg-emerald-500/10 text-emerald-500 border border-emerald-500/10 font-bold text-[9px] uppercase tracking-widest py-2.5 rounded-xl">
+                                                    Dossier Actif
+                                                </span>
+                                            ) : (
+                                                <Link 
+                                                    href={`/dashboard?pilgrimId=${member.id}`}
+                                                    className="w-full text-center block bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 font-bold text-[9px] uppercase tracking-widest py-2.5 rounded-xl transition-all"
+                                                >
+                                                    Accéder au dossier
+                                                </Link>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

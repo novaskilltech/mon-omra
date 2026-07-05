@@ -21,10 +21,11 @@ interface Traveler {
 
 interface DocumentsClientProps {
     travelers: Traveler[];
+    initialActiveTab?: string;
 }
 
-export default function DocumentsClient({ travelers }: DocumentsClientProps) {
-    const [activeTab, setActiveTab] = useState(travelers[0]?.id || '');
+export default function DocumentsClient({ travelers, initialActiveTab }: DocumentsClientProps) {
+    const [activeTab, setActiveTab] = useState(initialActiveTab || travelers[0]?.id || '');
 
     const currentTraveler = travelers.find(t => t.id === activeTab) || travelers[0];
     if (!currentTraveler) return null;

@@ -8,7 +8,7 @@ import DocumentsClient from './_components/DocumentsClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DocumentsPage() {
+export default async function DocumentsPage({ searchParams }: { searchParams: { pilgrimId?: string } }) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
@@ -90,7 +90,7 @@ export default async function DocumentsPage() {
                     </p>
                 </header>
 
-                <DocumentsClient travelers={travelers} />
+                <DocumentsClient travelers={travelers} initialActiveTab={searchParams?.pilgrimId || resolvedId} />
             </div>
         </div>
     );

@@ -167,5 +167,15 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `TransfersPage` dans `src/app/backoffice/logistics/transfers/page.tsx` pour ajouter ces états, le sélecteur radio de séquence, les champs d'entrée associés, et formater dynamiquement le manifeste WhatsApp en fonction de l'ordre sélectionné.
 *   **Version** : v1.10.0
 
+---
+
+## 18. Accès Espace Famille pour les Chefs de Famille sur le Dashboard
+*   **Décision** : Permettre au chef de famille d'accéder au tableau de bord complet (preview) de chacun des pèlerins rattachés à son dossier pour consulter leurs vols, visas, et checklists, et de téléverser/télécharger directement leurs documents.
+*   **Justification** : Répond à la demande utilisateur d'avoir un accès centralisé et d'agir au nom des co-voyageurs rattachés sans forcer l'agence à donner des accès de connexion individuels pour les enfants ou la belle-famille.
+*   **Impacts** :
+    *   Mise à jour de `src/app/dashboard/page.tsx` pour autoriser la consultation par preview si le demandeur est le chef de famille des membres rattachés, afficher un bandeau de signalement "Espace Famille", et ajouter des boutons "Accéder au dossier" pour chaque membre.
+    *   Mise à jour de `src/app/dashboard/documents/page.tsx` et `DocumentsClient.tsx` pour accepter `searchParams.pilgrimId` afin d'ouvrir directement l'onglet du membre de famille sélectionné lors d'une redirection depuis son tableau de bord.
+*   **Version** : v1.11.0
+
 
 
