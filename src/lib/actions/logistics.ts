@@ -1008,16 +1008,13 @@ export async function deleteRoomAction(roomId: string) {
 
     const supabase = createClient();
     try {
-        const { data: assignments } = await supabase
+        // 1. Delete associated assignments first
+        await supabase
             .from('room_assignments')
-            .select('id')
-            .eq('room_id', roomId)
-            .limit(1);
+            .delete()
+            .eq('room_id', roomId);
 
-        if (assignments && assignments.length > 0) {
-            return { error: "Cette chambre contient des occupants et ne peut pas être supprimée." };
-        }
-
+        // 2. Delete the room
         const { error } = await supabase
             .from('rooms')
             .delete()

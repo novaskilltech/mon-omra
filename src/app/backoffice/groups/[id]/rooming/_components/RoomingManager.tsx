@@ -682,19 +682,20 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
                                                         >
                                                             <Edit className="w-3.5 h-3.5" />
                                                         </button>
-                                                        {room.members.length === 0 && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteRoom(room.id);
-                                                                }}
-                                                                disabled={loading === room.id}
-                                                                className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                                                title="Supprimer la chambre vide"
-                                                            >
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        )}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (room.members.length > 0 && !confirm("Cette chambre a des occupants dans ce groupe. Voulez-vous vraiment la supprimer et désassigner tous les occupants ?")) {
+                                                                    return;
+                                                                }
+                                                                handleDeleteRoom(room.id);
+                                                            }}
+                                                            disabled={loading === room.id}
+                                                            className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                            title="Supprimer la chambre"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>

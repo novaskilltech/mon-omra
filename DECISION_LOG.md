@@ -147,3 +147,14 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour des tests dans `src/lib/actions/__tests__/mahram.test.ts`.
 *   **Version** : v1.9.0
 
+---
+
+## 16. Autorisation de suppression des chambres avec occupants (Rooming)
+*   **Décision** : Permettre aux administrateurs de supprimer n'importe quelle chambre, même occupée, en effectuant une désassignation automatique en cascade.
+*   **Justification** : Les utilisateurs ne pouvaient pas supprimer de chambres contenant des occupants (bloquées côté serveur et bouton masqué côté client). De plus, si des pèlerins d'autres groupes ou séjours étaient logés dans la chambre, celle-ci apparaissait comme vide dans la vue du groupe actuel tout en restant impossible à supprimer (message d'erreur trompeur).
+*   **Impacts** :
+    *   Mise à jour de `deleteRoomAction` dans `src/lib/actions/logistics.ts` pour supprimer les lignes de la table `room_assignments` associées avant de supprimer la chambre.
+    *   Modification de `RoomingManager.tsx` et `HotelRoomingModal.tsx` pour afficher en permanence le bouton de suppression avec une boîte de confirmation prévenant l'utilisateur en cas d'occupation.
+*   **Version** : v1.9.1
+
+

@@ -238,9 +238,17 @@ export default function HotelRoomingModal({ hotelId, onClose }: HotelRoomingModa
                                                         </p>
                                                     </div>
                                                     
-                                                    {totalOccupants === 0 ? (
+                                                    <div className="flex items-center gap-2">
+                                                        {totalOccupants > 0 && (
+                                                            <span className="text-[8px] font-black uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-1 rounded-md">
+                                                                Occupée
+                                                            </span>
+                                                        )}
                                                         <button 
-                                                            onClick={() => handleDeleteRoom(room.id)}
+                                                            onClick={() => {
+                                                                if (totalOccupants > 0 && !confirm("Cette chambre contient des occupants. La supprimer désassignera tous les pèlerins de cette chambre. Continuer ?")) return;
+                                                                handleDeleteRoom(room.id);
+                                                            }}
                                                             disabled={actionLoading === `delete-room-${room.id}`}
                                                             className="p-2 text-dim hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-white/5"
                                                             title="Supprimer la chambre"
@@ -251,11 +259,7 @@ export default function HotelRoomingModal({ hotelId, onClose }: HotelRoomingModa
                                                                 <Trash2 className="w-4 h-4" />
                                                             )}
                                                         </button>
-                                                    ) : (
-                                                        <span className="text-[8px] font-black uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-1 rounded-md">
-                                                            Occupée
-                                                        </span>
-                                                    )}
+                                                    </div>
                                                 </div>
 
                                                 {/* Beds */}
