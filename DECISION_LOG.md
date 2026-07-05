@@ -177,5 +177,16 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/app/dashboard/documents/page.tsx` et `DocumentsClient.tsx` pour accepter `searchParams.pilgrimId` afin d'ouvrir directement l'onglet du membre de famille sélectionné lors d'une redirection depuis son tableau de bord.
 *   **Version** : v1.11.0
 
+---
+
+## 19. Intégration de la Plateforme Éditoriale La Voix du Pèlerin
+*   **Décision** : Greffer le site statique autonome « La Voix du Pèlerin » au sein du projet principal Next.js.
+*   **Justification** : Unifie l'expérience éditoriale et de témoignages avec la plateforme principale de gestion pour éviter aux utilisateurs de naviguer sur deux serveurs/domaines distincts.
+*   **Impacts** :
+    *   Copie récursive des codes sources, feuilles de style, scripts (`db.js`, `main.js`, `style.css`), pages et images d'illustrations dans le répertoire `/public/la-voix-du-pelerin/` du projet principal.
+    *   Mise à jour des liens absolus de ressources (`/src/style.css`, `/src/main.js`, `/logo.png`) dans `index.html` et `db.js` pour pointer proprement sous le préfixe `/la-voix-du-pelerin/`.
+    *   Ajout d'une section de promotion esthétique avec lien externe ciblant `/la-voix-du-pelerin/` sur la page d'accueil principale du site (`src/app/page.tsx`).
+*   **Version** : v1.12.0
+
 
 

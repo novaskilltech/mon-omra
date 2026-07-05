@@ -176,6 +176,49 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* Editorial Platform Section: La Voix du Pèlerin */}
+            <section className="relative z-10 py-12 px-6 max-w-7xl mx-auto">
+                <div className="glass p-12 md:p-16 rounded-[3rem] border-emerald-500/10 flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden group shadow-2xl">
+                    <div className="absolute top-[-20%] right-[-10%] w-[350px] h-[350px] bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-emerald-500/15 transition-all duration-700" />
+                    
+                    <div className="max-w-2xl space-y-6 text-left">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-[0.2em]">
+                            <BookOpen className="w-3 h-3" />
+                            Plateforme Éditoriale & Témoignages
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[1.1]">
+                            Découvrez <span className="text-emerald-500">La Voix du Pèlerin</span>
+                        </h2>
+                        <p className="text-sub text-sm leading-relaxed opacity-70">
+                            Préparez votre voyage sacré en toute confiance grâce à nos fiches éditoriales rédigées par des guides spirituels. Lisez également les récits et témoignages authentiques partagés par nos pèlerins pour vous inspirer et vous guider.
+                        </p>
+                        <div className="flex flex-wrap gap-4 pt-4">
+                            <a 
+                                href="/la-voix-du-pelerin/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-102 flex items-center gap-2.5 shadow-[0_5px_20px_rgba(16,185,129,0.2)]"
+                            >
+                                Explorer le Guide & Témoignages <ArrowRight className="w-3.5 h-3.5" />
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="relative shrink-0 w-full lg:w-auto flex justify-center">
+                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/30 backdrop-blur-md flex items-center justify-center p-6 shadow-2xl">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-transparent" />
+                            <div className="text-center space-y-4">
+                                <span className="text-6xl">📖</span>
+                                <h3 className="font-black text-main text-lg uppercase tracking-tight">Le Guide Spirituel</h3>
+                                <p className="text-[10px] text-dim max-w-xs mx-auto leading-relaxed">
+                                    Accédez aux récits de voyage, conseils bagages, préparation mentale et fiches de rites détaillées.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* Impact Section */}
             <section className="py-24 px-6 text-center max-w-3xl mx-auto">
                 <Heart className="w-12 h-12 text-emerald-500 mx-auto mb-8 animate-pulse" />
