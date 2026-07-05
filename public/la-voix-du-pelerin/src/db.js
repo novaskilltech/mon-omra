@@ -191,6 +191,74 @@ const SEED_ARTICLES = [
     status: "published",
     imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
     publishedAt: "2026-07-06T00:00:00.000Z"
+  },
+  {
+    id: "art-7",
+    title: "Guide pratique de l'assurance médicale du visa Omra (Ch. 11 à 14)",
+    summary: "FAQ de l'assurance, conseils pratiques pour votre départ/arrivée, coordonnées utiles des portails officiels de l'Insurance Authority et du CHI, et mentions légales.",
+    category: "Conseils pratiques",
+    content: `<h3>11. Questions fréquentes (FAQ)</h3>
+<p><strong>Je n'ai pas reçu ma police d'assurance. Suis-je assuré ?</strong><br>
+Oui. Il est fréquent que le portail officiel du visa transmette uniquement le visa électronique, sans joindre la police d'assurance. Vous pouvez retrouver les informations relatives à votre assurance grâce aux portails officiels indiqués dans ce guide.</p>
+
+<p><strong>Puis-je consulter n'importe quel médecin ?</strong><br>
+Pas toujours. Selon votre compagnie d'assurance, certains établissements de santé peuvent être partenaires. Avant toute consultation non urgente, il est recommandé de contacter votre assureur afin de connaître la procédure à suivre.</p>
+
+<p><strong>Dois-je avancer les frais médicaux ?</strong><br>
+Cela dépend de votre compagnie d'assurance et de l'établissement dans lequel vous êtes pris en charge. Deux situations sont possibles : la prise en charge directe par l'assurance, ou le paiement des frais puis demande de remboursement.</p>
+
+<p><strong>Une consultation pour un rhume est-elle couverte ?</strong><br>
+Pas nécessairement. L'assurance du visa Omra est principalement destinée aux urgences médicales. Pour une consultation simple, contactez votre compagnie d'assurance avant de consulter.</p>
+
+<p><strong>Puis-je être remboursé après mon retour dans mon pays ?</strong><br>
+Selon les conditions de votre contrat, cela peut être possible. Conservez impérativement toutes les factures, ordonnances, reçus de paiement et documents médicaux.</p>
+
+<p><strong>Que faire si je ne parle ni arabe ni anglais ?</strong><br>
+N'hésitez pas à demander de l'aide à un membre de votre groupe, à votre accompagnateur ou au personnel de l'hôtel. Les établissements hospitaliers accueillant des pèlerins disposent souvent d'un personnel habitué aux visiteurs internationaux.</p>
+
+<h3>12. Conseils pratiques</h3>
+<p><strong>Avant votre départ :</strong></p>
+<ul>
+  <li>Vérifiez la validité de votre passeport et conservez-en une copie papier.</li>
+  <li>Enregistrez une copie numérique de votre visa sur votre téléphone.</li>
+  <li>Emportez vos traitements médicaux habituels en quantité suffisante.</li>
+</ul>
+<p><strong>À votre arrivée :</strong></p>
+<ul>
+  <li>Recherchez votre assurance sur l'un des deux portails officiels saoudiens.</li>
+  <li>Notez le nom de votre compagnie d'assurance et enregistrez son numéro d'assistance.</li>
+  <li>Faites une capture d'écran de votre police d'assurance.</li>
+</ul>
+<p><strong>En cas de consultation ou d'hospitalisation :</strong></p>
+<ul>
+  <li>Présentez toujours votre passeport et votre visa.</li>
+  <li>Conservez tous les documents remis par le médecin et toutes les factures.</li>
+  <li>Photographiez immédiatement chaque document.</li>
+</ul>
+
+<h3>13. Coordonnées utiles</h3>
+<p><strong>Portails officiels :</strong></p>
+<ul>
+  <li><strong>Insurance Authority :</strong> <a href="https://www.ia.gov.sa/en/Health-Insurance-Hajj-Umrah" target="_blank" style="color:var(--color-primary-light); font-weight:700; text-decoration:underline;">ia.gov.sa/en/Health-Insurance-Hajj-Umrah</a>. Permet de consulter votre assurance à l'aide de votre passeport, de votre numéro de visa ou de votre Border Number.</li>
+  <li><strong>Council of Health Insurance (CHI) :</strong> <a href="https://www.chi.gov.sa/en/servicesdirectory/pages/eservices-checkvisitorsinsurance.aspx" target="_blank" style="color:var(--color-primary-light); font-weight:700; text-decoration:underline;">chi.gov.sa/en/servicesdirectory</a>. Permet de vérifier la validité de votre assurance et d'identifier votre compagnie.</li>
+</ul>
+<p><strong>OmraYanair LLC :</strong> Pour toute question concernant l'organisation de votre séjour Omra (programme, transferts, hôtels, visites, etc.), contactez-nous :</p>
+<ul>
+  <li>Site internet : <a href="http://omrayanair.novaskill.tech" target="_blank">omrayanair.novaskill.tech</a></li>
+  <li>E-mail : <a href="mailto:omrayanair@gmail.com">omrayanair@gmail.com</a></li>
+  <li>WhatsApp : <strong>+33 7 52 28 08 90</strong></li>
+  <li>Siège social : OmraYanair LLC, Albuquerque, New Mexico, États-Unis.</li>
+</ul>
+<blockquote><strong>Remarque :</strong> OmraYanair LLC n'est ni une compagnie d'assurance ni un établissement de santé. Pour toute urgence médicale, contactez immédiatement les services d'urgence ou votre compagnie d'assurance.</blockquote>
+
+<h3>14. Mentions légales et avertissement</h3>
+<p>Ce guide est fourni exclusivement à titre informatif. Les informations qu'il contient sont basées sur les procédures généralement applicables au moment de sa rédaction. Les garanties, exclusions, plafonds de remboursement et procédures de prise en charge peuvent varier selon la compagnie d'assurance attribuée avec votre visa.</p>
+<p>En cas de différence entre ce guide et votre police d'assurance, <strong>les conditions de votre contrat d'assurance prévalent</strong>. OmraYanair LLC ne peut être tenue responsable des décisions prises par les compagnies d'assurance, les établissements de santé ou les autorités compétentes.</p>
+<p>Qu'Allah accepte votre Omra et vous accorde santé, sécurité et facilité tout au long de votre voyage.</p>
+<p style="font-weight:bold; font-style:italic; text-align:right;">L'Équipe OmraYanair LLC</p>`,
+    status: "published",
+    imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
+    publishedAt: "2026-07-06T00:00:00.000Z"
   }
 ];
 
