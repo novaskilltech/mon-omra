@@ -36,8 +36,11 @@ export default function TransfersPage() {
     const [arrivalAirport, setArrivalAirport] = useState('');
     const [arrivalTime, setArrivalTime] = useState('');
     const [arrivalFlight, setArrivalFlight] = useState('');
+    const [firstDestination, setFirstDestination] = useState<'MAKKAH' | 'MADINAH'>('MAKKAH');
+    const [makkahArrivalTime, setMakkahArrivalTime] = useState('');
     const [makkahDepartureTime, setMakkahDepartureTime] = useState('');
     const [makkahTransport, setMakkahTransport] = useState('');
+    const [madinahArrivalTime, setMadinahArrivalTime] = useState('');
     const [madinahDepartureTime, setMadinahDepartureTime] = useState('');
     const [madinahTransport, setMadinahTransport] = useState('');
     const [airportDepartureTime, setAirportDepartureTime] = useState('');
@@ -205,8 +208,11 @@ export default function TransfersPage() {
                     setArrivalAirport(defs.arrival_airport || '');
                     setArrivalTime(defs.arrival_time ? defs.arrival_time.slice(0, 16) : '');
                     setArrivalFlight(defs.arrival_flight || '');
+                    setFirstDestination(defs.first_destination || 'MAKKAH');
+                    setMakkahArrivalTime(defs.makkah_arrival_time ? defs.makkah_arrival_time.slice(0, 16) : '');
                     setMakkahDepartureTime(defs.makkah_departure_time ? defs.makkah_departure_time.slice(0, 16) : '');
                     setMakkahTransport('');
+                    setMadinahArrivalTime(defs.madinah_arrival_time ? defs.madinah_arrival_time.slice(0, 16) : '');
                     setMadinahDepartureTime(defs.madinah_departure_time ? defs.madinah_departure_time.slice(0, 16) : '');
                     setMadinahTransport('');
                     setAirportDepartureTime(defs.airport_departure_time ? defs.airport_departure_time.slice(0, 16) : '');
@@ -222,8 +228,11 @@ export default function TransfersPage() {
         setArrivalAirport(tf.arrival_airport || '');
         setArrivalTime(tf.arrival_time ? tf.arrival_time.slice(0, 16) : '');
         setArrivalFlight(tf.arrival_flight || '');
+        setFirstDestination(tf.first_destination || 'MAKKAH');
+        setMakkahArrivalTime(tf.makkah_arrival_time ? tf.makkah_arrival_time.slice(0, 16) : '');
         setMakkahDepartureTime(tf.makkah_departure_time ? tf.makkah_departure_time.slice(0, 16) : '');
         setMakkahTransport(tf.makkah_transport || '');
+        setMadinahArrivalTime(tf.madinah_arrival_time ? tf.madinah_arrival_time.slice(0, 16) : '');
         setMadinahDepartureTime(tf.madinah_departure_time ? tf.madinah_departure_time.slice(0, 16) : '');
         setMadinahTransport(tf.madinah_transport || '');
         setAirportDepartureTime(tf.airport_departure_time ? tf.airport_departure_time.slice(0, 16) : '');
@@ -240,8 +249,11 @@ export default function TransfersPage() {
             arrival_airport: arrivalAirport,
             arrival_time: arrivalTime,
             arrival_flight: arrivalFlight,
+            first_destination: firstDestination,
+            makkah_arrival_time: makkahArrivalTime,
             makkah_departure_time: makkahDepartureTime,
             makkah_transport: makkahTransport,
+            madinah_arrival_time: madinahArrivalTime,
             madinah_departure_time: madinahDepartureTime,
             madinah_transport: madinahTransport,
             airport_departure_time: airportDepartureTime,
@@ -297,39 +309,62 @@ export default function TransfersPage() {
             return `${idx + 1}. ${p.first_name} ${p.family_name} (${genderStr})${hotelDetails}`;
         }).join('\n');
 
+        // Stay segments definitions (EN)
+        const makkahSegEN = `*Makkah Stay (🕋):*\n` +
+            `- Arrival (Check-in): ${makkahArrivalTime ? new Date(makkahArrivalTime).toLocaleString('en-US') : 'N/A'}\n` +
+            `- Departure (Check-out): ${makkahDepartureTime ? new Date(makkahDepartureTime).toLocaleString('en-US') : 'N/A'}\n` +
+            `- Transport/Driver: ${makkahTransport || 'N/A'}`;
+
+        const madinahSegEN = `*Madinah Stay (🕌):*\n` +
+            `- Arrival (Check-in): ${madinahArrivalTime ? new Date(madinahArrivalTime).toLocaleString('en-US') : 'N/A'}\n` +
+            `- Departure (Check-out): ${madinahDepartureTime ? new Date(madinahDepartureTime).toLocaleString('en-US') : 'N/A'}\n` +
+            `- Transport/Driver: ${madinahTransport || 'N/A'}`;
+
+        // Stay segments definitions (AR)
+        const makkahSegAR = `*الإقامة في مكة المكرمة (🕋):*\n` +
+            `- تاريخ الدخول: ${makkahArrivalTime ? new Date(makkahArrivalTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
+            `- تاريخ الخروج: ${makkahDepartureTime ? new Date(makkahDepartureTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
+            `- وسيلة النقل / السائق: ${makkahTransport || 'غير محدد'}`;
+
+        const madinahSegAR = `*الإقامة في المدينة المنورة (🕌):*\n` +
+            `- تاريخ الدخول: ${madinahArrivalTime ? new Date(madinahArrivalTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
+            `- تاريخ الخروج: ${madinahDepartureTime ? new Date(madinahDepartureTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
+            `- وسيلة النقل / السائق: ${madinahTransport || 'غير محدد'}`;
+
+        // Order stay segments based on sequence preference
+        const staysEN = firstDestination === 'MAKKAH' 
+            ? `*2. ${makkahSegEN}*\n\n*3. ${madinahSegEN}*` 
+            : `*2. ${madinahSegEN}*\n\n*3. ${makkahSegEN}*`;
+
+        const staysAR = firstDestination === 'MAKKAH' 
+            ? `*2. ${makkahSegAR}*\n\n*3. ${madinahSegAR}*` 
+            : `*2. ${madinahSegAR}*\n\n*3. ${makkahSegAR}*`;
+
         // English manifest
         const manifestEN = `*LAND TRANSFER MANIFEST*\n` +
-            `*Group:* ${selectedPilgrim.group_name || 'N/A'}\n\n` +
+            `*Group:* ${selectedPilgrim.group_name || 'N/A'}\n` +
+            `*Sequence:* ${firstDestination === 'MAKKAH' ? 'Makkah First' : 'Madinah First'}\n\n` +
             `*Passengers (${groupPilgrims.length}):*\n${passengerList}\n\n` +
             `*1. Airport Arrival:*\n` +
             `- Airport: ${arrivalAirport || 'N/A'}\n` +
             `- Date/Time: ${arrivalTime ? new Date(arrivalTime).toLocaleString('en-US') : 'N/A'}\n` +
             `- Flight: ${arrivalFlight || 'N/A'}\n\n` +
-            `*2. Departure to Makkah:*\n` +
-            `- Date/Time: ${makkahDepartureTime ? new Date(makkahDepartureTime).toLocaleString('en-US') : 'N/A'}\n` +
-            `- Transport/Driver: ${makkahTransport || 'N/A'}\n\n` +
-            `*3. Departure to Madinah:*\n` +
-            `- Date/Time: ${madinahDepartureTime ? new Date(madinahDepartureTime).toLocaleString('en-US') : 'N/A'}\n` +
-            `- Transport/Driver: ${madinahTransport || 'N/A'}\n\n` +
+            `${staysEN}\n\n` +
             `*4. Departure to Airport:*\n` +
             `- Airport: ${airportName || 'N/A'}\n` +
             `- Date/Time: ${airportDepartureTime ? new Date(airportDepartureTime).toLocaleString('en-US') : 'N/A'}\n` +
             `- Transport/Driver: ${airportTransport || 'N/A'}`;
 
         // Arabic manifest
-        const manifestAR = `*بيان Nقل البري (Land Transfer)*\n` +
-            `*المجموعة:* ${selectedPilgrim.group_name || 'غير محدد'}\n\n` +
+        const manifestAR = `*بيان النقل البري (Land Transfer)*\n` +
+            `*المجموعة:* ${selectedPilgrim.group_name || 'غير محدد'}\n` +
+            `*الترتيب:* ${firstDestination === 'MAKKAH' ? 'مكة أولاً' : 'المدينة أولاً'}\n\n` +
             `*الركاب (${groupPilgrims.length}):*\n${passengerListAR}\n\n` +
             `*1. الوصول إلى المطار:*\n` +
             `- مطار الوصول: ${arrivalAirport || 'غير محدد'}\n` +
             `- التاريخ والوقت: ${arrivalTime ? new Date(arrivalTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
             `- رقم الرحلة: ${arrivalFlight || 'غير محدد'}\n\n` +
-            `*2. المغادرة إلى مكة المكرمة:*\n` +
-            `- التاريخ والوقت: ${makkahDepartureTime ? new Date(makkahDepartureTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
-            `- وسيلة النقل / السائق: ${makkahTransport || 'غير محدد'}\n\n` +
-            `*3. المغادرة إلى المدينة المنورة:*\n` +
-            `- التاريخ والوقت: ${madinahDepartureTime ? new Date(madinahDepartureTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
-            `- وسيلة النقل / السائق: ${madinahTransport || 'غير محدد'}\n\n` +
+            `${staysAR}\n\n` +
             `*4. المغادرة إلى مطار العودة:*\n` +
             `- المطار: ${airportName || 'غير محدد'}\n` +
             `- التاريخ والوقت: ${airportDepartureTime ? new Date(airportDepartureTime).toLocaleString('fr-FR') : 'غير محدد'}\n` +
@@ -478,8 +513,11 @@ export default function TransfersPage() {
                                                             setArrivalAirport(defs.arrival_airport || '');
                                                             setArrivalTime(defs.arrival_time ? defs.arrival_time.slice(0, 16) : '');
                                                             setArrivalFlight(defs.arrival_flight || '');
+                                                            setFirstDestination(defs.first_destination || 'MAKKAH');
+                                                            setMakkahArrivalTime(defs.makkah_arrival_time ? defs.makkah_arrival_time.slice(0, 16) : '');
                                                             setMakkahDepartureTime(defs.makkah_departure_time ? defs.makkah_departure_time.slice(0, 16) : '');
                                                             setMakkahTransport(makkahTransport);
+                                                            setMadinahArrivalTime(defs.madinah_arrival_time ? defs.madinah_arrival_time.slice(0, 16) : '');
                                                             setMadinahDepartureTime(defs.madinah_departure_time ? defs.madinah_departure_time.slice(0, 16) : '');
                                                             setMadinahTransport(madinahTransport);
                                                             setAirportDepartureTime(defs.airport_departure_time ? defs.airport_departure_time.slice(0, 16) : '');
@@ -533,6 +571,35 @@ export default function TransfersPage() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Séquence du voyage */}
+                                    <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 space-y-3 col-span-1 md:col-span-2">
+                                        <label className="block text-[10px] font-black uppercase tracking-wider text-dim">Séquence du voyage</label>
+                                        <div className="flex gap-6">
+                                            <label className="flex items-center gap-2 text-xs text-main cursor-pointer">
+                                                <input 
+                                                    type="radio" 
+                                                    name="first_destination" 
+                                                    value="MAKKAH" 
+                                                    checked={firstDestination === 'MAKKAH'} 
+                                                    onChange={() => setFirstDestination('MAKKAH')}
+                                                    className="w-4 h-4 text-emerald-500 border-emerald-500/20 bg-transparent focus:ring-0"
+                                                />
+                                                <span>🕋 La Mecque en Premier (Makkah First)</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 text-xs text-main cursor-pointer">
+                                                <input 
+                                                    type="radio" 
+                                                    name="first_destination" 
+                                                    value="MADINAH" 
+                                                    checked={firstDestination === 'MADINAH'} 
+                                                    onChange={() => setFirstDestination('MADINAH')}
+                                                    className="w-4 h-4 text-emerald-500 border-emerald-500/20 bg-transparent focus:ring-0"
+                                                />
+                                                <span>🕌 Médine en Premier (Madinah First)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
                                     {/* Arrivée Aéroport */}
                                     <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 space-y-4 col-span-1 md:col-span-2">
                                         <h4 className="text-xs font-black uppercase tracking-wider text-main">1. Arrivée à l'aéroport</h4>
@@ -569,12 +636,21 @@ export default function TransfersPage() {
                                         </div>
                                     </div>
 
-                                    {/* Départ vers La Mecque */}
+                                    {/* Séjour à La Mecque */}
                                     <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 space-y-4">
-                                        <h4 className="text-xs font-black uppercase tracking-wider text-main">2. Départ vers la Mecque</h4>
+                                        <h4 className="text-xs font-black uppercase tracking-wider text-main">2. Séjour à La Mecque (🕋)</h4>
                                         <div className="space-y-3">
                                             <div>
-                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Date/Heure de départ</label>
+                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Date/Heure d'arrivée (Entrée)</label>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    value={makkahArrivalTime} 
+                                                    onChange={(e) => setMakkahArrivalTime(e.target.value)}
+                                                    className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Date/Heure de départ (Sortie)</label>
                                                 <input 
                                                     type="datetime-local" 
                                                     value={makkahDepartureTime} 
@@ -595,12 +671,21 @@ export default function TransfersPage() {
                                         </div>
                                     </div>
 
-                                    {/* Départ vers Médine */}
+                                    {/* Séjour à Médine */}
                                     <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 space-y-4">
-                                        <h4 className="text-xs font-black uppercase tracking-wider text-main">3. Départ vers Médine</h4>
+                                        <h4 className="text-xs font-black uppercase tracking-wider text-main">3. Séjour à Médine (🕌)</h4>
                                         <div className="space-y-3">
                                             <div>
-                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Date/Heure de départ</label>
+                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Date/Heure d'arrivée (Entrée)</label>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    value={madinahArrivalTime} 
+                                                    onChange={(e) => setMadinahArrivalTime(e.target.value)}
+                                                    className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-bold uppercase tracking-wider text-dim mb-1">Date/Heure de départ (Sortie)</label>
                                                 <input 
                                                     type="datetime-local" 
                                                     value={madinahDepartureTime} 

@@ -1675,7 +1675,10 @@ export async function getLogisticsDefaultsForPilgrim(pilgrimId: string) {
             arrival_airport: '',
             arrival_time: '',
             arrival_flight: '',
+            first_destination: 'MAKKAH',
+            makkah_arrival_time: '',
             makkah_departure_time: '',
+            madinah_arrival_time: '',
             madinah_departure_time: '',
             airport_name: '',
             airport_departure_time: '',
@@ -1773,15 +1776,29 @@ export async function getLogisticsDefaultsForPilgrim(pilgrimId: string) {
                 });
 
                 if (makkahStay) {
-                    defaults.makkah_departure_time = makkahStay.check_in || '';
+                    defaults.makkah_arrival_time = makkahStay.check_in ? makkahStay.check_in : '';
+                    defaults.makkah_departure_time = makkahStay.check_out ? makkahStay.check_out : '';
                 }
                 if (madinahStay) {
-                    defaults.madinah_departure_time = madinahStay.check_in || '';
+                    defaults.madinah_arrival_time = madinahStay.check_in ? madinahStay.check_in : '';
+                    defaults.madinah_departure_time = madinahStay.check_out ? madinahStay.check_out : '';
+                }
+
+                // Determine sequence order
+                if (makkahStay && madinahStay && makkahStay.check_in && madinahStay.check_in) {
+                    const mDate = new Date(makkahStay.check_in);
+                    const mdDate = new Date(madinahStay.check_in);
+                    if (mdDate < mDate) {
+                        defaults.first_destination = 'MADINAH';
+                    }
                 }
             }
 
-            // Fallback for Makkah departure if not found: use group departure date
+            // Fallback for Makkah arrival if not found: use group departure date
             const groupObj: any = Array.isArray(pilgrim.groups) ? pilgrim.groups[0] : pilgrim.groups;
+            if (!defaults.makkah_arrival_time && groupObj?.departure_date) {
+                defaults.makkah_arrival_time = groupObj.departure_date;
+            }
             if (!defaults.makkah_departure_time && groupObj?.departure_date) {
                 defaults.makkah_departure_time = groupObj.departure_date;
             }

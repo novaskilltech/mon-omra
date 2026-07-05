@@ -157,4 +157,15 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Modification de `RoomingManager.tsx` et `HotelRoomingModal.tsx` pour afficher en permanence le bouton de suppression avec une boîte de confirmation prévenant l'utilisateur en cas d'occupation.
 *   **Version** : v1.9.1
 
+---
+
+## 17. Option Makkah First / Madinah First et Dates d'Entrée et Sortie pour les Transferts
+*   **Décision** : Ajout d'une option de séquence de voyage (Makkah First ou Madinah First) et de deux dates distinctes (Entrée/Arrivée et Sortie/Départ) pour La Mecque et Médine dans la gestion des transferts terrestres.
+*   **Justification** : Simplifie l'organisation logistique pour les agences. Auparavant, la saisie ne gérait qu'une seule date par ville sans distinction d'entrée/sortie, et ne permettait pas d'ordonner dynamiquement les étapes du voyage dans le manifeste WhatsApp.
+*   **Impacts** :
+    *   Mise à jour de `getLogisticsDefaultsForPilgrim` dans `src/lib/actions/concierge.ts` pour retourner `first_destination`, `makkah_arrival_time`, `makkah_departure_time`, `madinah_arrival_time`, et `madinah_departure_time`.
+    *   Mise à jour de `TransfersPage` dans `src/app/backoffice/logistics/transfers/page.tsx` pour ajouter ces états, le sélecteur radio de séquence, les champs d'entrée associés, et formater dynamiquement le manifeste WhatsApp en fonction de l'ordre sélectionné.
+*   **Version** : v1.10.0
+
+
 
