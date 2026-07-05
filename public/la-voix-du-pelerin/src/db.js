@@ -141,6 +141,56 @@ const SEED_ARTICLES = [
     status: "published",
     imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
     publishedAt: "2026-07-06T00:00:00.000Z"
+  },
+  {
+    id: "art-6",
+    title: "Guide pratique de l'assurance médicale du visa Omra (Ch. 6 à 10)",
+    summary: "Urgences vs consultations simples, démarches de prise en charge et de remboursement, et documents indispensables à conserver en cas de soins médicaux.",
+    category: "Conseils pratiques",
+    content: `<h3>6. Ce qui n'est généralement pas couvert</h3>
+<p>L'assurance médicale incluse avec le visa Omra est principalement destinée aux <strong>urgences médicales</strong>. Elle ne remplace pas une assurance santé complète.</p>
+<p>Selon les conditions propres à chaque compagnie, les situations suivantes ne sont généralement pas couvertes :</p>
+<ul>
+  <li>Les consultations de confort et les bilans de santé ou examens de routine ;</li>
+  <li>Les soins esthétiques et les traitements programmés avant le voyage ;</li>
+  <li>Les maladies préexistantes (selon les contrats) et les soins dentaires non urgents ;</li>
+  <li>Les médicaments achetés sans ordonnance et les soins qui ne présentent pas de caractère d'urgence.</li>
+</ul>
+<blockquote><strong>Important :</strong> Les garanties varient selon la compagnie d'assurance qui vous a été attribuée. Consultez toujours votre police d'assurance ou contactez votre assureur avant d'engager des frais pour une situation non urgente.</blockquote>
+
+<h3>7. Que faire en cas d'urgence ?</h3>
+<p>En cas d'urgence médicale, votre santé est la priorité absolue.</p>
+<ol>
+  <li><strong>Étape 1 : Se rendre aux urgences.</strong> Si votre état le permet, rendez-vous immédiatement au service des urgences de l'hôpital le plus proche. Si vous ne pouvez pas vous déplacer ou que votre état est grave, appelez une ambulance. Ne retardez jamais votre prise en charge médicale dans l'attente d'une autorisation de votre assurance.</li>
+  <li><strong>Étape 2 : Présenter vos documents.</strong> À votre arrivée, présentez si possible votre passeport, votre visa, et les informations ou la police de votre compagnie d'assurance.</li>
+  <li><strong>Étape 3 : Contacter votre assurance.</strong> Dès que votre état le permet, contactez le service d'assistance de votre compagnie d'assurance. Selon les compagnies, l'hôpital pourra demander directement une autorisation de prise en charge, ou il pourra vous être demandé de contacter vous-même l'assistance. Suivez toujours les instructions de votre assureur.</li>
+  <li><strong>Étape 4 : Conserver tous les documents.</strong> Même si l'hôpital indique que les frais seront pris en charge, conservez tous les documents remis lors de votre prise en charge.</li>
+</ol>
+
+<h3>8. Consultation simple ou urgence ?</h3>
+<p>Il est important de distinguer une urgence médicale d'une consultation simple.</p>
+<p><strong>Exemples de situations généralement considérées comme urgentes :</strong> accident, fracture, perte de connaissance, douleur thoracique importante, difficulté respiratoire, saignement abondant, brute grave, forte réaction allergique ou hospitalisation nécessaire. Ces situations nécessitent une prise en charge immédiate.</p>
+<p><strong>Exemples de consultations simples :</strong> rhume, toux, mal de gorge, fatigue, renouvellement d'un traitement, contrôle médical ou douleur légère sans signe de gravité. Dans ces cas, il est recommandé de contacter votre compagnie d'assurance avant de consulter un médecin. Elle pourra vous indiquer un établissement partenaire, la procédure à suivre, ou vous informer si les frais restent à votre charge.</p>
+<blockquote><strong>En cas de doute sur la gravité de votre état, privilégiez toujours la sécurité et consultez rapidement un professionnel de santé.</strong></blockquote>
+
+<h3>9. Paiement et remboursement</h3>
+<p>La procédure dépend de la compagnie d'assurance et de l'établissement médical. Deux situations sont possibles :</p>
+<ul>
+  <li><strong>Prise en charge directe :</strong> L'établissement médical contacte directement votre assurance. Après validation, les frais couverts sont réglés directement par l'assureur. Dans ce cas, vous n'avez généralement pas à avancer les frais couverts.</li>
+  <li><strong>Paiement puis demande de remboursement :</strong> Dans certaines situations, il pourra vous être demandé de régler les frais médicaux. Vous devrez ensuite transmettre un dossier à votre compagnie d'assurance afin de demander un remboursement, conformément aux conditions de votre contrat. Le remboursement n'est pas automatique et dépend des garanties prévues par votre police d'assurance.</li>
+</ul>
+
+<h3>10. Documents à conserver</h3>
+<p>Que votre assurance prenne directement les frais en charge ou que vous les avanciez, conservez soigneusement tous les documents suivants :</p>
+<ul>
+  <li>Les factures originales et reçus de paiement ;</li>
+  <li>Les ordonnances et prescriptions de médicaments ;</li>
+  <li>Les comptes rendus médicaux et résultats d'analyses ou examens d'imagerie.</li>
+</ul>
+<blockquote><strong>Conseil :</strong> Photographiez immédiatement chaque document avec votre téléphone afin d'en conserver une copie numérique en cas de perte.</blockquote>`,
+    status: "published",
+    imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
+    publishedAt: "2026-07-06T00:00:00.000Z"
   }
 ];
 
