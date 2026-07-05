@@ -1,4 +1,4 @@
-import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle, Users, Shield } from 'lucide-react';
+import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle, Users, Shield, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import nextDynamic from 'next/dynamic';
@@ -230,6 +230,27 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
 
                     {/* Preparation Checklist */}
                     <ChecklistEditor initialChecklist={data.checklist} pilgrimId={targetPilgrimId} />
+                </div>
+
+                {/* Shop Teaser Banner */}
+                <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-6 rounded-[2rem] border border-amber-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 text-left">
+                        <div className="p-3 bg-amber-500/10 rounded-full border border-amber-500/20 text-amber-500">
+                            <ShoppingBag className="w-6 h-6 animate-pulse" />
+                        </div>
+                        <div>
+                            <span className="bg-amber-500/20 text-amber-400 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md border border-amber-500/20 mb-1.5 inline-block">
+                                ÉDITION LIMITÉE & SOUVENIRS
+                            </span>
+                            <h3 className="font-bold text-main text-base uppercase">Boutique de Cadeaux & Miels d'Exception 🍯</h3>
+                            <p className="text-dim text-[11px] font-medium leading-relaxed max-w-xl m-0 mt-1">
+                                Une boutique de produits naturels et miels rares de Terre Sainte (Jujubier sauvage, huile de nigelle d'Éthiopie, henné de Médine) ouvrira très prochainement.
+                            </p>
+                        </div>
+                    </div>
+                    <span className="w-full md:w-auto text-center bg-amber-500/10 border border-amber-500/20 text-amber-500 font-bold text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-2xl whitespace-nowrap">
+                        Ouverture Bientôt
+                    </span>
                 </div>
 
                 {/* Family Members Section */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, TrendingUp, Bell, Package, CheckCircle2, Plane, Hotel, Star, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import { Users, TrendingUp, Bell, Package, CheckCircle2, Plane, Hotel, Star, ShieldCheck, ArrowRight, Loader2, ShoppingBag } from 'lucide-react';
 import FinanceSummary from './_components/FinanceSummary';
 import DownloadReportButton from './_components/DownloadReportButton';
 import Link from 'next/link';
@@ -148,7 +148,7 @@ export default function BackofficeDashboard() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <Link
                         href="/backoffice/groups"
                         className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5"
@@ -170,6 +170,16 @@ export default function BackofficeDashboard() {
                     </Link>
 
                     <DownloadReportButton stats={stats} />
+
+                    <Link
+                        href="/backoffice/shop"
+                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5"
+                    >
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <ShoppingBag className="w-6 h-6 text-emerald-500" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-main">Gérer Boutique</span>
+                    </Link>
 
                     <Link
                         href="/backoffice/settings"

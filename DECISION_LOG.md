@@ -188,5 +188,17 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Ajout d'une section de promotion esthétique avec lien externe ciblant `/la-voix-du-pelerin/` sur la page d'accueil principale du site (`src/app/page.tsx`).
 *   **Version** : v1.12.0
 
+---
+
+## 20. Scaffolding de la Boutique de Cadeaux et Miels d'Exception
+*   **Décision** : Implémenter le socle technique et les interfaces d'administration de la boutique en Backoffice, tout en préservant l'invisibilité côté pèlerin via un simple bandeau teaser.
+*   **Justification** : Permet à l'agence de configurer sereinement ses produits d'exception et ses liens de paiement Stripe/Revolut avant la mise en ligne complète.
+*   **Impacts** :
+    *   Création de [shop.ts](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/types/shop.ts) contenant les types de données produits.
+    *   Création de l'interface d'administration de catalogue [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) avec les miels (Jujubier Panjab, Cachemire, Peshawar, Yémen, Immunité, Fertilité, Booster), nigelle, henné et café vert saoudien pré-configurés, ainsi que la configuration des liens de paiement.
+    *   Ajout d'un bouton d'accès rapide sur le Tableau de bord Backoffice principal [backoffice/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/page.tsx).
+    *   Ajout du bandeau d'annonce premium "Bientôt disponible" sur le Tableau de bord Pèlerin [dashboard/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/dashboard/page.tsx).
+*   **Version** : v1.13.0
+
 
 
