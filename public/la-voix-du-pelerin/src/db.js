@@ -296,9 +296,9 @@ const ADMIN_LOGGED_KEY = "pelerin_admin_logged";
 
 export const db = {
   init() {
-    // If already seeded, check if we need to update/reset to get the 500-word articles
+    // If already seeded, check if we need to update/reset to get the latest articles
     const existing = localStorage.getItem(ARTICLES_KEY);
-    if (!existing || JSON.parse(existing).length < 5 || JSON.parse(existing)[0].content.length < 1000) {
+    if (!existing || JSON.parse(existing).length < SEED_ARTICLES.length || JSON.parse(existing)[0].content.length < 1000) {
       // Seed or override to ensure the new long articles are loaded
       localStorage.setItem(ARTICLES_KEY, JSON.stringify(SEED_ARTICLES));
     }
