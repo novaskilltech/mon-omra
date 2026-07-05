@@ -135,3 +135,15 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Création du fichier de validation `src/lib/schemas/flight.ts`.
     *   Refactoring de l'action serveur de création de vol pour inclure `safeParse`.
 *   **Version** : v1.8.1
+
+---
+
+## 15. Suppression de la règle des Mahrams pour le Rooming
+*   **Décision** : Retrait complet des validations de mixité de genres et de noms de familles différents (règle des Mahrams) côté client et serveur lors de la répartition des chambres (rooming).
+*   **Justification** : Offre une flexibilité opérationnelle pour les agences de voyage. L'ancienne règle bloquait le rooming des familles recomposées, des conjoints avec des noms de famille distincts (ex: nom de jeune fille), ou des cas comme un couple voyageant avec sa belle-famille sans homonymie directe.
+*   **Impacts** :
+    *   Modification de `assignPilgrimToRoom` dans `src/lib/actions/logistics.ts` (retrait de la validation de genre et de famille).
+    *   Modification de `handleAssign` dans `src/app/backoffice/groups/[id]/rooming/_components/RoomingManager.tsx` (retrait du blocage et du toast d'erreur client).
+    *   Mise à jour des tests dans `src/lib/actions/__tests__/mahram.test.ts`.
+*   **Version** : v1.9.0
+

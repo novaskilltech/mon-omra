@@ -296,20 +296,6 @@ export async function assignPilgrimToRoom(pilgrimId: string, roomId: string, gro
             return { error: "La chambre est complète." };
         }
 
-        // 4. --- MAHRAM VALIDATION ---
-        const occupants = room.room_assignments.map((ra: any) => ra.profiles);
-        
-        if (occupants.length > 0) {
-            const mixedGender = occupants.some((o: any) => o.gender !== pilgrim.gender);
-            const differentFamily = occupants.some((o: any) => o.family_name !== pilgrim.family_name);
-
-            if (mixedGender && differentFamily) {
-                return { 
-                    error: "Règle Mahram : Impossible de mixer les genres de familles différentes dans la même chambre." 
-                };
-            }
-        }
-
         // 5. Perform Assignment
         const { error: assignError } = await supabase
             .from('room_assignments')

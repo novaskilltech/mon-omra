@@ -25,20 +25,9 @@ vi.mock('next/cache', () => ({
  * For this MVP, we simulate the validation logic.
  */
 
-describe('Mahram Validation Logic', () => {
+describe('Mahram Validation Logic (Disabled)', () => {
   const validateMahram = (newPilgrim: any, currentOccupants: any[]) => {
-    if (currentOccupants.length === 0) return { success: true };
-
-    const mixedGender = currentOccupants.some(o => o.gender !== newPilgrim.gender);
-    const differentFamily = currentOccupants.some(o => o.family_name !== newPilgrim.family_name);
-
-    if (mixedGender && differentFamily) {
-      return { 
-        success: false, 
-        error: "Règle Mahram : Impossible de mixer les genres de familles différentes dans la même chambre." 
-      };
-    }
-
+    // Validation removed: always returns success true
     return { success: true };
   };
 
@@ -54,12 +43,11 @@ describe('Mahram Validation Logic', () => {
     expect(validateMahram(newPilgrim, occupants).success).toBe(true);
   });
 
-  it('should REJECT different gender different family', () => {
+  it('should ALLOW different gender different family since rule is disabled', () => {
     const newPilgrim = { gender: 'F', family_name: 'Z.' };
     const occupants = [{ gender: 'M', family_name: 'Ali' }];
     const result = validateMahram(newPilgrim, occupants);
-    expect(result.success).toBe(false);
-    expect(result.error).toContain('Règle Mahram');
+    expect(result.success).toBe(true);
   });
 
   it('should allow empty room', () => {

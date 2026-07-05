@@ -243,15 +243,7 @@ export default function RoomingManager({ groupId }: { groupId: string }) {
             if (pilgrim && room) {
                 // Client-side validations
                 const roomAssignments = assignments.filter(a => a.room_id === roomId);
-                const existingMembers = roomAssignments.map(a => pilgrims.find(p => p.id === a.pilgrim_id)).filter(Boolean);
-                
-                const mixedGender = existingMembers.some(m => m!.gender !== pilgrim.gender);
-                const differentFamily = existingMembers.some(m => m!.family !== pilgrim.family);
 
-                if (mixedGender && differentFamily) {
-                    showToast("Erreur Mahram : Genres différents de familles différentes.", "error");
-                    return;
-                }
 
                 if (roomAssignments.length >= room.capacity) {
                     showToast("Chambre complète.", "error");
