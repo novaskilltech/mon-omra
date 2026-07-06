@@ -92,6 +92,24 @@ html[data-theme="theme-5"] {
   --text-muted: rgba(255, 255, 255, 0.5);
 }
 
+html[data-theme="theme-6"] {
+  --foreground-rgb: 26, 20, 10;
+  --background-start-rgb: 250, 245, 236; /* #FAF5EC Cream */
+  --background-end-rgb: 242, 235, 222;
+  --accent-emerald: #0f5132;
+  --accent-emerald-600: #146c43;
+  --accent-emerald-700: #198754;
+  --accent-text: #ffffff;
+  --accent-shadow: rgba(15, 81, 50, 0.15);
+  --accent-gold: #D4AF37;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --text-primary: #1a140a;
+  --text-secondary: rgba(26, 20, 10, 0.7);
+  --text-muted: rgba(26, 20, 10, 0.5);
+}
+
 
 body {
   color: var(--text-primary);
@@ -164,4 +182,24 @@ body {
 .bg-emerald-600,
 .btn-premium {
   color: var(--accent-text) !important;
+}
+
+/* Force white background and black text on all interactive text inputs for accessibility/design */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+textarea,
+select {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Ensure placeholder text remains visible and gray on white bg */
+input::placeholder,
+textarea::placeholder {
+  color: #71717a !important;
 }

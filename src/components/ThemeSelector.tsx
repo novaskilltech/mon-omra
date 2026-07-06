@@ -9,6 +9,7 @@ const THEMES = [
   { id: 'theme-3', name: 'Combo #3', bg: '#222222', accent: '#89E900', label: 'Gray & Lime' },
   { id: 'theme-4', name: 'Combo #4', bg: '#27187E', accent: '#F7F7FF', label: 'Royal Blue & Lavender' },
   { id: 'theme-5', name: 'Combo #5', bg: '#381932', accent: '#FFF3E6', label: 'Deep Plum & Crème' },
+  { id: 'theme-6', name: 'Combo #6', bg: '#FAF5EC', accent: '#0f5132', label: 'Crème & Émeraude' },
 ];
 
 export default function ThemeSelector() {

@@ -204,6 +204,7 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Génération et intégration de 4 illustrations 3D premium sous `/public/features-*.png` pour habiller le bento grid des fonctionnalités : Guide interactif des rituels, Documents sécurisés, Logistique et Assistance 24/7.
     *   Intégration d'un grand mockup immersif d'un pèlerin en ihram utilisant l'application `public/pilgrim-mockup.png` dans la section Hero tout en haut de la page d'accueil [page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/page.tsx).
     *   Refonte visuelle de l'en-tête (Welcome Section) du Dashboard Pèlerin [dashboard/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/dashboard/page.tsx) sous forme d'une carte premium détourée en "glass" (adaptable aux thèmes) bordée d'un grand arc doré de style architectural islamique (ogive) s'étendant d'un bord à l'autre, avec le logo Kaaba d'origine au centre (suppression du pavé textuel "Je pars vers" / aéroport pour alléger le visuel).
+    *   Ajout d'un thème "Crème & Émeraude" (theme-6) dans [ThemeSelector.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/components/ThemeSelector.tsx) et [globals.css](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/globals.css) avec un fond beige clair et des accents vert émeraude foncé, et intégration de règles CSS globales pour forcer tous les champs de saisie de texte à avoir un fond blanc et une écriture noire pour une lisibilité parfaite.
 *   **Version** : v1.13.0
 
 
