@@ -200,7 +200,7 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Ajout du bandeau d'annonce premium "Bientôt disponible" sur le Tableau de bord Pèlerin [dashboard/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/dashboard/page.tsx).
     *   Ajout d'une section promotionnelle de la boutique "Naturomiel" avec intégration du logo officiel `/public/naturomiel-logo.png`, génération et intégration d'une image d'illustration premium `/public/naturomiel-shop.png` (miel, dattes, nigelle) et mise en avant des cadeaux sains de Médine sur la page d'accueil publique [page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/page.tsx).
     *   Mise à niveau de l'interface [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) en formulaire dynamique pour inclure l'édition complète, ainsi que l'ajout des "Dattes Ajwa de Médine Premium", des "Feuilles de Jujubier Moulues (Sidr)", des "Feuilles de Séné (Sana Makki)" et de la "Location de Voiture à la Journée" dans le catalogue de produits initiaux, avec support du filtre "Services".
-    *   Création et intégration du nouveau logo officiel de l'application sous `/public/app-logo.png` (boussole dorée et Kaaba stylisée).
+    *   Création et intégration du nouveau logo officiel de l'application sous `/public/app-logo.png` (boussole dorée épurée dont l'aiguille cible le Sud-Sud-Est, direction de la Qibla depuis l'Europe, menant directement à une Kaaba dorée minimaliste).
 *   **Version** : v1.13.0
 
 
