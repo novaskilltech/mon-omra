@@ -81,6 +81,18 @@ export default function Home() {
                     </Link>
                 </div>
 
+                <div className="mt-20 w-full max-w-4xl mx-auto rounded-[3rem] overflow-hidden border border-emerald-500/20 shadow-[0_0_80px_rgba(16,185,129,0.15)] relative animate-fade-in group">
+                    <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    <Image 
+                        src="/pilgrim-mockup.png" 
+                        alt="Pèlerin en Ihram utilisant l'application OMRAYANAIR" 
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto object-cover transform transition-transform duration-1000 group-hover:scale-105"
+                        priority
+                    />
+                </div>
+
                 <Link href="/login" className="block mt-16 mx-auto max-w-xs group cursor-pointer animate-fade-in">
                     <div className="relative w-48 h-48 mx-auto rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(16,185,129,0.15)] bg-black/20 backdrop-blur-md transition-all duration-500 group-hover:scale-105 group-hover:border-emerald-500/40 group-hover:shadow-[0_0_60px_rgba(16,185,129,0.3)] flex items-center justify-center">
                         <Image 
