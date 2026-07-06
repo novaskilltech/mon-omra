@@ -114,18 +114,19 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
 
             <div className="max-w-5xl mx-auto p-6 space-y-8">
                 {/* Welcome Section Card matching user request screenshot */}
-                <header className="relative overflow-hidden rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-b from-emerald-950 via-[#071d14] to-neutral-950 p-8 md:p-12 text-center shadow-lg">
-                    {/* Glowing arch shape at the top center */}
-                    <div className="absolute inset-x-0 top-0 flex justify-center pointer-events-none opacity-20">
-                        <svg width="360" height="240" viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-emerald-400 w-[280px] sm:w-[360px] h-auto">
-                            <path d="M160 10C90 10 20 80 20 180v20h280v-20C300 80 230 10 160 10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                            <path d="M160 25C105 25 40 85 40 180v20h240v-20C280 85 215 25 160 25z" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4"/>
+                <header className="relative overflow-hidden rounded-[2.5rem] border border-amber-500/20 glass p-8 md:p-12 text-center shadow-lg">
+                    {/* Glowing gold arch shape framing the entire container */}
+                    <div className="absolute inset-0 pointer-events-none opacity-40 z-0">
+                        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full">
+                            {/* Pointed Islamic Arch (Ogive) spanning from bottom-left to bottom-right */}
+                            <path d="M 0,100 L 0,40 C 0,15 20,5 50,2 C 80,5 100,15 100,40 L 100,100" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" vectorEffect="non-scaling-stroke"/>
+                            <path d="M 3,100 L 3,42 C 3,18 22,8 50,5 C 78,8 97,18 97,42 L 97,100" stroke="#D4AF37" strokeWidth="0.75" strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke"/>
                         </svg>
                     </div>
 
                     <div className="relative z-10 flex flex-col items-center">
                         {/* Centered Kaaba logo */}
-                        <div className="relative w-24 h-24 mb-4 rounded-3xl overflow-hidden bg-black/25 border border-emerald-500/25 flex items-center justify-center p-3 shadow-inner">
+                        <div className="relative w-24 h-24 mb-4 rounded-3xl overflow-hidden bg-black/25 border border-amber-500/25 flex items-center justify-center p-3 shadow-inner">
                             <Image 
                                 src="/app-logo.png" 
                                 alt="Kaaba Logo" 
@@ -135,11 +136,11 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                             />
                         </div>
 
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400/80 mb-1">
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500/90 mb-1">
                             Je pars vers
                         </span>
                         <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-6">
-                            {data.arrivalCity} <span className="text-emerald-500">{data.arrivalAirport}</span>
+                            {data.arrivalCity} <span className="text-amber-500">{data.arrivalAirport}</span>
                         </h2>
 
                         <div className="w-full max-w-md mx-auto bg-black/35 backdrop-blur-md rounded-2xl border border-emerald-500/10 p-5 mt-2 shadow-lg">
