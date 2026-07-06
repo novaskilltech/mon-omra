@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, Tag, ExternalLink, Lock, CheckCircle, XCircle, Search, Coffee, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, Tag, ExternalLink, Lock, CheckCircle, XCircle, Search, Coffee, ArrowLeft, Edit2, Check, X, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 
 interface Product {
@@ -132,6 +132,14 @@ export default function BackofficeShopPage() {
     const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
     const [filterCategory, setFilterCategory] = useState<string>('ALL');
     const [searchQuery, setSearchQuery] = useState<string>('');
+    
+    // Inline editing states
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editName, setEditName] = useState('');
+    const [editDescription, setEditDescription] = useState('');
+    const [editPrice, setEditPrice] = useState<number>(0);
+    const [editImage, setEditImage] = useState('');
+    const [editPaymentLink, setEditPaymentLink] = useState('');
 
     const handleToggleStock = (id: string) => {
         setProducts(prev => prev.map(p => {
@@ -142,13 +150,34 @@ export default function BackofficeShopPage() {
         }));
     };
 
-    const handleUpdateLink = (id: string, link: string) => {
+    const startEditing = (p: Product) => {
+        setEditingId(p.id);
+        setEditName(p.name);
+        setEditDescription(p.description);
+        setEditPrice(p.price);
+        setEditImage(p.image_url);
+        setEditPaymentLink(p.payment_link);
+    };
+
+    const saveChanges = (id: string) => {
         setProducts(prev => prev.map(p => {
             if (p.id === id) {
-                return { ...p, payment_link: link };
+                return {
+                    ...p,
+                    name: editName,
+                    description: editDescription,
+                    price: editPrice,
+                    image_url: editImage,
+                    payment_link: editPaymentLink
+                };
             }
             return p;
         }));
+        setEditingId(null);
+    };
+
+    const cancelEditing = () => {
+        setEditingId(null);
     };
 
     const filteredProducts = products.filter(p => {
@@ -168,16 +197,16 @@ export default function BackofficeShopPage() {
                     </Link>
                     <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                        Mode Édition Backoffice (Invisible aux Pèlerins)
+                        Mode Édition Actif
                     </div>
                 </div>
 
                 {/* Header */}
                 <header className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">GESTION DE LA BOUTIQUE</span>
-                    <h1 className="text-4xl font-black uppercase tracking-tighter">Catalogue Cadeaux & Produits Naturels</h1>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">BOUTIQUE AGENT</span>
+                    <h1 className="text-4xl font-black uppercase tracking-tighter">Catalogue & Tarifs Boutique</h1>
                     <p className="text-sm text-dim leading-relaxed max-w-xl">
-                        Configurez ici les produits à proposer à vos pèlerins. Indiquez la disponibilité en stock et greffez vos liens Stripe ou Revolut pour finaliser les ventes.
+                        Modifiez directement les titres, descriptions, prix, photos, stocks et liens de paiement Stripe/Revolut pour chaque produit du catalogue.
                     </p>
                 </header>
 
@@ -218,61 +247,170 @@ export default function BackofficeShopPage() {
 
                 {/* Products Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredProducts.map((product) => (
-                        <div key={product.id} className="glass p-6 rounded-[2rem] border-emerald-500/5 relative flex flex-col justify-between group">
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-start">
-                                    <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg">
-                                        {product.category === 'MIEL' ? '🍯 Miel' : product.category === 'CAFE' ? '☕ Café' : '🌱 Naturel'}
-                                    </span>
-                                    <button 
-                                        onClick={() => handleToggleStock(product.id)}
-                                        className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${
-                                            product.in_stock 
-                                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20' 
-                                                : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'
-                                        }`}
-                                    >
-                                        {product.in_stock ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                                        {product.in_stock ? 'En Stock' : 'Épuisé'}
-                                    </button>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-base font-bold text-main uppercase">{product.name}</h3>
-                                    <p className="text-[11px] text-dim leading-relaxed mt-2 min-h-[48px]">{product.description}</p>
-                                </div>
-
-                                <div className="text-xl font-black text-emerald-500">
-                                    {product.price.toFixed(2)} €
-                                </div>
-
-                                {/* Stripe / Revolut URL Input */}
-                                <div className="space-y-1.5 pt-3 border-t border-white/5">
-                                    <label className="block text-[9px] font-bold uppercase tracking-wider text-dim">Lien de paiement (Stripe / Revolut)</label>
-                                    <div className="flex items-center gap-2 bg-black/20 border border-white/10 rounded-xl px-3 py-2">
-                                        <Lock className="w-3 h-3 text-dim" />
-                                        <input 
-                                            type="text" 
-                                            placeholder="https://buy.stripe.com/..." 
-                                            value={product.payment_link}
-                                            onChange={(e) => handleUpdateLink(product.id, e.target.value)}
-                                            className="bg-transparent border-none outline-none text-[10px] text-white placeholder-dim w-full font-mono"
-                                        />
+                    {filteredProducts.map((product) => {
+                        const isEditing = editingId === product.id;
+                        return (
+                            <div key={product.id} className="glass p-6 rounded-[2rem] border-emerald-500/5 relative flex flex-col justify-between group transition-all">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg">
+                                            {product.category === 'MIEL' ? '🍯 Miel' : product.category === 'CAFE' ? '☕ Café' : '🌱 Naturel'}
+                                        </span>
+                                        
+                                        <button 
+                                            onClick={() => handleToggleStock(product.id)}
+                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${
+                                                product.in_stock 
+                                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20' 
+                                                    : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'
+                                            }`}
+                                        >
+                                            {product.in_stock ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                            {product.in_stock ? 'En Stock' : 'Épuisé'}
+                                        </button>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div className="mt-6 pt-4 border-t border-white/5">
-                                <button 
-                                    disabled
-                                    className="w-full bg-emerald-500/10 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-black text-[9px] uppercase tracking-widest py-3 rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    Previsualiser Lien
-                                </button>
+                                    {isEditing ? (
+                                        // Edit Form Card
+                                        <div className="space-y-3 pt-2">
+                                            <div>
+                                                <label className="block text-[8px] font-bold uppercase text-dim tracking-wider mb-1">Nom du Produit</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={editName}
+                                                    onChange={(e) => setEditName(e.target.value)}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label className="block text-[8px] font-bold uppercase text-dim tracking-wider mb-1">Tarif (€)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        step="0.01"
+                                                        value={editPrice}
+                                                        onChange={(e) => setEditPrice(parseFloat(e.target.value) || 0)}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[8px] font-bold uppercase text-dim tracking-wider mb-1">Lien Image</label>
+                                                    <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-xl px-2">
+                                                        <ImageIcon className="w-3.5 h-3.5 text-dim shrink-0" />
+                                                        <input 
+                                                            type="text" 
+                                                            value={editImage}
+                                                            onChange={(e) => setEditImage(e.target.value)}
+                                                            className="w-full bg-transparent border-none py-2 text-[10px] text-white outline-none"
+                                                            placeholder="URL de la photo"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[8px] font-bold uppercase text-dim tracking-wider mb-1">Description</label>
+                                                <textarea 
+                                                    value={editDescription}
+                                                    onChange={(e) => setEditDescription(e.target.value)}
+                                                    rows={3}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 resize-none"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[8px] font-bold uppercase text-dim tracking-wider mb-1">Lien Stripe / Revolut</label>
+                                                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2">
+                                                    <Lock className="w-3 h-3 text-dim" />
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="https://buy.stripe.com/..." 
+                                                        value={editPaymentLink}
+                                                        onChange={(e) => setEditPaymentLink(e.target.value)}
+                                                        className="bg-transparent border-none outline-none text-[10px] text-white w-full font-mono"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 pt-2">
+                                                <button 
+                                                    onClick={() => saveChanges(product.id)}
+                                                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[9px] uppercase tracking-widest py-2.5 rounded-xl flex items-center justify-center gap-1.5"
+                                                >
+                                                    <Check className="w-3.5 h-3.5" /> Enregistrer
+                                                </button>
+                                                <button 
+                                                    onClick={cancelEditing}
+                                                    className="px-3 bg-white/5 hover:bg-white/10 text-dim font-black text-[9px] uppercase tracking-widest py-2.5 rounded-xl flex items-center justify-center"
+                                                >
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        // Read-Only Card
+                                        <div className="space-y-3">
+                                            {product.image_url && (
+                                                <div className="w-full h-24 rounded-2xl overflow-hidden border border-white/5 bg-black/20 relative flex items-center justify-center">
+                                                    <span className="absolute top-2 right-2 text-xs">📸</span>
+                                                    <p className="text-[9px] text-dim truncate max-w-xs">{product.image_url}</p>
+                                                </div>
+                                            )}
+
+                                            <div>
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <h3 className="text-base font-bold text-main uppercase">{product.name}</h3>
+                                                    <button 
+                                                        onClick={() => startEditing(product)}
+                                                        className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-dim hover:text-emerald-500 transition-colors shrink-0"
+                                                        title="Modifier le produit"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                                <p className="text-[11px] text-dim leading-relaxed mt-2 min-h-[48px]">{product.description}</p>
+                                            </div>
+
+                                            <div className="flex justify-between items-center pt-2">
+                                                <span className="text-xl font-black text-emerald-500">
+                                                    {product.price.toFixed(2)} €
+                                                </span>
+                                            </div>
+
+                                            {product.payment_link ? (
+                                                <div className="text-[9px] text-emerald-400 font-mono truncate max-w-full flex items-center gap-1 pt-2">
+                                                    <Lock className="w-3 h-3 text-emerald-500 shrink-0" />
+                                                    {product.payment_link}
+                                                </div>
+                                            ) : (
+                                                <div className="text-[9px] text-dim font-mono italic pt-2">
+                                                    Aucun lien de paiement lié
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {!isEditing && (
+                                    <div className="mt-6 pt-4 border-t border-white/5">
+                                        <a 
+                                            href={product.payment_link || '#'}
+                                            target={product.payment_link ? "_blank" : undefined}
+                                            rel="noopener noreferrer"
+                                            className={`w-full font-black text-[9px] uppercase tracking-widest py-3 rounded-xl flex items-center justify-center gap-2 border transition-all ${
+                                                product.payment_link 
+                                                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500' 
+                                                    : 'bg-emerald-500/5 border-emerald-500/10 text-emerald-600/50 dark:text-emerald-400/50 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            Tester le Paiement <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>
