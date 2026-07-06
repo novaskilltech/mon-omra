@@ -63,7 +63,7 @@ export default function TutorialsPage() {
         },
         {
             question: "Combien de bagages sont inclus dans mon forfait de voyage ?",
-            answer: "La franchise bagage standard comprend 2 valises de 23 kg maximum chacune en soute, ainsi qu'un bagage à main de 7 kg en cabine. Ces détails sont consultables en temps réel sous la carte de vol du dashboard."
+            answer: "La franchise bagage dépend de votre type de réservation et de la compagnie aérienne choisie. Veuillez vérifier les détails indiqués directement sous votre carte de vol dans le dashboard ou vous référer à votre billet d'avion."
         },
         {
             question: "Comment fonctionne l'accès hors-ligne à mes documents ?",
