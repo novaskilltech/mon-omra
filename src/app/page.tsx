@@ -205,13 +205,19 @@ export default function Home() {
                     </div>
 
                     <div className="relative shrink-0 w-full lg:w-auto flex justify-center">
-                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/30 backdrop-blur-md flex items-center justify-center p-6 shadow-2xl">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-transparent" />
+                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/30 backdrop-blur-md flex items-center justify-center p-8 shadow-2xl group/blogimg">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent" />
                             <div className="text-center space-y-4">
-                                <span className="text-6xl">📖</span>
-                                <h3 className="font-black text-main text-lg uppercase tracking-tight">Le Guide Spirituel</h3>
-                                <p className="text-[10px] text-dim max-w-xs mx-auto leading-relaxed">
-                                    Accédez aux récits de voyage, conseils bagages, préparation mentale et fiches de rites détaillées.
+                                <Image 
+                                    src="/la-voix-du-pelerin-logo.png" 
+                                    alt="La Voix du Pèlerin Logo" 
+                                    width={145} 
+                                    height={145} 
+                                    className="object-contain hover:scale-105 transition-transform mx-auto filter drop-shadow-[0_10px_15px_rgba(16,185,129,0.15)] rounded-full" 
+                                />
+                                <h3 className="font-black text-main text-xs uppercase tracking-widest text-emerald-400">Le Média Spirituel</h3>
+                                <p className="text-[9px] text-dim max-w-xs mx-auto leading-relaxed">
+                                    Conseils précieux, fiches pratiques et récits croisés pour éclairer votre parcours sacré.
                                 </p>
                             </div>
                         </div>
