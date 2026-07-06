@@ -198,8 +198,8 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Création de l'interface d'administration de catalogue [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) avec les miels (Jujubier Panjab, Cachemire, Peshawar, Yémen, Immunité, Fertilité, Booster), nigelle, henné et café vert saoudien pré-configurés, ainsi que la configuration des liens de paiement.
     *   Ajout d'un bouton d'accès rapide sur le Tableau de bord Backoffice principal [backoffice/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/page.tsx).
     *   Ajout du bandeau d'annonce premium "Bientôt disponible" sur le Tableau de bord Pèlerin [dashboard/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/dashboard/page.tsx).
-    *   Ajout d'une section promotionnelle premium "Les Trésors de la Terre Sainte" avec badge "Ouverture très prochainement" sur la page d'accueil publique [page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/page.tsx).
-    *   Mise à niveau de l'interface [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) en formulaire dynamique pour permettre la modification des titres (Name), tarifs (Price), descriptions, liens d'images (Photo), et liens de paiement.
+    *   Ajout d'une section promotionnelle premium de la boutique "Naturomiel" avec intégration du logo officiel `/public/naturomiel-logo.png` et mise en avant des cadeaux bénéfiques de la ville bénie du Prophète (صلى الله عليه وسلم) sur la page d'accueil publique [page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/page.tsx).
+    *   Mise à niveau de l'interface [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) en formulaire dynamique pour inclure l'édition complète, ainsi que l'ajout des "Dattes Ajwa de Médine Premium" dans le catalogue de produits initiaux.
 *   **Version** : v1.13.0
 
 

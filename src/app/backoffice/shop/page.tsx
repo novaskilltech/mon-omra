@@ -125,6 +125,16 @@ const INITIAL_PRODUCTS: Product[] = [
         image_url: '/la-voix-du-pelerin/assets/spiritual_prep.png',
         payment_link: '',
         in_stock: true
+    },
+    {
+        id: 'prod-12',
+        name: 'Dattes Ajwa de Médine Premium',
+        description: 'Dattes Ajwa authentiques de la ville bénie du Prophète (صلى الله عليه وسلم), cultivées selon la tradition prophétique. Reconnues pour leur goût exquis et leurs vertus protectrices majeures pour la santé.',
+        price: 19.00,
+        category: 'PRODUIT_NATUREL',
+        image_url: '/la-voix-du-pelerin/assets/spiritual_prep.png',
+        payment_link: '',
+        in_stock: true
     }
 ];
 

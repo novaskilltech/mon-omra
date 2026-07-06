@@ -227,29 +227,35 @@ export default function Home() {
                     <div className="max-w-2xl space-y-6 text-left">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-black uppercase tracking-[0.2em]">
                             <ShoppingBag className="w-3 h-3" />
-                            Boutique Exclusive & Produits Fins
+                            Boutique Exclusive & Produits Sains
                         </div>
                         <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[1.1]">
-                            Les Trésors de la <span className="text-amber-500">Terre Sainte</span>
+                            Découvrez la boutique <span className="text-amber-500">Naturomiel</span>
                         </h2>
                         <p className="text-sub text-sm leading-relaxed opacity-70">
-                            Offrez à vos proches ou offrez-vous des produits d'exception rigoureusement sélectionnés. De notre miel de Jujubier sauvage (Punjab, Cachemire, Peshawar, Yémen Sidr Maliky) reconnu pour ses vertus thérapeutiques, à notre huile de Nigelle d'Éthiopie pressée à froid et notre Henné de Médine pur.
+                            Préparez vos souvenirs et cadeaux de la ville bénie du Prophète (صلى الله عليه وسلم). Nous sélectionnons pour nos pèlerins des cadeaux d'exception bénéfiques pour la santé : miels rares de Jujubier sauvage (Sidr Malaki du Yémen, Panjab, Cachemire, Peshawar), dattes Ajwa de Médine premium aux vertus protectrices reconnues, huile de nigelle pure pressée à froid et henné naturel.
                         </p>
                         <div className="flex flex-wrap gap-4 pt-4">
                             <span className="bg-amber-500/10 border border-amber-500/20 text-amber-500 px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
-                                🍯 Ouverture très prochainement
+                                🍯 Boutique Souvenirs & Bien-être — Ouverture Bientôt
                             </span>
                         </div>
                     </div>
 
                     <div className="relative shrink-0 w-full lg:w-auto flex justify-center">
-                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-amber-500/10 bg-black/30 backdrop-blur-md flex items-center justify-center p-6 shadow-2xl">
+                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-amber-500/10 bg-black/30 backdrop-blur-md flex items-center justify-center p-8 shadow-2xl">
                             <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/5 to-transparent" />
                             <div className="text-center space-y-4">
-                                <span className="text-6xl">🍯</span>
-                                <h3 className="font-black text-main text-lg uppercase tracking-tight text-amber-500">Sidr & Miels Fins</h3>
-                                <p className="text-[10px] text-dim max-w-xs mx-auto leading-relaxed">
-                                    Une expérience gustative et thérapeutique unique avec des miels de jujubiers sauvages d'une pureté inégalée.
+                                <Image 
+                                    src="/naturomiel-logo.png" 
+                                    alt="Naturomiel Logo" 
+                                    width={160} 
+                                    height={160} 
+                                    className="object-contain hover:scale-105 transition-transform mx-auto filter drop-shadow-[0_10px_15px_rgba(245,158,11,0.15)]" 
+                                />
+                                <h3 className="font-black text-main text-xs uppercase tracking-widest text-amber-400">Marque Déposée</h3>
+                                <p className="text-[9px] text-dim max-w-xs mx-auto leading-relaxed">
+                                    Des produits naturels d'excellence issus des meilleures récoltes de Terre Sainte.
                                 </p>
                             </div>
                         </div>
