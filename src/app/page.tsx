@@ -243,19 +243,24 @@ export default function Home() {
                     </div>
 
                     <div className="relative shrink-0 w-full lg:w-auto flex justify-center">
-                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-amber-500/10 bg-black/30 backdrop-blur-md flex items-center justify-center p-8 shadow-2xl">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/5 to-transparent" />
-                            <div className="text-center space-y-4">
+                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-amber-500/10 bg-black/30 backdrop-blur-md shadow-2xl group/img">
+                            <Image 
+                                src="/naturomiel-shop.png" 
+                                alt="Produits Naturomiel" 
+                                fill
+                                className="object-cover group-hover/img:scale-105 transition-transform duration-700" 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                            <div className="absolute bottom-6 left-6 right-6 text-left">
                                 <Image 
                                     src="/naturomiel-logo.png" 
                                     alt="Naturomiel Logo" 
-                                    width={160} 
-                                    height={160} 
-                                    className="object-contain hover:scale-105 transition-transform mx-auto filter drop-shadow-[0_10px_15px_rgba(245,158,11,0.15)]" 
+                                    width={100} 
+                                    height={30} 
+                                    className="object-contain filter brightness-110 mb-2.5" 
                                 />
-                                <h3 className="font-black text-main text-xs uppercase tracking-widest text-amber-400">Marque Déposée</h3>
-                                <p className="text-[9px] text-dim max-w-xs mx-auto leading-relaxed">
-                                    Des produits naturels d'excellence issus des meilleures récoltes de Terre Sainte.
+                                <p className="text-[10px] text-white/70 leading-relaxed font-bold m-0 uppercase tracking-wider">
+                                    Miel de Jujubier sauvage, Dattes Ajwa & Huile de Nigelle pure.
                                 </p>
                             </div>
                         </div>
