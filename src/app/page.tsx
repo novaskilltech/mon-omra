@@ -36,7 +36,7 @@ export default function Home() {
             {/* Navbar */}
             <nav className="relative z-50 flex justify-between items-center px-6 py-6 max-w-7xl mx-auto flex-wrap gap-4">
                 <div className="flex items-center gap-3">
-                    <Image src="/logo.png" alt="OMRAYANAIR Logo" width={36} height={36} className="rounded-xl object-contain shadow-md border border-white/10" />
+                    <Image src="/app-logo.png" alt="OMRAYANAIR Logo" width={36} height={36} className="rounded-xl object-contain shadow-md border border-white/10" />
                     <div className="text-2xl font-black tracking-tighter uppercase">
                         OMRA<span className="text-emerald-500">YANAIR</span>
                     </div>
@@ -84,11 +84,11 @@ export default function Home() {
                 <Link href="/login" className="block mt-16 mx-auto max-w-xs group cursor-pointer animate-fade-in">
                     <div className="relative w-48 h-48 mx-auto rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(16,185,129,0.15)] bg-black/20 backdrop-blur-md transition-all duration-500 group-hover:scale-105 group-hover:border-emerald-500/40 group-hover:shadow-[0_0_60px_rgba(16,185,129,0.3)] flex items-center justify-center">
                         <Image 
-                            src="/logo.png" 
+                            src="/app-logo.png" 
                             alt="OMRAYANAIR Logo Entry" 
                             width={160}
                             height={160}
-                            className="object-contain transition-transform duration-500 group-hover:rotate-3"
+                            className="object-contain transition-transform duration-500 group-hover:rotate-3 rounded-[1.8rem]"
                             priority
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -103,27 +103,33 @@ export default function Home() {
             <section id="features" className="relative z-10 py-24 px-6 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-full">
                     
-                    {/* Feature 1: Ritual Guide (Large 2x2 or 2x1) */}
-                    <div className="md:col-span-2 md:row-span-2 glass p-10 rounded-[2.5rem] border-emerald-500/10 flex flex-col justify-between group overflow-hidden relative">
-                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <Compass className="w-48 h-48 rotate-12 text-emerald-500" />
+                    {/* Feature 1: Ritual Guide */}
+                    <div className="md:col-span-2 md:row-span-2 glass p-10 rounded-[2.5rem] border-emerald-500/10 flex flex-col justify-between group overflow-hidden relative min-h-[500px]">
+                        <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700">
+                            <Image 
+                                src="/features-guide.png" 
+                                alt="Guide Interactif des Rituels" 
+                                fill
+                                className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                         </div>
-                        <div>
+                        <div className="relative z-10">
                             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mb-8">
                                 <Map className="w-6 h-6" />
                             </div>
                             <h3 className="text-3xl font-black mb-4 uppercase tracking-tighter">Guide Interactif <br />des Rituels</h3>
-                            <p className="text-sub text-sm leading-relaxed max-w-xs opacity-60">
+                            <p className="text-sub text-sm leading-relaxed max-w-xs opacity-80 font-medium">
                                 Suivez chaque étape de l'Omra avec des guides vocaux, des invocations en arabe/français et un suivi de progression en temps réel.
                             </p>
                         </div>
-                        <div className="mt-12 space-y-3">
+                        <div className="relative z-10 mt-12 space-y-3">
                             {[
                                 { label: "Ihram & Intention", ok: true },
                                 { label: "Tawaf (7 tours)", ok: false },
                                 { label: "Sa'i entre Safa & Marwa", ok: false }
                             ].map((step, i) => (
-                                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 backdrop-blur-md">
                                     <div className={`w-4 h-4 rounded-full border ${step.ok ? 'bg-emerald-500 border-emerald-500' : 'border-white/20'}`} />
                                     <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{step.label}</span>
                                 </div>
@@ -132,44 +138,64 @@ export default function Home() {
                     </div>
 
                     {/* Feature 2: Documents */}
-                    <div className="md:col-span-2 glass p-10 rounded-[2.5rem] border-emerald-500/10 flex items-center justify-between group overflow-hidden">
-                        <div className="max-w-[60%]">
+                    <div className="md:col-span-2 glass p-10 rounded-[2.5rem] border-emerald-500/10 flex items-center justify-between group overflow-hidden relative min-h-[220px]">
+                        <div className="max-w-[55%] z-10">
                             <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 mb-6">
                                 <BookOpen className="w-5 h-5" />
                             </div>
                             <h3 className="text-xl font-black mb-2 uppercase tracking-tighter">Vos Documents en Sécurité</h3>
-                            <p className="text-sub text-[11px] leading-relaxed opacity-50">
-                                Passeport, Visa, Billets d'avion... Accédez à tous vos documents officiels même sans connexion internet.
+                            <p className="text-sub text-[11px] leading-relaxed opacity-70 font-medium">
+                                Passeport, Visa, Billets d'avion... Accédez à tous vos documents officiels de voyage en toute sécurité, même sans connexion internet.
                             </p>
                         </div>
-                        <div className="relative">
-                            <div className="w-24 h-32 bg-white/5 rounded-xl border border-white/10 rotate-[-10deg] absolute -right-4 -top-8 animate-pulse" />
-                            <div className="w-24 h-32 bg-emerald-500/10 rounded-xl border border-emerald-500/20 rotate-[5deg] relative z-10 flex items-center justify-center">
-                                <ShieldCheck className="w-8 h-8 text-emerald-500" />
-                            </div>
+                        <div className="relative w-32 h-32 md:w-36 md:h-36 shrink-0 overflow-hidden rounded-2xl border border-white/10 shadow-2xl z-10 bg-black/40">
+                            <Image 
+                                src="/features-docs.png" 
+                                alt="Documents Sécurisés" 
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
                         </div>
                     </div>
 
                     {/* Feature 3: Logistics */}
-                    <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 hover:border-emerald-500/30 transition-all flex flex-col justify-between">
-                        <div>
-                            <Plane className="w-8 h-8 text-emerald-500 mb-6" />
-                            <h3 className="text-lg font-black uppercase tracking-tighter mb-2">Logistique</h3>
-                            <p className="text-[10px] leading-relaxed opacity-50">Horaires de vols, hôtels et transferts mis à jour en direct.</p>
+                    <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 hover:border-emerald-500/30 transition-all flex flex-col justify-between group overflow-hidden relative min-h-[220px]">
+                        <div className="absolute inset-0 z-0 opacity-15 group-hover:opacity-25 group-hover:scale-105 transition-all duration-700">
+                            <Image 
+                                src="/features-logistics.png" 
+                                alt="Logistique" 
+                                fill
+                                className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                         </div>
-                        <div className="pt-4 border-t border-white/5 mt-4">
+                        <div className="relative z-10">
+                            <Plane className="w-8 h-8 text-emerald-500 mb-4" />
+                            <h3 className="text-lg font-black uppercase tracking-tighter mb-2">Logistique</h3>
+                            <p className="text-[10px] leading-relaxed opacity-70 font-medium max-w-[170px]">Horaires de vols, réservations d'hôtels et transferts mis à jour en direct.</p>
+                        </div>
+                        <div className="relative z-10 pt-4 border-t border-white/5 mt-4">
                             <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Hôtel 5★ Makkah</span>
                         </div>
                     </div>
 
                     {/* Feature 4: Support */}
-                    <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 bg-emerald-500/5 flex flex-col justify-between group cursor-pointer hover:bg-emerald-500/10 transition-all">
-                        <div>
-                            <MessageSquare className="w-8 h-8 text-emerald-500 mb-6 group-hover:scale-110 transition-transform" />
-                            <h3 className="text-lg font-black uppercase tracking-tighter mb-2">Assistance 24/7</h3>
-                            <p className="text-[10px] leading-relaxed opacity-50">Un doute ? Un besoin imminent ? Votre guide est à un clic de vous.</p>
+                    <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 bg-emerald-500/5 flex flex-col justify-between group cursor-pointer hover:bg-emerald-500/10 transition-all overflow-hidden relative min-h-[220px]">
+                        <div className="absolute inset-0 z-0 opacity-15 group-hover:opacity-25 group-hover:scale-105 transition-all duration-700">
+                            <Image 
+                                src="/features-assistance.png" 
+                                alt="Assistance" 
+                                fill
+                                className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                         </div>
-                        <div className="bg-emerald-500 text-white text-[9px] font-black uppercase p-2 rounded-xl text-center tracking-widest">
+                        <div className="relative z-10">
+                            <MessageSquare className="w-8 h-8 text-emerald-500 mb-4 group-hover:scale-110 transition-transform" />
+                            <h3 className="text-lg font-black uppercase tracking-tighter mb-2">Assistance 24/7</h3>
+                            <p className="text-[10px] leading-relaxed opacity-70 font-medium max-w-[170px]">Un doute ? Un besoin imminent ? Votre guide spirituel ou logistique est à portée de main.</p>
+                        </div>
+                        <div className="relative z-10 bg-emerald-500 text-white text-[9px] font-black uppercase p-2 rounded-xl text-center tracking-widest">
                             SOS GUIDE
                         </div>
                     </div>

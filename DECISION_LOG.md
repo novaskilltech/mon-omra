@@ -200,7 +200,8 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Ajout du bandeau d'annonce premium "Bientôt disponible" sur le Tableau de bord Pèlerin [dashboard/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/dashboard/page.tsx).
     *   Ajout d'une section promotionnelle de la boutique "Naturomiel" avec intégration du logo officiel `/public/naturomiel-logo.png`, génération et intégration d'une image d'illustration premium `/public/naturomiel-shop.png` (miel, dattes, nigelle) et mise en avant des cadeaux sains de Médine sur la page d'accueil publique [page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/page.tsx).
     *   Mise à niveau de l'interface [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) en formulaire dynamique pour inclure l'édition complète, ainsi que l'ajout des "Dattes Ajwa de Médine Premium", des "Feuilles de Jujubier Moulues (Sidr)", des "Feuilles de Séné (Sana Makki)" et de la "Location de Voiture à la Journée" dans le catalogue de produits initiaux, avec support du filtre "Services".
-    *   Création, sélection utilisateur et intégration du nouveau logo officiel de l'application sous `/public/app-logo.png` (Concept 1 : Sentier sinueux en métal doré formant un minaret et un croissant sur fond dégradé émeraude et bleu nuit).
+    *   Création, sélection utilisateur et intégration du nouveau logo officiel de l'application sous `/public/app-logo.png` (Concept 1 : Sentier sinueux en métal doré formant un minaret et un croissant sur fond dégradé émeraude et bleu nuit) au niveau de l'en-tête et du bouton d'entrée de la page d'accueil.
+    *   Génération et intégration de 4 illustrations 3D premium sous `/public/features-*.png` pour habiller le bento grid des fonctionnalités : Guide interactif des rituels, Documents sécurisés, Logistique et Assistance 24/7.
 *   **Version** : v1.13.0
 
 
