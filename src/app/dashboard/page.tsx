@@ -100,7 +100,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
             {/* Header */}
             <nav className="glass px-6 py-4 flex justify-between items-center sticky top-0 z-50 border-emerald-500/5">
                 <div className="flex items-center gap-2.5">
-                    <Image src="/logo.png" alt="OMRAYANAIR Logo" width={28} height={28} className="rounded-lg object-contain" />
+                    <Image src="/app-logo.png" alt="OMRAYANAIR Logo" width={28} height={28} className="rounded-lg object-contain" />
                     <div className="text-xl font-black tracking-tighter text-main uppercase">
                         OMRA<span className="text-emerald-500">YANAIR</span>
                     </div>
@@ -113,14 +113,41 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
             </nav>
 
             <div className="max-w-5xl mx-auto p-6 space-y-8">
-                {/* Welcome Section */}
-                <header className="py-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                        <h1 className="text-4xl font-black mb-2 text-main uppercase tracking-tighter">Salam, {data.pilgrimName.split(' ')[0]} 👋</h1>
-                        <p className="text-sub font-medium italic m-0">Compte à rebours avant le départ pour la Terre Sainte :</p>
+                {/* Welcome Section Card matching user request screenshot */}
+                <header className="relative overflow-hidden rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-b from-emerald-950 via-[#071d14] to-neutral-950 p-8 md:p-12 text-center shadow-lg">
+                    {/* Glowing arch shape at the top center */}
+                    <div className="absolute inset-x-0 top-0 flex justify-center pointer-events-none opacity-20">
+                        <svg width="360" height="240" viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-emerald-400 w-[280px] sm:w-[360px] h-auto">
+                            <path d="M160 10C90 10 20 80 20 180v20h280v-20C300 80 230 10 160 10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M160 25C105 25 40 85 40 180v20h240v-20C280 85 215 25 160 25z" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4"/>
+                        </svg>
                     </div>
-                    <div className="bg-emerald-500/[0.02] p-4 rounded-[2rem] border border-emerald-500/10 shadow-inner flex justify-center md:justify-end">
-                        <Countdown departureDateIso={data.departureDateIso} />
+
+                    <div className="relative z-10 flex flex-col items-center">
+                        {/* Centered Kaaba logo */}
+                        <div className="relative w-24 h-24 mb-4 rounded-3xl overflow-hidden bg-black/25 border border-emerald-500/25 flex items-center justify-center p-3 shadow-inner">
+                            <Image 
+                                src="/app-logo.png" 
+                                alt="Kaaba Logo" 
+                                width={80} 
+                                height={80} 
+                                className="object-contain"
+                            />
+                        </div>
+
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400/80 mb-1">
+                            Je pars vers
+                        </span>
+                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-6">
+                            {data.arrivalCity} <span className="text-emerald-500">{data.arrivalAirport}</span>
+                        </h2>
+
+                        <div className="w-full max-w-md mx-auto bg-black/35 backdrop-blur-md rounded-2xl border border-emerald-500/10 p-5 mt-2 shadow-lg">
+                            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
+                                Salam, {data.pilgrimName.split(' ')[0]} • Départ dans
+                            </p>
+                            <Countdown departureDateIso={data.departureDateIso} />
+                        </div>
                     </div>
                 </header>
 
