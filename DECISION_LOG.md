@@ -198,6 +198,7 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Création de l'interface d'administration de catalogue [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) avec les miels (Jujubier Panjab, Cachemire, Peshawar, Yémen, Immunité, Fertilité, Booster), nigelle, henné et café vert saoudien pré-configurés, ainsi que la configuration des liens de paiement.
     *   Ajout d'un bouton d'accès rapide sur le Tableau de bord Backoffice principal [backoffice/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/page.tsx).
     *   Ajout du bandeau d'annonce premium "Bientôt disponible" sur le Tableau de bord Pèlerin [dashboard/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/dashboard/page.tsx).
+    *   Ajout d'une section promotionnelle premium "Les Trésors de la Terre Sainte" avec badge "Ouverture très prochainement" sur la page d'accueil publique [page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/page.tsx).
 *   **Version** : v1.13.0
 
 

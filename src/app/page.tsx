@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, MessageSquare, Heart, Sparkles } from 'lucide-react';
+import { Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, MessageSquare, Heart, Sparkles, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import ThemeSelector from '@/components/ThemeSelector';
 
@@ -212,6 +212,44 @@ export default function Home() {
                                 <h3 className="font-black text-main text-lg uppercase tracking-tight">Le Guide Spirituel</h3>
                                 <p className="text-[10px] text-dim max-w-xs mx-auto leading-relaxed">
                                     Accédez aux récits de voyage, conseils bagages, préparation mentale et fiches de rites détaillées.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Boutique Section */}
+            <section className="relative z-10 py-12 px-6 max-w-7xl mx-auto">
+                <div className="glass p-12 md:p-16 rounded-[3rem] border-amber-500/10 flex flex-col lg:flex-row-reverse items-center justify-between gap-12 relative overflow-hidden group shadow-2xl bg-amber-500/[0.01]">
+                    <div className="absolute top-[-20%] left-[-10%] w-[350px] h-[350px] bg-amber-500/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-amber-500/15 transition-all duration-700" />
+                    
+                    <div className="max-w-2xl space-y-6 text-left">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-black uppercase tracking-[0.2em]">
+                            <ShoppingBag className="w-3 h-3" />
+                            Boutique Exclusive & Produits Fins
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[1.1]">
+                            Les Trésors de la <span className="text-amber-500">Terre Sainte</span>
+                        </h2>
+                        <p className="text-sub text-sm leading-relaxed opacity-70">
+                            Offrez à vos proches ou offrez-vous des produits d'exception rigoureusement sélectionnés. De notre miel de Jujubier sauvage (Punjab, Cachemire, Peshawar, Yémen Sidr Maliky) reconnu pour ses vertus thérapeutiques, à notre huile de Nigelle d'Éthiopie pressée à froid et notre Henné de Médine pur.
+                        </p>
+                        <div className="flex flex-wrap gap-4 pt-4">
+                            <span className="bg-amber-500/10 border border-amber-500/20 text-amber-500 px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                                🍯 Ouverture très prochainement
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="relative shrink-0 w-full lg:w-auto flex justify-center">
+                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-amber-500/10 bg-black/30 backdrop-blur-md flex items-center justify-center p-6 shadow-2xl">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/5 to-transparent" />
+                            <div className="text-center space-y-4">
+                                <span className="text-6xl">🍯</span>
+                                <h3 className="font-black text-main text-lg uppercase tracking-tight text-amber-500">Sidr & Miels Fins</h3>
+                                <p className="text-[10px] text-dim max-w-xs mx-auto leading-relaxed">
+                                    Une expérience gustative et thérapeutique unique avec des miels de jujubiers sauvages d'une pureté inégalée.
                                 </p>
                             </div>
                         </div>
