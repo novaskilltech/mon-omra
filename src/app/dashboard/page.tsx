@@ -136,12 +136,6 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                             />
                         </div>
 
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500/90 mb-1">
-                            Je pars vers
-                        </span>
-                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white mb-6">
-                            {data.arrivalCity} <span className="text-amber-500">{data.arrivalAirport}</span>
-                        </h2>
 
                         <div className="w-full max-w-md mx-auto bg-black/35 backdrop-blur-md rounded-2xl border border-emerald-500/10 p-5 mt-2 shadow-lg">
                             <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
