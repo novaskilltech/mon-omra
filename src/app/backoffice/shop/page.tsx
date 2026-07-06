@@ -135,6 +135,26 @@ const INITIAL_PRODUCTS: Product[] = [
         image_url: '/la-voix-du-pelerin/assets/spiritual_prep.png',
         payment_link: '',
         in_stock: true
+    },
+    {
+        id: 'prod-13',
+        name: 'Feuilles de Jujubier Moulues (Sidr)',
+        description: 'Poudre fine de feuilles de Jujubier (Sidr) sauvage de qualité supérieure. Idéale pour les soins capillaires naturels (shampoing naturel, force, brillance) et les rituels de purification.',
+        price: 12.00,
+        category: 'PRODUIT_NATUREL',
+        image_url: '/la-voix-du-pelerin/assets/spiritual_prep.png',
+        payment_link: '',
+        in_stock: true
+    },
+    {
+        id: 'prod-14',
+        name: 'Feuilles de Séné (Sana Makki)',
+        description: 'Feuilles de Séné (Sana Makki) entières, récoltées de manière artisanale dans la région de la Mecque. Reconnues pour leurs excellentes propriétés détoxifiantes et purifiantes du système digestif.',
+        price: 10.00,
+        category: 'PRODUIT_NATUREL',
+        image_url: '/la-voix-du-pelerin/assets/spiritual_prep.png',
+        payment_link: '',
+        in_stock: true
     }
 ];
 
