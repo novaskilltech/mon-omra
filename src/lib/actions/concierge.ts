@@ -2294,6 +2294,14 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
             };
         }));
 
+        mappedPilgrims.sort((a: any, b: any) => {
+            const flightA = a.arrivalFlight || '';
+            const flightB = b.arrivalFlight || '';
+            if (flightA === 'N/A' && flightB !== 'N/A') return 1;
+            if (flightB === 'N/A' && flightA !== 'N/A') return -1;
+            return flightA.localeCompare(flightB);
+        });
+
         (pilgrimsList || []).forEach((p: any) => {
             const pilgrimObj = p.pilgrims;
             if (pilgrimObj) {
