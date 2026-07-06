@@ -281,6 +281,15 @@ export default function DriverDashboardPage({ params }: { params: { token: strin
                                                 >
                                                     <Eye className="w-3 h-3" /> Ouvrir le Visa
                                                 </a>
+                                            ) : p.passportUrl ? (
+                                                <a 
+                                                    href={p.passportUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg font-bold uppercase tracking-wider text-[9px] border border-amber-500/20 transition-all"
+                                                >
+                                                    <Eye className="w-3 h-3" /> Ouvrir Passeport
+                                                </a>
                                             ) : (
                                                 <span className="text-[10px] text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded font-bold uppercase">Non Disponible</span>
                                             )}

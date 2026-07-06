@@ -2185,6 +2185,27 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
                 }
             }
 
+            let signedPassportUrl = null;
+            if (!signedVisaUrl) {
+                const { data: passportDoc } = await supabase
+                    .from('user_documents')
+                    .select('storage_path')
+                    .eq('user_id', p.id)
+                    .eq('type', 'PASSPORT')
+                    .maybeSingle();
+
+                if (passportDoc?.storage_path) {
+                    try {
+                        const { data: signedData } = await supabase.storage
+                            .from('pelerin-documents')
+                            .createSignedUrl(passportDoc.storage_path, 3600);
+                        if (signedData) signedPassportUrl = signedData.signedUrl;
+                    } catch (err) {
+                        console.error("Error signing passport URL for driver:", err);
+                    }
+                }
+            }
+
             const rInfo = roomingMap[p.id] || { makkah: '', madinah: '' };
             const fallback = pilgrimFallbackHotels[p.id] || { makkah: '', madinah: '' };
 
@@ -2263,6 +2284,7 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
                 gender: p.gender,
                 visaStatus: p.visa_status,
                 visaUrl: signedVisaUrl,
+                passportUrl: signedPassportUrl,
                 makkahHotel: rInfo.makkah || fallback.makkah || 'N/A',
                 madinahHotel: rInfo.madinah || fallback.madinah || 'N/A',
                 arrivalFlight: arrivalFlightStr,
