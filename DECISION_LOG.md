@@ -199,7 +199,7 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Ajout d'un bouton d'accès rapide sur le Tableau de bord Backoffice principal [backoffice/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/page.tsx).
     *   Ajout du bandeau d'annonce premium "Bientôt disponible" sur le Tableau de bord Pèlerin [dashboard/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/dashboard/page.tsx).
     *   Ajout d'une section promotionnelle premium de la boutique "Naturomiel" avec intégration du logo officiel `/public/naturomiel-logo.png` et mise en avant des cadeaux bénéfiques de la ville bénie du Prophète (صلى الله عليه وسلم) sur la page d'accueil publique [page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/page.tsx).
-    *   Mise à niveau de l'interface [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) en formulaire dynamique pour inclure l'édition complète, ainsi que l'ajout des "Dattes Ajwa de Médine Premium", des "Feuilles de Jujubier Moulues (Sidr)" et des "Feuilles de Séné (Sana Makki)" dans le catalogue de produits initiaux.
+    *   Mise à niveau de l'interface [backoffice/shop/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/shop/page.tsx) en formulaire dynamique pour inclure l'édition complète, ainsi que l'ajout des "Dattes Ajwa de Médine Premium", des "Feuilles de Jujubier Moulues (Sidr)", des "Feuilles de Séné (Sana Makki)" et de la "Location de Voiture à la Journée" dans le catalogue de produits initiaux, avec support du filtre "Services".
 *   **Version** : v1.13.0
 
 

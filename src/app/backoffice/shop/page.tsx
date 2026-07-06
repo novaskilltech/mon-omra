@@ -9,7 +9,7 @@ interface Product {
     name: string;
     description: string;
     price: number;
-    category: 'MIEL' | 'PRODUIT_NATUREL' | 'CAFE';
+    category: 'MIEL' | 'PRODUIT_NATUREL' | 'CAFE' | 'SERVICE';
     image_url: string;
     payment_link: string;
     in_stock: boolean;
@@ -155,6 +155,16 @@ const INITIAL_PRODUCTS: Product[] = [
         image_url: '/la-voix-du-pelerin/assets/spiritual_prep.png',
         payment_link: '',
         in_stock: true
+    },
+    {
+        id: 'prod-15',
+        name: 'Location de Voiture à la Journée',
+        description: 'Location de véhicule tout confort (berline ou SUV) à la journée avec kilométrage illimité pour vos déplacements libres entre La Mecque, Médine, et Jeddah, ou vos visites historiques autonomes.',
+        price: 65.00,
+        category: 'SERVICE',
+        image_url: '/la-voix-du-pelerin/assets/spiritual_prep.png',
+        payment_link: '',
+        in_stock: true
     }
 ];
 
@@ -258,7 +268,8 @@ export default function BackofficeShopPage() {
                             { label: 'Tous', value: 'ALL' },
                             { label: 'Miel', value: 'MIEL' },
                             { label: 'Produits Naturels', value: 'PRODUIT_NATUREL' },
-                            { label: 'Café', value: 'CAFE' }
+                            { label: 'Café', value: 'CAFE' },
+                            { label: 'Services', value: 'SERVICE' }
                         ].map((btn) => (
                             <button
                                 key={btn.value}
@@ -284,7 +295,7 @@ export default function BackofficeShopPage() {
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
                                         <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg">
-                                            {product.category === 'MIEL' ? '🍯 Miel' : product.category === 'CAFE' ? '☕ Café' : '🌱 Naturel'}
+                                            {product.category === 'MIEL' ? '🍯 Miel' : product.category === 'CAFE' ? '☕ Café' : product.category === 'SERVICE' ? '🚗 Location' : '🌱 Naturel'}
                                         </span>
                                         
                                         <button 

@@ -1,4 +1,4 @@
-export type ProductCategory = 'MIEL' | 'PRODUIT_NATUREL' | 'CAFE';
+export type ProductCategory = 'MIEL' | 'PRODUIT_NATUREL' | 'CAFE' | 'SERVICE';
 
 export interface ShopProduct {
     id: string;
