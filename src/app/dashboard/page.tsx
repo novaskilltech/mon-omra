@@ -4,9 +4,10 @@ import Link from 'next/link';
 import nextDynamic from 'next/dynamic';
 import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
-import { getPilgrimDashboardData } from '@/lib/actions/logistics';
+import { getPilgrimDashboardData, getFutureDepartures, getDepartureRequest } from '@/lib/actions/logistics';
 import { checkFeedbackStatus } from '@/lib/actions/feedback';
 import Countdown from '@/components/Countdown';
+import DepartureRequestForm from './_components/DepartureRequestForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,6 +74,13 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
     const data = await getPilgrimDashboardData(targetPilgrimId, (isPreview || isFamilyPreview) ? undefined : (user?.email || undefined));
     const feedbackStatus = await checkFeedbackStatus(targetPilgrimId, (isPreview || isFamilyPreview) ? undefined : (user?.email || undefined));
 
+    let futureDepartures: any[] = [];
+    let existingRequest: any = null;
+    if (data.hasNoGroup) {
+        futureDepartures = await getFutureDepartures();
+        existingRequest = await getDepartureRequest(targetPilgrimId, (isPreview || isFamilyPreview) ? undefined : (user?.email || undefined));
+    }
+
     // Calcul du pourcentage de préparation pour l'UI
     const completedTasksCount = data.checklist.filter(item => item.ok).length;
     const completionPercentage = Math.round((completedTasksCount / data.checklist.length) * 100);
@@ -137,12 +145,23 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                         </div>
 
 
-                        <div className="w-full max-w-md mx-auto bg-black/35 backdrop-blur-md rounded-2xl border border-emerald-500/10 p-5 mt-2 shadow-lg">
-                            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
-                                Salam, {data.pilgrimName.split(' ')[0]} • Départ dans
-                            </p>
-                            <Countdown departureDateIso={data.departureDateIso} />
-                        </div>
+                        {data.hasNoGroup ? (
+                            <div className="w-full max-w-lg mx-auto bg-black/35 backdrop-blur-md rounded-2xl border border-emerald-500/10 p-6 mt-2 shadow-lg text-center">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/70 mb-2">
+                                    Salam, {data.pilgrimName.split(' ')[0]} • Votre accès est approuvé ! 🕋
+                                </p>
+                                <p className="text-dim text-[11px] font-medium leading-relaxed m-0">
+                                    Vous n'êtes pas encore affecté à un groupe de voyage. Vous pouvez formuler un vœu de départ ci-dessous ou demander un devis sur l'un de nos futurs départs.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="w-full max-w-md mx-auto bg-black/35 backdrop-blur-md rounded-2xl border border-emerald-500/10 p-5 mt-2 shadow-lg">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
+                                    Salam, {data.pilgrimName.split(' ')[0]} • Départ dans
+                                </p>
+                                <Countdown departureDateIso={data.departureDateIso || ''} />
+                            </div>
+                        )}
                     </div>
                 </header>
 
@@ -192,67 +211,94 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                 )}
 
                 {/* Main Status Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Next Flight Card */}
-                    <div className="md:col-span-2 glass p-8 rounded-[2.5rem] relative overflow-hidden group border-emerald-500/5 shadow-sm">
-                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <Plane className="w-24 h-24 rotate-45 text-emerald-500" />
+                {data.hasNoGroup ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-2">
+                            <DepartureRequestForm futureDepartures={futureDepartures} existingRequest={existingRequest} />
                         </div>
-                        <div className="relative z-10">
-                            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 rounded-full border border-emerald-500/10 mb-4 inline-block uppercase">
-                                PROCHAIN VOL
-                            </span>
-                            <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                                <Link href={`/dashboard/documents?pilgrimId=${targetPilgrimId}`} className="glass py-4 px-8 rounded-2xl font-bold text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-500/10 transition-all text-main shadow-sm">
-                                    Mes Documents
+                        <div>
+                            {/* Documents Upload Quick access Card */}
+                            <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 relative overflow-hidden group shadow-sm flex flex-col justify-between h-full min-h-[320px]">
+                                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                                    <FileText className="w-24 h-24 text-emerald-500" />
+                                </div>
+                                <div className="relative z-10 space-y-4">
+                                    <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 rounded-full border border-emerald-500/10 mb-4 inline-block uppercase">
+                                        DOCUMENTS DU VOYAGE
+                                    </span>
+                                    <h3 className="text-xl font-black text-main uppercase tracking-tighter">Envoyer mes documents</h3>
+                                    <p className="text-dim text-[11px] font-medium leading-relaxed">
+                                        Téléversez votre passeport, photo d'identité, ou tout autre document de voyage requis pour que notre équipe prépare votre dossier.
+                                    </p>
+                                </div>
+                                <Link href={`/dashboard/documents?pilgrimId=${targetPilgrimId}`} className="w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-2xl shadow-lg transition-all hover:scale-102 mt-6 block">
+                                    Gérer mes documents
                                 </Link>
-                                <DownloadJournalButton groupName={data.groupName || "Groupe Ramadan A"} groupId={data.groupId || "1"} pilgrimName={data.pilgrimName} pilgrimId={targetPilgrimId} />
-                            </div>
-                            <div className="flex justify-between items-center mb-10">
-                                <div>
-                                    <p className="text-4xl font-black text-main uppercase">{data.departureAirport}</p>
-                                    <p className="text-dim text-[11px] uppercase tracking-[0.1em] font-semibold">{data.departureCity}</p>
-                                </div>
-                                <div className="flex-1 px-8 flex items-center gap-2">
-                                    <div className="h-[2px] flex-1 bg-emerald-500/10 dark:bg-emerald-500/20 relative">
-                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 glass p-2 rounded-full border border-emerald-500/20 shadow-xl">
-                                            <Plane className="w-3 h-3 text-emerald-500" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-4xl font-black text-main uppercase">{data.arrivalAirport}</p>
-                                    <p className="text-dim text-[11px] uppercase tracking-[0.1em] font-semibold">{data.arrivalCity}</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-[11px] font-bold uppercase tracking-widest">
-                                <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
-                                    <p className="text-dim mb-1 opacity-70">Date de départ</p>
-                                    <p className="text-main">{data.departureDate}</p>
-                                </div>
-                                <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
-                                    <p className="text-dim mb-1 opacity-70">Heure locale</p>
-                                    <p className="text-main">{data.departureTime}</p>
-                                </div>
-                                <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
-                                    <p className="text-dim mb-1 opacity-70">Compagnie</p>
-                                    <p className="text-main">{data.carrier}</p>
-                                </div>
-                                <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
-                                    <p className="text-dim mb-1 opacity-70">Référence (PNR)</p>
-                                    <p className="text-main font-mono font-black text-emerald-500">{((data as any).pnr) || '-'}</p>
-                                </div>
-                                <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 col-span-2 md:col-span-1">
-                                    <p className="text-dim mb-1 opacity-70">Bagages Autorisés</p>
-                                    <p className="text-emerald-500 font-black normal-case">{(data as any).baggage_policy || "2 x 23kg inclus"}</p>
-                                </div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Preparation Checklist */}
-                    <ChecklistEditor initialChecklist={data.checklist} pilgrimId={targetPilgrimId} />
-                </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Next Flight Card */}
+                        <div className="md:col-span-2 glass p-8 rounded-[2.5rem] relative overflow-hidden group border-emerald-500/5 shadow-sm">
+                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Plane className="w-24 h-24 rotate-45 text-emerald-500" />
+                            </div>
+                            <div className="relative z-10">
+                                <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 rounded-full border border-emerald-500/10 mb-4 inline-block uppercase">
+                                    PROCHAIN VOL
+                                </span>
+                                <div className="flex flex-col sm:flex-row gap-4 mb-10">
+                                    <Link href={`/dashboard/documents?pilgrimId=${targetPilgrimId}`} className="glass py-4 px-8 rounded-2xl font-bold text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-500/10 transition-all text-main shadow-sm">
+                                        Mes Documents
+                                    </Link>
+                                    <DownloadJournalButton groupName={data.groupName || "Groupe Ramadan A"} groupId={data.groupId || "1"} pilgrimName={data.pilgrimName} pilgrimId={targetPilgrimId} />
+                                </div>
+                                <div className="flex justify-between items-center mb-10">
+                                    <div>
+                                        <p className="text-4xl font-black text-main uppercase">{data.departureAirport}</p>
+                                        <p className="text-dim text-[11px] uppercase tracking-[0.1em] font-semibold">{data.departureCity}</p>
+                                    </div>
+                                    <div className="flex-1 px-8 flex items-center gap-2">
+                                        <div className="h-[2px] flex-1 bg-emerald-500/10 dark:bg-emerald-500/20 relative">
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 glass p-2 rounded-full border border-emerald-500/20 shadow-xl">
+                                                <Plane className="w-3 h-3 text-emerald-500" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-4xl font-black text-main uppercase">{data.arrivalAirport}</p>
+                                        <p className="text-dim text-[11px] uppercase tracking-[0.1em] font-semibold">{data.arrivalCity}</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-[11px] font-bold uppercase tracking-widest">
+                                    <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
+                                        <p className="text-dim mb-1 opacity-70">Date de départ</p>
+                                        <p className="text-main">{data.departureDate}</p>
+                                    </div>
+                                    <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
+                                        <p className="text-dim mb-1 opacity-70">Heure locale</p>
+                                        <p className="text-main">{data.departureTime}</p>
+                                    </div>
+                                    <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
+                                        <p className="text-dim mb-1 opacity-70">Compagnie</p>
+                                        <p className="text-main">{data.carrier}</p>
+                                    </div>
+                                    <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
+                                        <p className="text-dim mb-1 opacity-70">Référence (PNR)</p>
+                                        <p className="text-main font-mono font-black text-emerald-500">{((data as any).pnr) || '-'}</p>
+                                    </div>
+                                    <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 col-span-2 md:col-span-1">
+                                        <p className="text-dim mb-1 opacity-70">Bagages Autorisés</p>
+                                        <p className="text-emerald-500 font-black normal-case">{(data as any).baggage_policy || "2 x 23kg inclus"}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Preparation Checklist */}
+                        <ChecklistEditor initialChecklist={data.checklist} pilgrimId={targetPilgrimId} />
+                    </div>
+                )}
 
                 {/* Shop Teaser Banner */}
                 <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-6 rounded-[2rem] border border-amber-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
@@ -346,12 +392,24 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                         { icon: Shield, title: "Badge ID", color: "text-amber-500 dark:text-amber-400", href: "/dashboard/badge" },
                         { icon: HelpCircle, title: "Aide", color: "text-blue-600 dark:text-blue-500", href: "/dashboard/help" },
                         { icon: AlertCircle, title: "Urgence", color: "text-red-600 dark:text-red-500", href: "/dashboard/assistance" }
-                    ].map((item, i) => (
-                        <Link key={i} href={item.href} className="glass p-6 rounded-[2rem] hover:bg-emerald-500/5 transition-all text-center group border-emerald-500/5 shadow-sm">
-                            <item.icon className={`w-8 h-8 mx-auto mb-3 ${item.color.split(' ')[0]} ${item.color.split(' ')[1] || ''} group-hover:scale-110 transition-transform`} />
-                            <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-dim group-hover:text-main transition-colors">{item.title}</span>
-                        </Link>
-                    ))}
+                    ].map((item, i) => {
+                        const isDisabled = data.hasNoGroup && ["Hôtels", "Programme", "Badge ID", "Urgence"].includes(item.title);
+                        if (isDisabled) {
+                            return (
+                                <div key={i} className="glass p-6 rounded-[2rem] text-center opacity-40 cursor-not-allowed border-emerald-500/5 shadow-sm" title="Indisponible sans groupe de voyage">
+                                    <item.icon className={`w-8 h-8 mx-auto mb-3 text-gray-500`} />
+                                    <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-dim block">{item.title}</span>
+                                    <span className="text-[8px] text-amber-500/80 font-bold uppercase tracking-widest mt-1 block">Sans Groupe</span>
+                                </div>
+                            );
+                        }
+                        return (
+                            <Link key={i} href={item.href} className="glass p-6 rounded-[2rem] hover:bg-emerald-500/5 transition-all text-center group border-emerald-500/5 shadow-sm">
+                                <item.icon className={`w-8 h-8 mx-auto mb-3 ${item.color.split(' ')[0]} ${item.color.split(' ')[1] || ''} group-hover:scale-110 transition-transform`} />
+                                <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-dim group-hover:text-main transition-colors block">{item.title}</span>
+                            </Link>
+                        );
+                    })}
                 </div>
             </div>
         </div>

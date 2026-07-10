@@ -560,22 +560,20 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
             pilgrimName: `${profile.full_name || ''}`.trim() || "Salah Lamkhannet",
             visaUrl: visaUrl,
             visaStatus: profile.visa_status || 'PENDING',
-            groupId: pilgrim?.group_id || '1',
-            groupName,
-            daysToDeparture: daysToDeparture,
-            departureAirport: flightInfo?.departureAirport || "CDG",
-            arrivalAirport: flightInfo?.arrivalAirport || "JED",
-            departureCity: flightInfo?.departureCity || "Paris, FR",
-            arrivalCity: flightInfo?.arrivalCity || "Jeddah, SA",
-            departureDate: flightInfo?.departureDate || targetDateStr,
-            departureTime: flightInfo?.departureTime || targetTimeStr,
-            departureDateIso: flightInfo?.departureDateIso || targetDateIso,
-            carrier: flightInfo?.carrier || "Turkish Airlines",
-            baggage_policy: flightInfo?.baggage_policy || "2 x 23kg inclus",
-            segments: flightInfo?.segments || [
-                { departure_airport: 'CDG', arrival_airport: 'IST', airline: 'Turkish Airlines', flight_number: 'TK1822', departure_time: new Date(targetDate.getTime() - 4 * 60 * 60 * 1000).toISOString(), arrival_time: new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString(), sequence_order: 0 },
-                { departure_airport: 'IST', arrival_airport: 'JED', airline: 'Turkish Airlines', flight_number: 'TK96', departure_time: new Date(targetDate.getTime() - 1 * 60 * 60 * 1000).toISOString(), arrival_time: targetDateIso, sequence_order: 1 }
-            ],
+            groupId: pilgrim?.group_id || null,
+            groupName: pilgrim?.group_id ? groupName : "Sans Groupe",
+            hasNoGroup: !pilgrim?.group_id && !pilgrim?.individual_flight_info,
+            daysToDeparture: flightInfo ? daysToDeparture : null,
+            departureAirport: flightInfo?.departureAirport || null,
+            arrivalAirport: flightInfo?.arrivalAirport || null,
+            departureCity: flightInfo?.departureCity || null,
+            arrivalCity: flightInfo?.arrivalCity || null,
+            departureDate: flightInfo?.departureDate || null,
+            departureTime: flightInfo?.departureTime || null,
+            departureDateIso: flightInfo?.departureDateIso || null,
+            carrier: flightInfo?.carrier || null,
+            baggage_policy: flightInfo?.baggage_policy || null,
+            segments: flightInfo?.segments || [],
             checklist: [
                 { label: "Visa Omra", status: profile.visa_status === 'APPROVED' ? "OK" : "En cours", ok: profile.visa_status === 'APPROVED' },
                 { label: "Solde", status: isPaid ? "Payé" : `Reste : ${pilgrimPrice - totalPaid} €`, ok: isPaid },
@@ -584,35 +582,26 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
             familyMembers
         };
     } catch (err) {
-        const targetDate = new Date();
-        targetDate.setDate(targetDate.getDate() + 12);
-        targetDate.setHours(11, 15, 0, 0);
-
-        const targetDateStr = targetDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        const targetTimeStr = targetDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const targetDateIso = targetDate.toISOString();
-
         return {
             pilgrimName: "Salah Lamkhannet",
-            groupId: '1',
-            groupName: "Groupe Ramadan A",
-            daysToDeparture: 12,
-            departureAirport: "CDG",
-            arrivalAirport: "JED",
-            departureCity: "Paris, FR",
-            arrivalCity: "Jeddah, SA",
-            departureDate: targetDateStr,
-            departureTime: targetTimeStr,
-            departureDateIso: targetDateIso,
-            carrier: "Turkish Airlines",
-            segments: [
-                { departure_airport: 'CDG', arrival_airport: 'IST', airline: 'Turkish Airlines', flight_number: 'TK1822', departure_time: new Date(targetDate.getTime() - 4 * 60 * 60 * 1000).toISOString(), arrival_time: new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString(), sequence_order: 0 },
-                { departure_airport: 'IST', arrival_airport: 'JED', airline: 'Turkish Airlines', flight_number: 'TK96', departure_time: new Date(targetDate.getTime() - 1 * 60 * 60 * 1000).toISOString(), arrival_time: targetDateIso, sequence_order: 1 }
-            ],
+            groupId: null,
+            groupName: "Sans Groupe",
+            hasNoGroup: true,
+            daysToDeparture: null,
+            departureAirport: null,
+            arrivalAirport: null,
+            departureCity: null,
+            arrivalCity: null,
+            departureDate: null,
+            departureTime: null,
+            departureDateIso: null,
+            carrier: null,
+            baggage_policy: null,
+            segments: [],
             checklist: [
-                { label: "Visa Omra", status: "OK", ok: true },
-                { label: "Solde", status: "Payé", ok: true },
-                { label: "Check-in", status: "Prêt", ok: true },
+                { label: "Visa Omra", status: "En cours", ok: false },
+                { label: "Solde", status: "Reste : 2500 €", ok: false },
+                { label: "Check-in", status: "À faire", ok: false },
             ],
             familyMembers: []
         };
@@ -660,7 +649,100 @@ export async function createAssistanceRequest(data: { category: string, priority
     }
 }
 
-export async function resolvePilgrimIdByEmail(userId: string, email?: string): Promise<string> {
+export async function getFutureDepartures() {
+    const supabase = createClient();
+    const now = new Date().toISOString().split('T')[0];
+    const { data, error } = await supabase
+        .from('groups')
+        .select('id, name, departure_date')
+        .gt('departure_date', now)
+        .order('departure_date', { ascending: true });
+
+    if (error) {
+        console.error("Error fetching future departures:", error);
+        return [];
+    }
+    return data;
+}
+
+export async function submitDepartureRequest(data: {
+    month: string;
+    duringHolidays?: boolean;
+    numPeople: number;
+    alreadyTravelled: boolean;
+    requestedGroupId?: string;
+}) {
+    const supabase = createClient();
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+        const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
+        
+        if (!resolvedId) {
+            return { error: "Non autorisé" };
+        }
+
+        const { data: existing } = await supabase
+            .from('departure_requests')
+            .select('id')
+            .eq('pilgrim_id', resolvedId)
+            .maybeSingle();
+
+        if (existing) {
+            const { error } = await supabase
+                .from('departure_requests')
+                .update({
+                    month: data.month,
+                    during_holidays: data.duringHolidays ?? null,
+                    num_people: data.numPeople,
+                    already_travelled: data.alreadyTravelled,
+                    requested_group_id: data.requestedGroupId || null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('pilgrim_id', resolvedId);
+            
+            if (error) throw error;
+        } else {
+            const { error } = await supabase
+                .from('departure_requests')
+                .insert({
+                    pilgrim_id: resolvedId,
+                    month: data.month,
+                    during_holidays: data.duringHolidays ?? null,
+                    num_people: data.numPeople,
+                    already_travelled: data.alreadyTravelled,
+                    requested_group_id: data.requestedGroupId || null
+                });
+            
+            if (error) throw error;
+        }
+
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error submitting departure request:", e);
+        return { error: e.message || "Erreur lors de l'enregistrement de votre demande." };
+    }
+}
+
+export async function getDepartureRequest(pilgrimId: string, email?: string) {
+    const supabase = createClient();
+    try {
+        const resolvedId = await resolvePilgrimIdByEmail(pilgrimId, email);
+        const { data, error } = await supabase
+            .from('departure_requests')
+            .select('*')
+            .eq('pilgrim_id', resolvedId)
+            .maybeSingle();
+
+        if (error) throw error;
+        return data;
+    } catch (e) {
+        console.error("Error fetching departure request:", e);
+        return null;
+    }
+}
+export async function resolvePilgrimIdByEmail(userId: string, email?: string): Promise<string> {
     const supabase = createClient();
     if (email) {
         const { data: profile } = await supabase
