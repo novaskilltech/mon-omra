@@ -263,48 +263,159 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Boutique Section */}
+            {/* Boutique & Services sur Place Section */}
             <section className="relative z-10 py-12 px-6 max-w-7xl mx-auto">
-                <div className="glass p-12 md:p-16 rounded-[3rem] border-amber-500/10 flex flex-col lg:flex-row-reverse items-center justify-between gap-12 relative overflow-hidden group shadow-2xl bg-amber-500/[0.01]">
-                    <div className="absolute top-[-20%] left-[-10%] w-[350px] h-[350px] bg-amber-500/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-amber-500/15 transition-all duration-700" />
-                    
-                    <div className="max-w-2xl space-y-6 text-left">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-black uppercase tracking-[0.2em]">
-                            <ShoppingBag className="w-3 h-3" />
-                            Boutique Exclusive & Produits Sains
-                        </div>
-                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[1.1]">
-                            Découvrez la boutique <span className="text-amber-500">Naturomiel</span>
-                        </h2>
-                        <p className="text-sub text-sm leading-relaxed opacity-70">
-                            Préparez vos souvenirs et cadeaux de la ville bénie du Prophète (صلى الله عليه وسلم). Nous sélectionnons pour nos pèlerins des cadeaux d'exception bénéfiques pour la santé : miels rares de Jujubier sauvage (Sidr Malaki du Yémen, Panjab, Cachemire, Peshawar), dattes Ajwa de Médine premium aux vertus protectrices reconnues, huile de nigelle pure pressée à froid et henné naturel.
-                        </p>
-                        <div className="flex flex-wrap gap-4 pt-4">
-                            <span className="bg-amber-500/10 border border-amber-500/20 text-amber-500 px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
-                                🍯 Boutique Souvenirs & Bien-être — Ouverture Bientôt
-                            </span>
-                        </div>
+                <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-black uppercase tracking-[0.2em]">
+                        <ShoppingBag className="w-3 h-3" />
+                        Boutique Exclusive & Activités locales
                     </div>
+                    <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                        Boutique & <span className="text-amber-500">Services sur place</span>
+                    </h2>
+                    <p className="text-sub text-xs opacity-75 font-medium leading-relaxed">
+                        Commandez des produits naturels d'exception ou agrémentez votre pèlerinage avec nos excursions et locations de chalets privés à la Mecque et Médine.
+                    </p>
+                </div>
 
-                    <div className="relative shrink-0 w-full lg:w-auto flex justify-center">
-                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-amber-500/10 bg-black/30 backdrop-blur-md shadow-2xl group/img">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Naturomiel Card */}
+                    <div className="glass p-10 md:p-12 rounded-[3rem] border-amber-500/10 flex flex-col justify-between gap-8 relative overflow-hidden group shadow-xl bg-amber-500/[0.01]">
+                        <div className="absolute top-[-20%] left-[-10%] w-[250px] h-[250px] bg-amber-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-amber-500/15 transition-all duration-700" />
+                        
+                        <div className="space-y-6 text-left relative z-10">
+                            <span className="bg-amber-500/20 text-amber-400 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md border border-amber-500/20 mb-1.5 inline-block">
+                                PRODUITS NATURELS & SOUVENIRS
+                            </span>
+                            <h3 className="text-2xl font-black uppercase tracking-tighter text-white">
+                                Naturomiel <span className="text-amber-500">Boutique</span>
+                            </h3>
+                            <p className="text-sub text-xs leading-relaxed opacity-75">
+                                Ramenez chez vous les bienfaits de la Terre Sainte : miels rares de Jujubier sauvage (Sidr du Yémen, Peshawar, Cachemire), dattes Ajwa de Médine de qualité supérieure et huile de nigelle d'Éthiopie pure pressée à froid.
+                            </p>
+                        </div>
+
+                        <div className="relative w-full h-48 md:h-60 rounded-2xl overflow-hidden border border-amber-500/10 bg-black/30 shadow-2xl group/img shrink-0">
                             <Image 
                                 src="/naturomiel-shop.png" 
                                 alt="Produits Naturomiel" 
                                 fill
-                                className="object-cover group-hover/img:scale-105 transition-transform duration-700" 
+                                className="object-cover group-hover/img:scale-102 transition-transform duration-700" 
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
                             <div className="absolute bottom-6 left-6 right-6 text-left">
                                 <Image 
                                     src="/naturomiel-logo.png" 
                                     alt="Naturomiel Logo" 
                                     width={100} 
                                     height={30} 
-                                    className="object-contain filter brightness-110 mb-2.5" 
+                                    className="object-contain filter brightness-110 mb-2" 
                                 />
-                                <p className="text-[10px] text-white/70 leading-relaxed font-bold m-0 uppercase tracking-wider">
-                                    Miel de Jujubier sauvage, Dattes Ajwa & Huile de Nigelle pure.
+                                <p className="text-[9px] text-white/70 font-bold m-0 uppercase tracking-wider leading-relaxed">
+                                    Miel de Jujubier sauvage, Dattes Ajwa & Nigelle Habachia.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Excursions & Services Card */}
+                    <div className="glass p-10 md:p-12 rounded-[3rem] border-emerald-500/10 flex flex-col justify-between gap-8 relative overflow-hidden group shadow-xl bg-emerald-500/[0.01]">
+                        <div className="absolute top-[-20%] right-[-10%] w-[250px] h-[250px] bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-emerald-500/15 transition-all duration-700" />
+                        
+                        <div className="space-y-6 text-left relative z-10">
+                            <span className="bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md border border-emerald-500/20 mb-1.5 inline-block">
+                                ACTIVITÉS & LOCATIONS SUR PLACE
+                            </span>
+                            <h3 className="text-2xl font-black uppercase tracking-tighter text-white">
+                                Excursions & <span className="text-emerald-500">Chalets</span>
+                            </h3>
+                            <p className="text-sub text-xs leading-relaxed opacity-75">
+                                Vivez des moments uniques : visite guidée de la ville de Taïf, excursion shopping au Souk Al Balad de Djeddah, pique-nique nocturne couscous au pied du Mont Uhud et location à la journée de chalets familiaux avec piscine à Médine.
+                            </p>
+                        </div>
+
+                        <div className="relative w-full h-48 md:h-60 rounded-2xl overflow-hidden border border-emerald-500/10 bg-black/30 shadow-2xl group/img shrink-0">
+                            <Image 
+                                src="/madinah-services.png" 
+                                alt="Services et Chalets en Arabie" 
+                                fill
+                                className="object-cover group-hover/img:scale-102 transition-transform duration-700" 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+                            <div className="absolute bottom-6 left-6 right-6 text-left">
+                                <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">
+                                    <Compass className="w-3.5 h-3.5 animate-spin-slow" /> Médine • La Mecque • Djeddah
+                                </div>
+                                <p className="text-[9px] text-white/70 font-bold m-0 uppercase tracking-wider leading-relaxed">
+                                    Sorties historiques, pique-nique sous les étoiles & chalets privés.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Loyalty Club Section */}
+            <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
+                <div className="glass p-12 md:p-16 rounded-[3rem] border-emerald-500/15 flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden group shadow-2xl bg-emerald-500/[0.02]">
+                    <div className="absolute top-[-20%] right-[-10%] w-[350px] h-[350px] bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-emerald-500/15 transition-all duration-700" />
+                    
+                    <div className="max-w-2xl space-y-6 text-left">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-[0.2em]">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            FIDÉLISATION CLIENTS & VOYAGEURS RÉCURRENTS
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                            Club de Fidélité <span className="text-emerald-500">Omrayanair</span>
+                        </h2>
+                        <p className="text-sub text-xs leading-relaxed opacity-75">
+                            Parce que votre fidélité mérite le meilleur, nous récompensons les pèlerins déjà partis avec nous. Pour chaque nouvelle réservation, bénéficiez de cadeaux exclusifs d'une valeur maximale de 100 € :
+                        </p>
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold uppercase tracking-wider text-main pt-2">
+                            <li className="flex items-center gap-2.5 bg-white/5 border border-white/5 p-4 rounded-2xl">
+                                <span className="text-emerald-400 text-base">🎒</span>
+                                <div className="leading-tight">
+                                    <p className="text-[10px] text-main">Bagage retour offert</p>
+                                    <p className="text-[8px] text-dim font-medium normal-case">En soute sur vols Transavia</p>
+                                </div>
+                            </li>
+                            <li className="flex items-center gap-2.5 bg-white/5 border border-white/5 p-4 rounded-2xl">
+                                <span className="text-emerald-400 text-base">🍳</span>
+                                <div className="leading-tight">
+                                    <p className="text-[10px] text-main">Petit-Déjeuner Offert</p>
+                                    <p className="text-[8px] text-dim font-medium normal-case">À La Mecque (séjours de 10j ou moins)</p>
+                                </div>
+                            </li>
+                            <li className="flex items-center gap-2.5 bg-white/5 border border-white/5 p-4 rounded-2xl">
+                                <span className="text-emerald-400 text-base">🛂</span>
+                                <div className="leading-tight">
+                                    <p className="text-[10px] text-main">Visa Enfant Offert</p>
+                                    <p className="text-[8px] text-dim font-medium normal-case">Pour les -16 ans en vacances scolaires</p>
+                                </div>
+                            </li>
+                            <li className="flex items-center gap-2.5 bg-white/5 border border-white/5 p-4 rounded-2xl">
+                                <span className="text-emerald-400 text-base">🏷️</span>
+                                <div className="leading-tight">
+                                    <p className="text-[10px] text-main">Remise immédiate</p>
+                                    <p className="text-[8px] text-dim font-medium normal-case">75 € déduits directement de votre forfait</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="relative shrink-0 w-full lg:w-auto flex justify-center">
+                        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-[2.5rem] overflow-hidden border border-emerald-500/20 bg-black/30 backdrop-blur-md shadow-2xl group/loyimg flex items-center justify-center p-4">
+                            <Image 
+                                src="/loyalty-club.png" 
+                                alt="Carte de fidélité Club Omrayanair" 
+                                fill
+                                className="object-cover group-hover/loyimg:scale-102 transition-transform duration-700" 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                            <div className="absolute bottom-6 left-6 right-6 text-left z-10 pointer-events-none">
+                                <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Membre Privilège</p>
+                                <p className="text-[8px] text-white/50 leading-relaxed font-bold uppercase tracking-wider">
+                                    Accédez aux remises & avantages exclusifs à chaque voyage.
                                 </p>
                             </div>
                         </div>
