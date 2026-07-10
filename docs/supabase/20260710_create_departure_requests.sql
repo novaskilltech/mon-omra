@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS public.departure_requests (
     during_holidays BOOLEAN, -- NULL sauf si octobre/décembre
     num_people INTEGER NOT NULL DEFAULT 1 CHECK (num_people >= 1),
     already_travelled BOOLEAN NOT NULL DEFAULT FALSE,
+    past_trips_details TEXT, -- Détails des séjours précédents pour vérification
+    loyalty_reward VARCHAR(50), -- Avantage fidélité sélectionné
     requested_group_id UUID REFERENCES public.groups(id) ON DELETE SET NULL, -- Si coché pour tarification
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()

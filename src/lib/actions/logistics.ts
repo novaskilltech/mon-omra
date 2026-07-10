@@ -670,6 +670,8 @@ export async function submitDepartureRequest(data: {
     duringHolidays?: boolean;
     numPeople: number;
     alreadyTravelled: boolean;
+    pastTripsDetails?: string;
+    loyaltyReward?: string;
     requestedGroupId?: string;
 }) {
     const supabase = createClient();
@@ -696,6 +698,8 @@ export async function submitDepartureRequest(data: {
                     during_holidays: data.duringHolidays ?? null,
                     num_people: data.numPeople,
                     already_travelled: data.alreadyTravelled,
+                    past_trips_details: data.pastTripsDetails ?? null,
+                    loyalty_reward: data.loyaltyReward ?? null,
                     requested_group_id: data.requestedGroupId || null,
                     updated_at: new Date().toISOString()
                 })
@@ -711,6 +715,8 @@ export async function submitDepartureRequest(data: {
                     during_holidays: data.duringHolidays ?? null,
                     num_people: data.numPeople,
                     already_travelled: data.alreadyTravelled,
+                    past_trips_details: data.pastTripsDetails ?? null,
+                    loyalty_reward: data.loyaltyReward ?? null,
                     requested_group_id: data.requestedGroupId || null
                 });
             
@@ -742,7 +748,8 @@ export async function getDepartureRequest(pilgrimId: string, email?: string) {
         return null;
     }
 }
-export async function resolvePilgrimIdByEmail(userId: string, email?: string): Promise<string> {
+
+export async function resolvePilgrimIdByEmail(userId: string, email?: string): Promise<string> {
     const supabase = createClient();
     if (email) {
         const { data: profile } = await supabase

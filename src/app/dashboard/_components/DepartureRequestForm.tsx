@@ -16,6 +16,8 @@ interface ExistingRequest {
     during_holidays: boolean | null;
     num_people: number;
     already_travelled: boolean;
+    past_trips_details?: string | null;
+    loyalty_reward?: string | null;
     requested_group_id: string | null;
 }
 
@@ -29,6 +31,13 @@ const MONTHS = [
     "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août"
 ];
 
+const LOYALTY_REWARDS = [
+    { id: 'baggage_return', label: "🎒 Bagage en soute retour offert", desc: "Transavia uniquement. Pour 1 trajet en cas d'escale." },
+    { id: 'breakfast_makkah', label: "🍳 Petit-déjeuner offert à La Mecque", desc: "Pour les séjours de 10 jours ou moins (coût 10€/jour)." },
+    { id: 'visa_child', label: "🛂 Visa offert pour enfant (-16 ans)", desc: "Valable uniquement pendant les vacances scolaires." },
+    { id: 'discount_75', label: "🏷️ Remise fidélité directe de 75 €", desc: "Déduite directement du prix de votre forfait." }
+];
+
 export default function DepartureRequestForm({ futureDepartures, existingRequest }: DepartureRequestFormProps) {
     const [isEditing, setIsEditing] = useState(!existingRequest);
     const [month, setMonth] = useState(existingRequest?.month || '');
@@ -37,6 +46,8 @@ export default function DepartureRequestForm({ futureDepartures, existingRequest
     );
     const [numPeople, setNumPeople] = useState(existingRequest?.num_people || 1);
     const [alreadyTravelled, setAlreadyTravelled] = useState<boolean>(existingRequest?.already_travelled || false);
+    const [pastTripsDetails, setPastTripsDetails] = useState(existingRequest?.past_trips_details || '');
+    const [loyaltyReward, setLoyaltyReward] = useState(existingRequest?.loyalty_reward || '');
     const [requestedGroupId, setRequestedGroupId] = useState<string>(existingRequest?.requested_group_id || '');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -67,6 +78,8 @@ export default function DepartureRequestForm({ futureDepartures, existingRequest
             duringHolidays: showHolidaysQuestion ? !!duringHolidays : undefined,
             numPeople,
             alreadyTravelled,
+            pastTripsDetails: alreadyTravelled ? pastTripsDetails : undefined,
+            loyaltyReward: alreadyTravelled ? loyaltyReward : undefined,
             requestedGroupId: requestedGroupId || undefined
         });
 
@@ -81,6 +94,7 @@ export default function DepartureRequestForm({ futureDepartures, existingRequest
 
     if (!isEditing && existingRequest) {
         const selectedGroup = futureDepartures.find(g => g.id === requestedGroupId);
+        const selectedReward = LOYALTY_REWARDS.find(r => r.id === loyaltyReward);
         return (
             <div className="glass p-8 rounded-[2.5rem] border-amber-500/20 shadow-lg space-y-6">
                 <div className="flex items-start gap-4">
@@ -108,7 +122,19 @@ export default function DepartureRequestForm({ futureDepartures, existingRequest
                         <p className="text-dim mb-1 opacity-70 text-[9px]">Déjà venu avec nous ?</p>
                         <p>{alreadyTravelled ? "Oui" : "Non"}</p>
                     </div>
-                    <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10">
+                    {alreadyTravelled && (
+                        <>
+                            <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 col-span-1 md:col-span-2">
+                                <p className="text-dim mb-1 opacity-70 text-[9px]">Détails des voyages précédents</p>
+                                <p className="normal-case font-medium text-dim">{pastTripsDetails || "Non précisé"}</p>
+                            </div>
+                            <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 col-span-1 md:col-span-2">
+                                <p className="text-dim mb-1 opacity-70 text-[9px]">Avantage Fidélité choisi</p>
+                                <p className="text-emerald-500">{selectedReward ? selectedReward.label : "Aucun"}</p>
+                            </div>
+                        </>
+                    )}
+                    <div className="bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 col-span-1 md:col-span-2">
                         <p className="text-dim mb-1 opacity-70 text-[9px]">Tarification demandée sur</p>
                         <p>{selectedGroup ? selectedGroup.name : "Aucune date spécifique"}</p>
                     </div>
@@ -221,13 +247,69 @@ export default function DepartureRequestForm({ futureDepartures, existingRequest
                                 type="radio"
                                 name="alreadyTravelled"
                                 checked={alreadyTravelled === false}
-                                onChange={() => setAlreadyTravelled(false)}
+                                onChange={() => {
+                                    setAlreadyTravelled(false);
+                                    setPastTripsDetails('');
+                                    setLoyaltyReward('');
+                                }}
                                 className="accent-emerald-500"
                             />
                             Non
                         </label>
                     </div>
                 </div>
+
+                {alreadyTravelled && (
+                    <div className="space-y-4 p-5 bg-emerald-500/5 rounded-3xl border border-emerald-500/10 animate-fade-in">
+                        <div className="space-y-1.5">
+                            <label className="block text-dim text-[10px] font-black uppercase tracking-widest">
+                                Précisez les dates/périodes approximatives de vos précédents séjours *
+                            </label>
+                            <textarea
+                                required
+                                value={pastTripsDetails}
+                                onChange={(e) => setPastTripsDetails(e.target.value)}
+                                placeholder="Ex: Octobre 2024, Décembre 2025"
+                                rows={2}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-semibold text-xs"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-dim text-[10px] font-black uppercase tracking-widest">
+                                Choisissez votre avantage fidélité de bienvenue *
+                            </label>
+                            <p className="text-[10px] text-dim font-medium leading-normal m-0 -mt-1">
+                                Choisissez l'une des 4 récompenses ci-dessous (offertes pour vous remercier de votre fidélité) :
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                {LOYALTY_REWARDS.map((reward) => (
+                                    <label
+                                        key={reward.id}
+                                        className={`flex flex-col p-4 rounded-2xl border cursor-pointer transition-all ${
+                                            loyaltyReward === reward.id
+                                                ? 'bg-emerald-500/10 border-emerald-500 text-main'
+                                                : 'bg-white/5 border-white/10 hover:bg-white/10 text-main'
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-xs font-bold uppercase tracking-wider">{reward.label}</span>
+                                            <input
+                                                type="radio"
+                                                name="loyaltyReward"
+                                                required
+                                                checked={loyaltyReward === reward.id}
+                                                onChange={() => setLoyaltyReward(reward.id)}
+                                                className="accent-emerald-500"
+                                            />
+                                        </div>
+                                        <span className="text-[10px] text-dim font-medium leading-normal">{reward.desc}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Future departures quote selection */}
                 {futureDepartures.length > 0 && (
