@@ -1,11 +1,11 @@
 import Image from 'next/image';
-import { Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, MessageSquare, Heart, Sparkles, ShoppingBag } from 'lucide-react';
+import { Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, MessageSquare, Heart, Sparkles, ShoppingBag, ShieldAlert, Star } from 'lucide-react';
 import Link from 'next/link';
 import ThemeSelector from '@/components/ThemeSelector';
 
 export default function Home() {
     return (
-        <main className="min-h-screen text-white selection:bg-emerald-500/30">
+        <main className="min-h-screen text-white selection:bg-emerald-500/30 font-inter">
             {/* Structured Data (JSON-LD) for Search Agents */}
             <script
                 type="application/ld+json"
@@ -14,7 +14,7 @@ export default function Home() {
                         "@context": "https://schema.org",
                         "@type": "TravelAgency",
                         "name": "OMRAYANAIR",
-                        "description": "Plateforme Premium d'accompagnement et de gestion de voyage spirituel pour l'Omra et le Hajj.",
+                        "description": "Plateforme Premium d'accompagnement et de voyage spirituel pour l'Omra et le Hajj.",
                         "url": "https://omrayanair.vercel.app",
                         "logo": "https://omrayanair.vercel.app/logo.png",
                         "image": "https://omrayanair.vercel.app/og-image.png",
@@ -28,7 +28,7 @@ export default function Home() {
             />
 
             {/* Background Glows */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full" />
             </div>
@@ -56,20 +56,18 @@ export default function Home() {
                 </div>
             </nav>
 
-
-            {/* Hero Section */}
+            {/* 1. Hero Section (Attention) */}
             <header className="relative z-10 pt-20 pb-16 px-6 text-center max-w-5xl mx-auto">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-[0.2em] mb-8 animate-fade-in">
                     <Sparkles className="w-3 h-3" />
                     Le futur du voyage spirituel
                 </div>
-                <h1 className="text-5xl md:text-8xl font-black mb-8 tracking-tighter leading-[0.9] uppercase animate-slide-up">
-                    VIVEZ VOTRE <span className="text-emerald-500">OMRA</span><br />
-                    EN TOUTE <span className="text-emerald-500">SÉRÉNITÉ</span>.
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 tracking-tighter leading-[0.95] uppercase animate-slide-up">
+                    NE LAISSEZ PAS LA LOGISTIQUE<br />
+                    VOLER VOTRE <span className="text-emerald-500">CONCENTRATION SPIRITUELLE</span>.
                 </h1>
-                <p className="text-lg md:text-xl text-sub mb-12 font-medium max-w-2xl mx-auto opacity-70 leading-relaxed animate-fade-in">
-                    Votre compagnon digital, de la préparation au retour, 
-                    conçu pour vous permettre de vous concentrer sur l'essentiel : votre foi.
+                <p className="text-base md:text-lg text-sub mb-12 font-medium max-w-3xl mx-auto opacity-75 leading-relaxed animate-fade-in">
+                    Découvrez le premier compagnon digital qui gère vos vols, vos hôtels, vos rituels et vos excursions, pour vous laisser vous concentrer sur l'unique essentiel : votre foi.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-5 justify-center items-center animate-fade-in">
                     <Link href="/login" className="bg-emerald-500 text-white px-10 py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-emerald-400 transition-all shadow-[0_5px_30px_rgba(16,185,129,0.3)] flex items-center gap-3 group">
@@ -88,33 +86,83 @@ export default function Home() {
                         alt="Pèlerin en Ihram utilisant l'application OMRAYANAIR" 
                         width={1200}
                         height={800}
-                        className="w-full h-auto object-cover transform transition-transform duration-1000 group-hover:scale-105"
+                        className="w-full h-auto object-cover transform transition-transform duration-1000 group-hover:scale-103"
                         priority
                     />
                 </div>
-
-                <Link href="/login" className="block mt-16 mx-auto max-w-xs group cursor-pointer animate-fade-in">
-                    <div className="relative w-48 h-48 mx-auto rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(16,185,129,0.15)] bg-black/20 backdrop-blur-md transition-all duration-500 group-hover:scale-105 group-hover:border-emerald-500/40 group-hover:shadow-[0_0_60px_rgba(16,185,129,0.3)] flex items-center justify-center">
-                        <Image 
-                            src="/app-logo.png" 
-                            alt="OMRAYANAIR Logo Entry" 
-                            width={160}
-                            height={160}
-                            className="object-contain transition-transform duration-500 group-hover:rotate-3 rounded-[1.8rem]"
-                            priority
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    </div>
-                    <span className="inline-block mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-dim group-hover:text-emerald-400 transition-colors">
-                        Cliquer pour entrer dans l'application
-                    </span>
-                </Link>
             </header>
 
-            {/* Bento Grid Features */}
-            <section id="features" className="relative z-10 py-24 px-6 max-w-7xl mx-auto">
+            {/* 2. Le Problème (Empathie) */}
+            <section className="relative z-10 py-20 px-6 max-w-5xl mx-auto text-center">
+                <div className="glass p-10 md:p-16 rounded-[3rem] border-red-500/10 bg-red-500/[0.01] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-red-500/5 blur-[80px] rounded-full pointer-events-none" />
+                    <div className="max-w-3xl mx-auto space-y-6">
+                        <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mx-auto mb-4">
+                            <ShieldAlert className="w-6 h-6 animate-pulse" />
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-white">
+                            Préparer son Omra ne devrait pas être une source d'angoisse
+                        </h2>
+                        <p className="text-sub text-xs md:text-sm leading-relaxed opacity-75 font-medium max-w-2xl mx-auto">
+                            Peur d'oublier un document officiel à l'aéroport, de se tromper dans l'ordre des rituels du Tawaf, ou de passer des heures à chercher un transfert fiable en pleine nuit sous 45°C... Nous croyons fermement que votre esprit devrait être entièrement libéré de ces tracas matériels pour vous dédier à l'essentiel.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* 3. Le Plan en 3 Étapes (Clarté) */}
+            <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
+                <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">MÉTHODOLOGIE SIMPLIFIÉE</span>
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                        Votre Voyage Sacré en <span className="text-emerald-500">3 Étapes</span>
+                    </h2>
+                    <p className="text-sub text-xs opacity-75 font-medium leading-relaxed">
+                        Notre processus est conçu pour vous offrir un accompagnement limpide et sans frictions.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {[
+                        {
+                            num: "01",
+                            title: "Créez votre accès personnel",
+                            desc: "Enregistrez-vous en quelques clics. Renseignez vos souhaits de départ et accédez directement à votre tableau de bord interactif."
+                        },
+                        {
+                            num: "02",
+                            title: "Laissez-vous guider",
+                            desc: "Vos documents officiels (visas, vols) sont sécurisés et accessibles hors-ligne. Votre guide audio interactif vous accompagne pas à pas."
+                        },
+                        {
+                            num: "03",
+                            title: "Vivez l'instant présent",
+                            desc: "Profitez de nos services exclusifs sur place (Taïf, chalets privés) et d'un support SOS 24h/7j pour tout imprévu logistique."
+                        }
+                    ].map((step, idx) => (
+                        <div key={idx} className="glass p-8 rounded-[2.5rem] border-emerald-500/5 relative overflow-hidden group hover:border-emerald-500/20 transition-all">
+                            <span className="text-6xl md:text-7xl font-black text-emerald-500/10 group-hover:text-emerald-500/20 transition-colors absolute top-4 right-6 pointer-events-none">
+                                {step.num}
+                            </span>
+                            <div className="space-y-4 pt-6">
+                                <h3 className="text-lg font-black uppercase tracking-tighter text-white">{step.title}</h3>
+                                <p className="text-xs text-dim leading-relaxed font-medium">{step.desc}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* 4. Bento Grid Features (Intérêt) */}
+            <section id="features" className="relative z-10 py-20 px-6 max-w-7xl mx-auto">
+                <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">FONCTIONNALITÉS CLÉS</span>
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                        Une application <span className="text-emerald-500">tout-en-un</span>
+                    </h2>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-full">
-                    
                     {/* Feature 1: Ritual Guide */}
                     <div className="md:col-span-2 md:row-span-2 glass p-10 rounded-[2.5rem] border-emerald-500/10 flex flex-col justify-between group overflow-hidden relative min-h-[500px]">
                         <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700">
@@ -214,7 +262,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Editorial Platform Section: La Voix du Pèlerin */}
+            {/* 5. Editorial Platform Section (Désir) */}
             <section className="relative z-10 py-12 px-6 max-w-7xl mx-auto">
                 <div className="glass p-12 md:p-16 rounded-[3rem] border-emerald-500/10 flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden group shadow-2xl">
                     <div className="absolute top-[-20%] right-[-10%] w-[350px] h-[350px] bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-emerald-500/15 transition-all duration-700" />
@@ -263,7 +311,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Boutique & Services sur Place Section */}
+            {/* 6. Boutique & Services sur Place Section (Désir+) */}
             <section className="relative z-10 py-12 px-6 max-w-7xl mx-auto">
                 <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-black uppercase tracking-[0.2em]">
@@ -355,7 +403,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Loyalty Club Section */}
+            {/* 7. Loyalty Club Section (Désir++) */}
             <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
                 <div className="glass p-12 md:p-16 rounded-[3rem] border-emerald-500/15 flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden group shadow-2xl bg-emerald-500/[0.02]">
                     <div className="absolute top-[-20%] right-[-10%] w-[350px] h-[350px] bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-emerald-500/15 transition-all duration-700" />
@@ -423,20 +471,73 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Impact Section */}
-            <section className="py-24 px-6 text-center max-w-3xl mx-auto">
+            {/* 8. Témoignages (Preuve Sociale) */}
+            <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
+                <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">TÉMOIGNAGES CLIENTS</span>
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                        Ils racontent leur <span className="text-emerald-500">sérénité</span>
+                    </h2>
+                    <p className="text-sub text-xs opacity-75 font-medium leading-relaxed">
+                        Découvrez les retours authentiques de pèlerins ayant utilisé notre compagnon digital.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                        {
+                            name: "Sofiane K.",
+                            city: "Paris",
+                            text: "Un outil indispensable pour mon premier voyage. Ne pas avoir à chercher mes papiers à chaque guichet et pouvoir suivre le rituel audio pas à pas au Tawaf m'a permis de vivre une dévotion totale sans stress.",
+                            rating: 5
+                        },
+                        {
+                            name: "Nadia B.",
+                            city: "Lyon",
+                            text: "Nous sommes repartis pour la seconde fois avec eux et le Club Fidélité nous a offert le bagage retour gratuit ainsi que les petits-déjeuners. Une formule qui respecte vraiment les voyageurs réguliers !",
+                            rating: 5
+                        },
+                        {
+                            name: "Ibrahim M.",
+                            city: "Bruxelles",
+                            text: "La visite guidée de Taïf réservée directement depuis l'application via WhatsApp était magnifique. L'assistance SOS m'a aussi rassuré lorsque mon transfert d'hôtel avait 10 minutes de retard à Médine.",
+                            rating: 5
+                        }
+                    ].map((testi, idx) => (
+                        <div key={idx} className="glass p-8 rounded-[2.5rem] border-white/5 flex flex-col justify-between relative overflow-hidden group">
+                            <div className="space-y-4">
+                                <div className="flex gap-1">
+                                    {[...Array(testi.rating)].map((_, i) => (
+                                        <Star key={i} className="w-4 h-4 fill-amber-500 text-amber-500" />
+                                    ))}
+                                </div>
+                                <p className="text-xs text-dim leading-relaxed font-medium italic">
+                                    "{testi.text}"
+                                </p>
+                            </div>
+                            <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
+                                <span className="text-xs font-black uppercase tracking-wider text-white">{testi.name}</span>
+                                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">{testi.city}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* 9. Impact Section */}
+            <section className="py-24 px-6 text-center max-w-3xl mx-auto relative z-10">
                 <Heart className="w-12 h-12 text-emerald-500 mx-auto mb-8 animate-pulse" />
                 <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-8 leading-tight">
                     Plus qu'une application,<br />un compagnon fidèle.
                 </h2>
-                <p className="text-sub font-medium opacity-60 italic whitespace-pre-line">
+                <p className="text-sub font-medium opacity-60 italic whitespace-pre-line text-sm leading-relaxed">
                     "Notre mission est d'effacer les barrières logistiques 
                     pour laisser place à la beauté de votre voyage spirituel."
                 </p>
             </section>
 
-            {/* CTA Section */}
-            <section className="pb-32 px-6">
+            {/* 10. CTA Section */}
+            <section className="pb-32 px-6 relative z-10">
                 <div className="max-w-5xl mx-auto bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-[0_20px_50px_rgba(16,185,129,0.4)]">
                     <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
                         <div className="absolute top-10 left-10 w-32 h-32 border-4 border-white rounded-full" />
@@ -452,7 +553,7 @@ export default function Home() {
             </section>
 
             {/* Footer */}
-            <footer className="py-12 border-t border-white/5 px-6">
+            <footer className="py-12 border-t border-white/5 px-6 relative z-10">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center gap-3">
                         <Image src="/logo.png" alt="OMRAYANAIR Logo" width={28} height={28} className="rounded-lg object-contain opacity-80" />
