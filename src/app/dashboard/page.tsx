@@ -300,29 +300,31 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                     </div>
                 )}
 
-                {/* Shop Teaser Banner */}
-                <Link 
-                    href={`/dashboard/shop?pilgrimId=${targetPilgrimId}`} 
-                    className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-6 rounded-[2rem] border border-amber-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 hover:bg-amber-500/15 transition-all text-left block"
-                >
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4 text-left">
-                        <div className="p-3 bg-amber-500/10 rounded-full border border-amber-500/20 text-amber-500">
-                            <ShoppingBag className="w-6 h-6 animate-pulse" />
+                {/* Shop Teaser Banner - Admin Only for Testing */}
+                {isAdmin && (
+                    <Link 
+                        href={`/dashboard/shop?pilgrimId=${targetPilgrimId}`} 
+                        className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-6 rounded-[2rem] border border-amber-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 hover:bg-amber-500/15 transition-all text-left block"
+                    >
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 text-left">
+                            <div className="p-3 bg-amber-500/10 rounded-full border border-amber-500/20 text-amber-500">
+                                <ShoppingBag className="w-6 h-6 animate-pulse" />
+                            </div>
+                            <div>
+                                <span className="bg-amber-500/20 text-amber-400 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md border border-amber-500/20 mb-1.5 inline-block">
+                                    ÉDITION LIMITÉE & EXCURSIONS (Aperçu Admin)
+                                </span>
+                                <h3 className="font-bold text-main text-base uppercase">Boutique & Services sur place 🍯 Excursions ⛰️</h3>
+                                <p className="text-dim text-[11px] font-medium leading-relaxed max-w-xl m-0 mt-1">
+                                    Commandez vos miels rares de Terre Sainte ou réservez vos excursions guidées (Taïf, Djeddah shopping, Uhud couscous, location de chalets à Médine).
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <span className="bg-amber-500/20 text-amber-400 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md border border-amber-500/20 mb-1.5 inline-block">
-                                ÉDITION LIMITÉE & EXCURSIONS
-                            </span>
-                            <h3 className="font-bold text-main text-base uppercase">Boutique & Services sur place 🍯 Excursions ⛰️</h3>
-                            <p className="text-dim text-[11px] font-medium leading-relaxed max-w-xl m-0 mt-1">
-                                Commandez vos miels rares de Terre Sainte ou réservez vos excursions guidées (Taïf, Djeddah shopping, Uhud couscous, location de chalets à Médine).
-                            </p>
-                        </div>
-                    </div>
-                    <span className="w-full md:w-auto text-center bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-500 font-bold text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-2xl whitespace-nowrap mt-4 md:mt-0 inline-block transition-all">
-                        Visiter la boutique
-                    </span>
-                </Link>
+                        <span className="w-full md:w-auto text-center bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-500 font-bold text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-2xl whitespace-nowrap mt-4 md:mt-0 inline-block transition-all">
+                            Visiter la boutique (Test)
+                        </span>
+                    </Link>
+                )}
 
                 {/* Family Members Section */}
                 {(data as any).familyMembers && (data as any).familyMembers.length > 0 && (
