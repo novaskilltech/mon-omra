@@ -5,7 +5,7 @@ import ThemeSelector from '@/components/ThemeSelector';
 
 export default function Home() {
     return (
-        <main className="min-h-screen text-white selection:bg-emerald-500/30 font-inter">
+        <main className="min-h-screen text-main selection:bg-emerald-500/30 font-inter">
             {/* Structured Data (JSON-LD) for Search Agents */}
             <script
                 type="application/ld+json"
@@ -100,7 +100,7 @@ export default function Home() {
                         <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mx-auto mb-4">
                             <ShieldAlert className="w-6 h-6 animate-pulse" />
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-white">
+                        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-main">
                             Préparer son Omra ne devrait pas être une source d'angoisse
                         </h2>
                         <p className="text-sub text-xs md:text-sm leading-relaxed opacity-75 font-medium max-w-2xl mx-auto">
@@ -114,7 +114,7 @@ export default function Home() {
             <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
                 <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">MÉTHODOLOGIE SIMPLIFIÉE</span>
-                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-main leading-none">
                         Votre Voyage Sacré en <span className="text-emerald-500">3 Étapes</span>
                     </h2>
                     <p className="text-sub text-xs opacity-75 font-medium leading-relaxed">
@@ -145,7 +145,7 @@ export default function Home() {
                                 {step.num}
                             </span>
                             <div className="space-y-4 pt-6">
-                                <h3 className="text-lg font-black uppercase tracking-tighter text-white">{step.title}</h3>
+                                <h3 className="text-lg font-black uppercase tracking-tighter text-main">{step.title}</h3>
                                 <p className="text-xs text-dim leading-relaxed font-medium">{step.desc}</p>
                             </div>
                         </div>
@@ -157,7 +157,7 @@ export default function Home() {
             <section id="features" className="relative z-10 py-20 px-6 max-w-7xl mx-auto">
                 <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">FONCTIONNALITÉS CLÉS</span>
-                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-main leading-none">
                         Une application <span className="text-emerald-500">tout-en-un</span>
                     </h2>
                 </div>
@@ -272,7 +272,7 @@ export default function Home() {
                             <BookOpen className="w-3 h-3" />
                             Plateforme Éditoriale & Témoignages
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[1.1]">
+                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-main leading-[1.1]">
                             Découvrez <span className="text-emerald-500">La Voix du Pèlerin</span>
                         </h2>
                         <p className="text-sub text-sm leading-relaxed opacity-70">
@@ -318,7 +318,7 @@ export default function Home() {
                         <ShoppingBag className="w-3 h-3" />
                         Boutique Exclusive & Activités locales
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                    <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-main leading-none">
                         Boutique & <span className="text-amber-500">Services sur place</span>
                     </h2>
                     <p className="text-sub text-xs opacity-75 font-medium leading-relaxed">
@@ -335,7 +335,7 @@ export default function Home() {
                             <span className="bg-amber-500/20 text-amber-400 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md border border-amber-500/20 mb-1.5 inline-block">
                                 PRODUITS NATURELS & SOUVENIRS
                             </span>
-                            <h3 className="text-2xl font-black uppercase tracking-tighter text-white">
+                            <h3 className="text-2xl font-black uppercase tracking-tighter text-main">
                                 Naturomiel <span className="text-amber-500">Boutique</span>
                             </h3>
                             <p className="text-sub text-xs leading-relaxed opacity-75">
@@ -374,7 +374,7 @@ export default function Home() {
                             <span className="bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md border border-emerald-500/20 mb-1.5 inline-block">
                                 ACTIVITÉS & LOCATIONS SUR PLACE
                             </span>
-                            <h3 className="text-2xl font-black uppercase tracking-tighter text-white">
+                            <h3 className="text-2xl font-black uppercase tracking-tighter text-main">
                                 Excursions & <span className="text-emerald-500">Chalets</span>
                             </h3>
                             <p className="text-sub text-xs leading-relaxed opacity-75">
@@ -413,7 +413,7 @@ export default function Home() {
                             <ShieldCheck className="w-3.5 h-3.5" />
                             FIDÉLISATION CLIENTS & VOYAGEURS RÉCURRENTS
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-main leading-none">
                             Club de Fidélité <span className="text-emerald-500">Omrayanair</span>
                         </h2>
                         <p className="text-sub text-xs leading-relaxed opacity-75">
@@ -475,7 +475,7 @@ export default function Home() {
             <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
                 <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">TÉMOIGNAGES CLIENTS</span>
-                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-main leading-none">
                         Ils racontent leur <span className="text-emerald-500">sérénité</span>
                     </h2>
                     <p className="text-sub text-xs opacity-75 font-medium leading-relaxed">
@@ -516,7 +516,7 @@ export default function Home() {
                                 </p>
                             </div>
                             <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-black uppercase tracking-wider text-white">{testi.name}</span>
+                                <span className="text-xs font-black uppercase tracking-wider text-main">{testi.name}</span>
                                 <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">{testi.city}</span>
                             </div>
                         </div>
