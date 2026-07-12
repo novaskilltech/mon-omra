@@ -158,7 +158,7 @@ function ShopContent() {
                 </nav>
 
                 {/* Hero Section Banner */}
-                <div className="relative overflow-hidden rounded-[2.5rem] border border-emerald-500/15 bg-gradient-to-br from-[#0c1511]/90 to-[#070b09]/95 p-8 md:p-12 text-left shadow-2xl [transform-style:preserve-3d] [perspective:1000px]">
+                <div className="relative overflow-hidden rounded-[2.5rem] border border-emerald-500/15 bg-gradient-to-br from-[#0c1511]/90 to-[#070b09]/95 p-8 md:p-12 text-left shadow-2xl [transform-style:preserve-3d] [perspective:1000px] flex flex-col md:flex-row items-center justify-between gap-8">
                     {/* Glowing background circles */}
                     <div className="absolute top-[-30%] right-[-10%] w-[350px] h-[350px] bg-emerald-500/10 blur-[90px] rounded-full pointer-events-none" />
                     <div className="absolute bottom-[-35%] left-[-10%] w-[300px] h-[300px] bg-amber-500/5 blur-[80px] rounded-full pointer-events-none" />
@@ -166,7 +166,8 @@ function ShopContent() {
                     {/* Tech grid layout overlay */}
                     <div className="absolute inset-0 pointer-events-none opacity-[0.04] z-0 bg-[linear-gradient(rgba(16,185,129,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.15)_1px,transparent_1px)] bg-[size:16px_16px]" />
 
-                    <div className="relative z-10 max-w-2xl space-y-6">
+                    {/* Left Column: Content */}
+                    <div className="relative z-10 max-w-xl space-y-6">
                         <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full inline-block">
                             LES TRÉSORS DE LA TERRE SAINTE 🕋
                         </span>
@@ -198,29 +199,30 @@ function ShopContent() {
                         </div>
                     </div>
 
-                    {/* Animated logo sliding & fading in the background/underneath */}
+                    {/* Right Column: Logo (Visible & Staged) */}
                     <div 
-                        className="absolute bottom-0 right-0 md:right-8 md:bottom-2 pointer-events-none z-0 translate-y-8 opacity-0 filter brightness-110 contrast-125 select-none"
+                        className="relative shrink-0 w-48 h-48 md:w-64 md:h-64 rounded-3xl bg-black/40 border border-white/10 flex items-center justify-center p-6 shadow-2xl z-10 [transform:translateZ(20px)] transition-all duration-500 hover:scale-105 hover:border-amber-500/30 select-none"
                         style={{
-                            width: '280px',
-                            height: '280px',
-                            animation: 'slideFadeUp 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                            animationDelay: '0.3s',
+                            animation: 'logoFadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                            animationDelay: '0.2s',
+                            opacity: 0,
+                            transform: 'translateY(15px)'
                         }}
                     >
                         <style>{`
-                            @keyframes slideFadeUp {
+                            @keyframes logoFadeIn {
                                 to {
-                                    transform: translateY(0);
-                                    opacity: 0.35;
+                                    transform: translateY(0) translateZ(20px);
+                                    opacity: 1;
                                 }
                             }
                         `}</style>
                         <Image 
                             src="/terre-sainte-shop-logo.png" 
-                            alt="Watermark Logo" 
-                            fill
-                            className="object-contain"
+                            alt="Terre Sainte Shop Logo" 
+                            width={200} 
+                            height={200} 
+                            className="object-contain filter brightness-110 drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]"
                         />
                     </div>
                 </div>
