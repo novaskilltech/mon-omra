@@ -122,32 +122,43 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
 
             <div className="max-w-5xl mx-auto p-6 space-y-8">
                 {/* Welcome Section Card matching user request screenshot */}
-                <header className="relative overflow-hidden rounded-[2.5rem] border border-amber-500/20 glass p-8 md:p-12 text-center shadow-lg">
+                <header className="relative overflow-hidden rounded-[2.5rem] border border-amber-500/30 bg-black/40 p-8 md:p-12 text-center shadow-[0_0_50px_rgba(212,175,55,0.05)] transition-all duration-500 hover:shadow-[0_0_60px_rgba(212,175,55,0.15)] hover:border-amber-500/50 [transform-style:preserve-3d] [perspective:1000px] hover:[transform:rotateX(2deg)_translateY(-2px)]">
+                    {/* Futuristic tech grid background */}
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.07] z-0 bg-[linear-gradient(rgba(212,175,55,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(212,175,55,0.15)_1px,transparent_1px)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+
                     {/* Glowing gold arch shape framing the entire container */}
-                    <div className="absolute inset-0 pointer-events-none opacity-40 z-0">
+                    <div className="absolute inset-0 pointer-events-none opacity-60 z-0">
                         <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full">
+                            <defs>
+                                <filter id="glow-gold" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="1.5" result="blur" />
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                </filter>
+                            </defs>
                             {/* Pointed Islamic Arch (Ogive) spanning from bottom-left to bottom-right */}
-                            <path d="M 0,100 L 0,40 C 0,15 20,5 50,2 C 80,5 100,15 100,40 L 100,100" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" vectorEffect="non-scaling-stroke"/>
-                            <path d="M 3,100 L 3,42 C 3,18 22,8 50,5 C 78,8 97,18 97,42 L 97,100" stroke="#D4AF37" strokeWidth="0.75" strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke"/>
+                            <path d="M 0,100 L 0,40 C 0,15 20,5 50,2 C 80,5 100,15 100,40 L 100,100" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" filter="url(#glow-gold)"/>
+                            <path d="M 3,100 L 3,42 C 3,18 22,8 50,5 C 78,8 97,18 97,42 L 97,100" stroke="#D4AF37" strokeWidth="0.75" strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" filter="url(#glow-gold)" opacity="0.8"/>
                         </svg>
                     </div>
 
-                    <div className="relative z-10 flex flex-col items-center">
+                    <div className="relative z-10 flex flex-col items-center [transform:translateZ(30px)]">
                         {/* Centered Kaaba logo */}
-                        <div className="relative w-24 h-24 mb-4 rounded-3xl overflow-hidden bg-black/25 border border-amber-500/25 flex items-center justify-center p-3 shadow-inner">
+                        <div className="relative w-24 h-24 mb-4 rounded-3xl overflow-hidden bg-black/50 border-2 border-amber-500/40 flex items-center justify-center p-3 shadow-[0_0_25px_rgba(212,175,55,0.25)] animate-pulse-subtle">
+                            {/* Laser scanning line */}
+                            <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent top-0 pointer-events-none animate-bounce" style={{ animationDuration: '4s' }} />
                             <Image 
                                 src="/app-logo.png" 
                                 alt="Kaaba Logo" 
                                 width={80} 
                                 height={80} 
-                                className="object-contain"
+                                className="object-contain filter drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]"
                             />
                         </div>
 
 
                         {data.hasNoGroup ? (
-                            <div className="w-full max-w-lg mx-auto bg-black/35 backdrop-blur-md rounded-2xl border border-emerald-500/10 p-6 mt-2 shadow-lg text-center">
-                                <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/70 mb-2">
+                            <div className="w-full max-w-lg mx-auto bg-black/45 backdrop-blur-md rounded-2xl border border-emerald-500/20 p-6 mt-2 shadow-[0_0_30px_rgba(16,185,129,0.05)] text-center">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/80 mb-2">
                                     Salam, {data.pilgrimName.split(' ')[0]} • Votre accès est approuvé ! 🕋
                                 </p>
                                 <p className="text-dim text-[11px] font-medium leading-relaxed m-0">
@@ -155,8 +166,8 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                                 </p>
                             </div>
                         ) : (
-                            <div className="w-full max-w-md mx-auto bg-black/35 backdrop-blur-md rounded-2xl border border-emerald-500/10 p-5 mt-2 shadow-lg">
-                                <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
+                            <div className="w-full max-w-md mx-auto bg-black/55 backdrop-blur-md rounded-2xl border border-emerald-500/20 p-5 mt-2 shadow-[0_0_30px_rgba(16,185,129,0.1)] [transform:translateZ(10px)]">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400/80 mb-3 text-center">
                                     Salam, {data.pilgrimName.split(' ')[0]} • Départ dans
                                 </p>
                                 <Countdown departureDateIso={data.departureDateIso || ''} />
