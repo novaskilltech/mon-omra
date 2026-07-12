@@ -24,7 +24,7 @@ const PRODUCTS: Product[] = [
         description: 'Miel d\'exception récolté dans les plaines du Panjab, texture onctueuse et saveur boisée unique, qualité comparable au Sidr du Yémen.',
         price: 35.00,
         category: 'MIEL',
-        image_url: '🍯',
+        image_url: '/jujubier-panjab-honey.png',
         payment_link: 'https://buy.stripe.com/test_14o7tAgG089J03S5kk',
         in_stock: true
     },
@@ -34,7 +34,7 @@ const PRODUCTS: Product[] = [
         description: 'Le roi des miels. Récolté dans la noble région du Hadramout au Yémen selon des méthodes ancestrales. Texture onctueuse, goût boisé et propriétés curatives incomparables.',
         price: 49.00,
         category: 'MIEL',
-        image_url: '🍯',
+        image_url: '/jujubier-yemen-honey.png',
         payment_link: 'https://buy.stripe.com/test_14o7tAgG089J03S5kk',
         in_stock: true
     },
@@ -44,7 +44,7 @@ const PRODUCTS: Product[] = [
         description: 'Huile pure de graine de nigelle, pressée à froid, certifiée 99% de pureté. Idéale pour renforcer les défenses et purifier le corps.',
         price: 18.00,
         category: 'PRODUIT_NATUREL',
-        image_url: '🌱',
+        image_url: '/nigella-oil-habachia.png',
         payment_link: 'https://buy.stripe.com/test_14o7tAgG089J03S5kk',
         in_stock: true
     },
@@ -54,7 +54,7 @@ const PRODUCTS: Product[] = [
         description: 'Dattes Ajwa authentiques de la ville bénie du Prophète (صلى الله عليه وسلم), cultivées selon la tradition prophétique. Reconnues pour leur goût exquis et leurs vertus protectrices.',
         price: 19.00,
         category: 'PRODUIT_NATUREL',
-        image_url: '🌴',
+        image_url: '/ajwa-dates-medinah.png',
         payment_link: 'https://buy.stripe.com/test_14o7tAgG089J03S5kk',
         in_stock: true
     }
@@ -249,8 +249,13 @@ function ShopContent() {
                         {PRODUCTS.map((prod) => (
                             <div key={prod.id} className="glass p-6 rounded-[2.5rem] border-emerald-500/5 flex flex-col justify-between shadow-sm relative group">
                                 <div className="space-y-4">
-                                    <div className="w-full h-32 rounded-2xl overflow-hidden border border-white/5 bg-black/20 relative flex items-center justify-center text-4xl shadow-inner">
-                                        {prod.image_url}
+                                    <div className="w-full h-32 rounded-2xl overflow-hidden border border-white/5 bg-black/20 relative flex items-center justify-center shadow-inner">
+                                        <Image 
+                                            src={prod.image_url}
+                                            alt={prod.name}
+                                            fill
+                                            className="object-cover group-hover:scale-102 transition-transform duration-500"
+                                        />
                                     </div>
                                     <div className="space-y-1">
                                         <div className="flex justify-between items-center">
