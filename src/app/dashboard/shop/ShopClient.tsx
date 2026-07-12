@@ -188,7 +188,7 @@ function ShopContent() {
                                 Explorer les Produits
                             </button>
                             <a 
-                                href="https://wa.me/33631264426?text=Bonjour,%20je%20souhaite%20obtenir%20des%20informations%20sur%20la%20boutique%20Terre%20Sainte%20Shop."
+                                href="https://wa.me/3375228090?text=Bonjour,%20je%20souhaite%20obtenir%20des%20informations%20sur%20la%20boutique%20Terre%20Sainte%20Shop."
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="bg-white/5 hover:bg-white/10 text-main border border-white/10 font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-2xl transition-all hover:scale-102"
@@ -282,7 +282,7 @@ function ShopContent() {
                                 </div>
                                 <div className="mt-6 pt-4 border-t border-white/5">
                                     <a
-                                        href={`https://wa.me/33631264426?text=${encodeURIComponent(srv.whatsappMessage)}`}
+                                        href={`https://wa.me/3375228090?text=${encodeURIComponent(srv.whatsappMessage)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest py-3.5 rounded-2xl shadow-lg transition-all hover:scale-102 flex items-center justify-center gap-2"
