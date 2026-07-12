@@ -358,7 +358,7 @@ export default function LoginPage() {
 
                                 <form onSubmit={verifyOtp} className="space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Code à 6 chiffres</label>
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-dim ml-4">Code à 8 chiffres</label>
                                         <div className="relative">
                                             <ShieldCheck className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/30" />
                                             <input
@@ -367,7 +367,7 @@ export default function LoginPage() {
                                                 maxLength={8}
                                                 value={otp}
                                                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                                                placeholder="786921"
+                                                placeholder="78692100"
                                                 className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-5 pl-14 rounded-2xl text-2xl tracking-[0.5em] font-black focus:border-emerald-500/50 outline-none transition-all text-main dark:text-white placeholder:opacity-20"
                                             />
                                         </div>
