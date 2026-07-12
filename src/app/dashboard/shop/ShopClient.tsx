@@ -197,6 +197,32 @@ function ShopContent() {
                             </a>
                         </div>
                     </div>
+
+                    {/* Animated logo sliding & fading in the background/underneath */}
+                    <div 
+                        className="absolute bottom-0 right-0 md:right-8 md:bottom-2 pointer-events-none z-0 translate-y-8 opacity-0 filter brightness-110 contrast-125 select-none"
+                        style={{
+                            width: '280px',
+                            height: '280px',
+                            animation: 'slideFadeUp 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                            animationDelay: '0.3s',
+                        }}
+                    >
+                        <style>{`
+                            @keyframes slideFadeUp {
+                                to {
+                                    transform: translateY(0);
+                                    opacity: 0.12;
+                                }
+                            }
+                        `}</style>
+                        <Image 
+                            src="/terre-sainte-shop-logo.png" 
+                            alt="Watermark Logo" 
+                            fill
+                            className="object-contain"
+                        />
+                    </div>
                 </div>
 
                 {/* Tabs */}
