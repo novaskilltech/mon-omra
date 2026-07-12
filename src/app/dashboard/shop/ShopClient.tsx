@@ -212,7 +212,7 @@ function ShopContent() {
                             @keyframes slideFadeUp {
                                 to {
                                     transform: translateY(0);
-                                    opacity: 0.12;
+                                    opacity: 0.35;
                                 }
                             }
                         `}</style>
