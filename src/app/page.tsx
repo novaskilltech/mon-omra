@@ -327,7 +327,7 @@ export default function Home() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Naturomiel Card */}
+                    {/* Terre Sainte Shop Card */}
                     <div className="glass p-10 md:p-12 rounded-[3rem] border-amber-500/10 flex flex-col justify-between gap-8 relative overflow-hidden group shadow-xl bg-amber-500/[0.01]">
                         <div className="absolute top-[-20%] left-[-10%] w-[250px] h-[250px] bg-amber-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-amber-500/15 transition-all duration-700" />
                         
@@ -336,7 +336,7 @@ export default function Home() {
                                 PRODUITS NATURELS & SOUVENIRS
                             </span>
                             <h3 className="text-2xl font-black uppercase tracking-tighter text-main">
-                                Naturomiel <span className="text-amber-500">Boutique</span>
+                                Terre Sainte <span className="text-amber-500">Shop</span>
                             </h3>
                             <p className="text-sub text-xs leading-relaxed opacity-75">
                                 Ramenez chez vous les bienfaits de la Terre Sainte : miels rares de Jujubier sauvage (Sidr du Yémen, Peshawar, Cachemire), dattes Ajwa de Médine de qualité supérieure et huile de nigelle d'Éthiopie pure pressée à froid.
@@ -344,21 +344,17 @@ export default function Home() {
                         </div>
 
                         <div className="relative w-full h-48 md:h-60 rounded-2xl overflow-hidden border border-amber-500/10 bg-black/30 shadow-2xl group/img shrink-0">
-                            <Image 
-                                src="/naturomiel-shop.png" 
-                                alt="Produits Naturomiel" 
-                                fill
-                                className="object-cover group-hover/img:scale-102 transition-transform duration-700" 
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
-                            <div className="absolute bottom-6 left-6 right-6 text-left">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-10" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 p-8">
                                 <Image 
-                                    src="/naturomiel-logo.png" 
-                                    alt="Naturomiel Logo" 
-                                    width={100} 
-                                    height={30} 
-                                    className="object-contain filter brightness-110 mb-2" 
+                                    src="/terre-sainte-shop-logo.png" 
+                                    alt="Terre Sainte Shop Logo" 
+                                    width={180} 
+                                    height={180} 
+                                    className="object-contain filter brightness-110 group-hover/img:scale-105 transition-transform duration-700" 
                                 />
+                            </div>
+                            <div className="absolute bottom-6 left-6 right-6 text-left z-20">
                                 <p className="text-[9px] text-white/70 font-bold m-0 uppercase tracking-wider leading-relaxed">
                                     Miel de Jujubier sauvage, Dattes Ajwa & Nigelle Habachia.
                                 </p>

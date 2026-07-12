@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { ShoppingBag, ArrowLeft, ExternalLink, MapPin, Compass } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 
 interface Product {
@@ -129,21 +130,74 @@ function ShopContent() {
     return (
         <div className="min-h-screen text-white p-6 md:p-8 font-inter">
             <div className="max-w-5xl mx-auto space-y-8">
-                {/* Back Link */}
-                <Link href={`/dashboard?pilgrimId=${pilgrimId}`} className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-500 hover:text-emerald-400 transition-colors w-fit">
-                    <ArrowLeft className="w-4 h-4" /> Retour au Tableau de bord
-                </Link>
-
-                {/* Header */}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="space-y-1.5">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">BOUTIQUE & SERVICES (APERÇU ADMIN)</span>
-                        <h1 className="text-4xl font-black uppercase tracking-tighter text-main">Terre Sainte <span className="text-emerald-500">Shop</span></h1>
-                        <p className="text-xs text-dim max-w-xl">
-                            Espace réservé à l'administrateur pour tests. Commandez vos miels d'exception ou réservez vos activités et locations de chalets directement sur place à la Mecque et Médine.
-                        </p>
+                {/* Header Navigation Bar */}
+                <nav className="flex justify-between items-center bg-[#090b0a]/80 backdrop-blur-md border border-white/5 rounded-3xl px-6 py-4 shadow-xl relative z-20">
+                    <div className="flex items-center gap-3">
+                        <div className="relative w-10 h-10 overflow-hidden rounded-xl border border-amber-500/20 bg-black/40 flex items-center justify-center p-1">
+                            <Image 
+                                src="/terre-sainte-shop-logo.png" 
+                                alt="Terre Sainte Shop Logo" 
+                                width={32} 
+                                height={32} 
+                                className="object-contain filter brightness-110"
+                            />
+                        </div>
+                        <div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-amber-500 block -mb-1">BOUTIQUE OFFICIELLE</span>
+                            <span className="text-sm font-black uppercase tracking-tight text-main">Terre Sainte <span className="text-emerald-500">Shop</span></span>
+                        </div>
                     </div>
-                </header>
+                    <div className="flex items-center gap-4">
+                        <span className="hidden md:inline-block bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full">
+                            Espace Client Privé
+                        </span>
+                        <Link href={`/dashboard?pilgrimId=${pilgrimId}`} className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-500 hover:text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10 px-4 py-2.5 rounded-2xl border border-emerald-500/10 transition-all">
+                            <ArrowLeft className="w-4 h-4" /> Dashboard
+                        </Link>
+                    </div>
+                </nav>
+
+                {/* Hero Section Banner */}
+                <div className="relative overflow-hidden rounded-[2.5rem] border border-emerald-500/15 bg-gradient-to-br from-[#0c1511]/90 to-[#070b09]/95 p-8 md:p-12 text-left shadow-2xl [transform-style:preserve-3d] [perspective:1000px]">
+                    {/* Glowing background circles */}
+                    <div className="absolute top-[-30%] right-[-10%] w-[350px] h-[350px] bg-emerald-500/10 blur-[90px] rounded-full pointer-events-none" />
+                    <div className="absolute bottom-[-35%] left-[-10%] w-[300px] h-[300px] bg-amber-500/5 blur-[80px] rounded-full pointer-events-none" />
+                    
+                    {/* Tech grid layout overlay */}
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.04] z-0 bg-[linear-gradient(rgba(16,185,129,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.15)_1px,transparent_1px)] bg-[size:16px_16px]" />
+
+                    <div className="relative z-10 max-w-2xl space-y-6">
+                        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full inline-block">
+                            LES TRÉSORS DE LA TERRE SAINTE 🕋
+                        </span>
+                        
+                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-main leading-none">
+                            Rapportez chez vous <br />
+                            <span className="bg-gradient-to-r from-amber-400 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">l'Essence du Voyage</span>
+                        </h2>
+                        
+                        <p className="text-dim text-xs leading-relaxed max-w-xl font-medium">
+                            Sélection de produits d'exception récoltés ou fabriqués dans les régions sacrées : Miels rares de Jujubier sauvage, Dattes Ajwa royales de Médine et excursions guidées sur mesure à Taïf, Djeddah et au Mont Uhud.
+                        </p>
+
+                        <div className="flex flex-wrap gap-4 pt-2">
+                            <button 
+                                onClick={() => setActiveTab('PRODUCTS')}
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg transition-all hover:scale-102"
+                            >
+                                Explorer les Produits
+                            </button>
+                            <a 
+                                href="https://wa.me/33631264426?text=Bonjour,%20je%20souhaite%20obtenir%20des%20informations%20sur%20la%20boutique%20Terre%20Sainte%20Shop."
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-white/5 hover:bg-white/10 text-main border border-white/10 font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-2xl transition-all hover:scale-102"
+                            >
+                                Contacter un Guide (WhatsApp)
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Tabs */}
                 <div className="flex gap-4 border-b border-emerald-500/10 pb-1">
