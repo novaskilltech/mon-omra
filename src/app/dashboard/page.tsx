@@ -1,4 +1,4 @@
-import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle, Users, Shield, ShoppingBag } from 'lucide-react';
+import { Compass, Calendar, Hotel, Plane, FileText, AlertCircle, CheckCircle2, HelpCircle, Users, Shield, ShoppingBag, Clock, Bus, Utensils, Coffee, Sparkles, Navigation, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import nextDynamic from 'next/dynamic';
@@ -297,6 +297,133 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                         </div>
                         {/* Preparation Checklist */}
                         <ChecklistEditor initialChecklist={data.checklist} pilgrimId={targetPilgrimId} />
+                    </div>
+                )}
+
+                {/* TODAY'S TIMELINE & MEETING POINT WIDGETS */}
+                {!data.hasNoGroup && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Column 1 & 2: Chronogramme interactif */}
+                        <div className="md:col-span-2 glass p-8 rounded-[2.5rem] border-emerald-500/5 shadow-sm space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                    <Calendar className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-main uppercase tracking-tighter">Votre Journée (Jour {data.currentDayOfTrip})</h3>
+                                    <p className="text-[11px] text-dim font-medium italic">Planning heure par heure d'aujourd'hui</p>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-4 pt-2">
+                                {data.todayActivities && data.todayActivities.length > 0 ? (
+                                    data.todayActivities.map((activity: any, idx: number) => {
+                                        const typeIcons: any = {
+                                            RITUEL: Sparkles,
+                                            ZIYARAT: MapPin,
+                                            TRANSPORT: Bus,
+                                            REPAS: Utensils,
+                                            REPOS: Coffee
+                                        };
+                                        const typeColors: any = {
+                                            RITUEL: 'text-amber-500 bg-amber-500/10',
+                                            ZIYARAT: 'text-purple-500 bg-purple-500/10',
+                                            TRANSPORT: 'text-blue-500 bg-blue-500/10',
+                                            REPAS: 'text-emerald-500 bg-emerald-500/10',
+                                            REPOS: 'text-dim bg-white/5'
+                                        };
+                                        const ActivityIcon = typeIcons[activity.type] || Compass;
+                                        const col = typeColors[activity.type] || 'text-emerald-500 bg-emerald-500/10';
+                                        
+                                        return (
+                                            <div key={idx} className="flex gap-4 group">
+                                                <div className="flex flex-col items-center">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${col.split(' ')[1]} border border-white/5`}>
+                                                        <ActivityIcon className={`w-4 h-4 ${col.split(' ')[0]}`} />
+                                                    </div>
+                                                    {idx !== data.todayActivities.length - 1 && (
+                                                        <div className="w-[1px] h-full min-h-[30px] bg-gradient-to-b from-white/10 to-transparent my-1" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 pb-4">
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[9px] font-black text-amber-500 bg-amber-500/5 border border-amber-500/10 px-1.5 py-0.5 rounded">{activity.time}</span>
+                                                                <h4 className="text-sm font-bold text-main uppercase tracking-tight">{activity.title}</h4>
+                                                            </div>
+                                                            {activity.location && (
+                                                                <p className="text-[9px] text-dim font-bold uppercase tracking-wider mt-1 flex items-center gap-1">
+                                                                    <MapPin className="w-2.5 h-2.5 text-emerald-500" /> {activity.location}
+                                                                </p>
+                                                            )}
+                                                            <p className="text-xs text-sub leading-relaxed font-light">{activity.description}</p>
+                                                        </div>
+                                                        <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded border border-white/5 ${col.split(' ')[0]} ${col.split(' ')[1]}`}>
+                                                            {activity.type}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <p className="text-xs text-dim italic text-center py-6">Aucune activité planifiée pour aujourd'hui.</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Column 3: Point de rassemblement */}
+                        <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Navigation className="w-24 h-24 text-amber-500 animate-pulse" />
+                            </div>
+                            <div className="relative z-10 space-y-4">
+                                <span className="bg-amber-500/15 text-amber-500 text-[9px] font-black tracking-[0.2em] px-3 py-1.5 rounded-full border border-amber-500/25 mb-4 inline-block uppercase">
+                                    RASSEMBLEMENT DU GROUPE
+                                </span>
+                                
+                                {data.meetingPoint ? (
+                                    <div className="space-y-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 animate-bounce">
+                                            <Compass className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-lg font-black text-main uppercase tracking-tighter line-clamp-2 leading-tight">
+                                                {data.meetingPoint.name}
+                                            </h4>
+                                            <p className="text-xs text-dim leading-relaxed font-light mt-2">
+                                                {data.meetingPoint.description || "Point de rencontre officiel pour les départs en bus et activités groupées."}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4 py-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                                            <CheckCircle2 className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-main uppercase">Quartier Libre / Repos</h4>
+                                            <p className="text-xs text-dim leading-relaxed font-light mt-1">
+                                                Aucun rassemblement n'est requis actuellement. Profitez de votre temps libre ou reposez-vous à votre hôtel.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {data.meetingPoint && (
+                                <a 
+                                    href={data.meetingPoint.maps_url || `https://maps.google.com/?q=${data.meetingPoint.latitude},${data.meetingPoint.longitude}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full text-center bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-2xl shadow-lg shadow-amber-500/20 transition-all hover:scale-102 flex items-center justify-center gap-2 mt-6"
+                                >
+                                    <Navigation className="w-4 h-4 fill-current rotate-45" />
+                                    Rejoindre le Groupe
+                                </a>
+                            )}
+                        </div>
                     </div>
                 )}
 

@@ -556,6 +556,69 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
             }
         }
 
+        // --- FETCH DAILY TIMELINE & MEETING POINT ---
+        let currentDayOfTrip = 1;
+        let todayActivities: any[] = [];
+        let meetingPoint: any = null;
+
+        if (pilgrim && pilgrim.group_id) {
+            try {
+                // Fetch group departure date
+                const { data: group } = await supabase
+                    .from('groups')
+                    .select('departure_date')
+                    .eq('id', pilgrim.group_id)
+                    .single();
+
+                if (group && group.departure_date) {
+                    const depDate = new Date(group.departure_date);
+                    depDate.setHours(0, 0, 0, 0);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const diffTime = today.getTime() - depDate.getTime();
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    currentDayOfTrip = Math.max(1, diffDays);
+                }
+
+                // Fetch custom planning and meeting point from group_logistics
+                const { data: logist } = await supabase
+                    .from('group_logistics')
+                    .select('custom_planning, meeting_point')
+                    .eq('group_id', pilgrim.group_id)
+                    .maybeSingle();
+
+                if (logist) {
+                    if (logist.custom_planning && typeof logist.custom_planning === 'object') {
+                        todayActivities = (logist.custom_planning as any)[currentDayOfTrip.toString()] || [];
+                    }
+                    meetingPoint = logist.meeting_point || null;
+                }
+            } catch (err) {
+                console.error("Error loading daily activities and meeting point:", err);
+            }
+        }
+
+        // Fallback for demo/testing purposes
+        if (todayActivities.length === 0 && pilgrim?.group_id) {
+            todayActivities = [
+                { time: "08:30", title: "Rassemblement Hall Hôtel", location: "Hôtel Médine", type: "TRANSPORT", description: "Départ en bus privé climatisé pour les visites historiques de la ville de Médine." },
+                { time: "09:30", title: "Visite de la Mosquée de Quba", location: "Mosquée de Quba", type: "ZIYARAT", description: "Première mosquée de l'Islam. Pensez à faire vos ablutions à l'hôtel pour bénéficier de la récompense d'une Omra." },
+                { time: "11:30", title: "Mont Uhud & Cimetière des Martyrs", location: "Mont Uhud", type: "ZIYARAT", description: "Explications historiques par nos guides sur la bataille d'Uhud et moment de recueillement." },
+                { time: "13:30", title: "Déjeuner de Groupe (Couscous)", location: "Restaurant Traditionnel Uhud", type: "REPAS", description: "Repas convivial offert par l'agence au pied du Mont Uhud." },
+                { time: "21:00", title: "Cercle Spirituel & Rappel", location: "Salle de conférence de l'Hôtel", type: "RITUEL", description: "Assise spirituelle animée par nos guides pour préparer les étapes de la Omra." }
+            ];
+        }
+
+        if (!meetingPoint && pilgrim?.group_id) {
+            meetingPoint = {
+                name: "Porte 339 (Mosquée du Prophète - Médine)",
+                description: "Rassemblement près des grands parasols blancs pour le départ des bus de visites.",
+                latitude: 24.4672,
+                longitude: 39.6111,
+                maps_url: "https://maps.google.com/?q=24.4672,39.6111"
+            };
+        }
+
         return {
             pilgrimName: `${profile.full_name || ''}`.trim() || "Salah Lamkhannet",
             visaUrl: visaUrl,
@@ -579,7 +642,10 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
                 { label: "Solde", status: isPaid ? "Payé" : `Reste : ${pilgrimPrice - totalPaid} €`, ok: isPaid },
                 { label: "Check-in", status: profile.checkin_done ? "Prêt" : "À faire", ok: !!profile.checkin_done },
             ],
-            familyMembers
+            familyMembers,
+            currentDayOfTrip,
+            todayActivities,
+            meetingPoint
         };
     } catch (err) {
         return {
