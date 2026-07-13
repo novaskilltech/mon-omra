@@ -79,7 +79,7 @@ const SERVICES: OnSiteService[] = [
         price: '80 € / personne',
         city: 'LA MECQUE',
         type: 'EXCURSION',
-        icon: '⛰️',
+        icon: '/excursion-taif.png',
         whatsappMessage: 'Bonjour, je souhaite réserver l\'excursion à Taïf pour ma famille.'
     },
     {
@@ -89,7 +89,7 @@ const SERVICES: OnSiteService[] = [
         price: '45 € / personne',
         city: 'DJEDDAH',
         type: 'EXCURSION',
-        icon: '🛍️',
+        icon: '/excursion-djeddah.png',
         whatsappMessage: 'Bonjour, je souhaite réserver l\'excursion Shopping à Djeddah.'
     },
     {
@@ -99,7 +99,7 @@ const SERVICES: OnSiteService[] = [
         price: '30 € / personne',
         city: 'MÉDINE',
         type: 'EXCURSION',
-        icon: '⛺',
+        icon: '/excursion-uhud.png',
         whatsappMessage: 'Bonjour, je souhaite réserver le pique-nique nocturne au Mont Uhud.'
     },
     {
@@ -109,7 +109,7 @@ const SERVICES: OnSiteService[] = [
         price: 'Sur devis (Dès 150 €)',
         city: 'MÉDINE',
         type: 'LOCATION',
-        icon: '🏊',
+        icon: '/villa-medine.png',
         whatsappMessage: 'Bonjour, je souhaite louer un chalet avec piscine à la journée à Médine.'
     }
 ];
@@ -292,17 +292,20 @@ function ShopContent() {
                         {SERVICES.map((srv) => (
                             <div key={srv.id} className="glass p-6 rounded-[2.5rem] border-amber-500/10 flex flex-col justify-between shadow-sm relative group">
                                 <div className="space-y-4">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl shadow-inner shrink-0">
-                                                {srv.icon}
-                                            </div>
-                                            <div>
-                                                <h3 className="text-sm font-black text-main uppercase tracking-tight">{srv.name}</h3>
-                                                <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-amber-500/80 mt-0.5">
-                                                    <MapPin className="w-3 h-3" /> {srv.city}
-                                                </div>
-                                            </div>
+                                    {/* Excursion Banner Image */}
+                                    <div className="w-full h-40 rounded-2xl overflow-hidden border border-white/5 bg-black/20 relative shadow-inner">
+                                        <Image 
+                                            src={srv.icon}
+                                            alt={srv.name}
+                                            fill
+                                            className="object-cover group-hover:scale-102 transition-transform duration-500"
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-black text-main uppercase tracking-tight pt-1">{srv.name}</h3>
+                                        <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-amber-500/80 mt-0.5 mb-2">
+                                            <MapPin className="w-3 h-3" /> {srv.city}
                                         </div>
                                     </div>
                                     <p className="text-[11px] text-dim leading-relaxed font-medium min-h-[40px]">
