@@ -262,7 +262,7 @@ function ShopContent() {
                                             <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md">
                                                 {prod.category === 'MIEL' ? '🍯 Miel' : '🌱 Bien-être'}
                                             </span>
-                                            <span className="text-xs font-black text-emerald-500">{prod.price.toFixed(2)} €</span>
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-md">Bientôt disponible</span>
                                         </div>
                                         <h3 className="text-sm font-black text-main uppercase tracking-tight pt-1">{prod.name}</h3>
                                         <p className="text-[11px] text-dim leading-relaxed font-medium">{prod.description}</p>
@@ -271,12 +271,12 @@ function ShopContent() {
                                 <div className="mt-6 pt-4 border-t border-white/5">
                                     {prod.payment_link ? (
                                         <a
-                                            href={prod.payment_link}
+                                            href={`https://wa.me/3375228090?text=${encodeURIComponent(`Bonjour, je souhaite obtenir des informations sur le produit : ${prod.name}`)}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest py-3.5 rounded-2xl shadow-lg transition-all hover:scale-102 flex items-center justify-center gap-2"
                                         >
-                                            Acheter en ligne <ExternalLink className="w-3.5 h-3.5" />
+                                            Se renseigner sur WhatsApp
                                         </a>
                                     ) : (
                                         <span className="w-full text-center block bg-white/5 border border-white/5 text-dim font-bold text-xs uppercase tracking-widest py-3.5 rounded-2xl">
@@ -312,8 +312,8 @@ function ShopContent() {
                                         {srv.description}
                                     </p>
                                     <div className="flex items-center justify-between bg-amber-500/5 border border-amber-500/10 p-3.5 rounded-xl text-xs font-bold uppercase tracking-wider">
-                                        <span className="text-dim text-[10px]">Tarif indicatif</span>
-                                        <span className="text-amber-500">{srv.price}</span>
+                                        <span className="text-dim text-[10px]">Tarif</span>
+                                        <span className="text-amber-500">Bientôt disponible</span>
                                     </div>
                                 </div>
                                 <div className="mt-6 pt-4 border-t border-white/5">
