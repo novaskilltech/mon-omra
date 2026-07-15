@@ -953,6 +953,36 @@ function decompressPdfStreams(buffer: Buffer): string {
     return text;
 }
 
+function safeParseJSON(text: string): any {
+    const trimmed = text.trim();
+    try {
+        return JSON.parse(trimmed);
+    } catch (e) {
+        // Ignore
+    }
+
+    // Replace markdown block syntax
+    let cleaned = trimmed.replace(/^```[a-zA-Z]*\s*/i, '').replace(/\s*```$/, '').trim();
+    try {
+        return JSON.parse(cleaned);
+    } catch (e) {
+        // Ignore
+    }
+
+    const start = trimmed.indexOf('{');
+    const end = trimmed.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end > start) {
+        const jsonSubstring = trimmed.substring(start, end + 1);
+        try {
+            return JSON.parse(jsonSubstring);
+        } catch (e) {
+            // Ignore
+        }
+    }
+
+    throw new Error("Le format JSON renvoyé par l'IA est invalide ou incomplet.");
+}
+
 export async function extractFlightTicketOCR(formData: FormData) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -1028,11 +1058,17 @@ export async function extractFlightTicketOCR(formData: FormData) {
             }
 
             const jsonRes = await response.json();
+            
+            // Check for OpenRouter error payload
+            if (jsonRes.error) {
+                console.error("OpenRouter API returned error payload:", jsonRes.error);
+                return { error: `Erreur API OpenRouter : ${jsonRes.error.message || "Problème d'allocation ou crédit"}` };
+            }
+
             const textResponse = jsonRes.choices?.[0]?.message?.content;
             if (textResponse) {
                 console.log("OpenRouter response:", textResponse);
-                const cleanedText = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-                const parsedData = JSON.parse(cleanedText);
+                const parsedData = safeParseJSON(textResponse);
                 
                 let flightSegments = [];
                 if (parsedData.segments && Array.isArray(parsedData.segments)) {
@@ -1067,6 +1103,7 @@ export async function extractFlightTicketOCR(formData: FormData) {
             }
         } catch (e: any) {
             console.error("Failed to parse ticket using OpenRouter API", e);
+            return { error: `Erreur d'analyse par l'IA : ${e.message || "Erreur de format"}` };
         }
     } else {
         console.log("No OPENROUTER_API_KEY detected in env.local. Using local heuristics...");
@@ -1930,11 +1967,17 @@ export async function extractFlightTicketFromText(text: string) {
             }
 
             const jsonRes = await response.json();
+
+            // Check for OpenRouter error payload
+            if (jsonRes.error) {
+                console.error("OpenRouter API returned error payload:", jsonRes.error);
+                return { error: `Erreur API OpenRouter : ${jsonRes.error.message || "Problème d'allocation ou crédit"}` };
+            }
+
             const textResponse = jsonRes.choices?.[0]?.message?.content;
             if (textResponse) {
                 console.log("OpenRouter text response:", textResponse);
-                const cleanedText = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-                const parsedData = JSON.parse(cleanedText);
+                const parsedData = safeParseJSON(textResponse);
                 
                 let flightSegments = [];
                 if (parsedData.segments && Array.isArray(parsedData.segments)) {
@@ -1969,7 +2012,7 @@ export async function extractFlightTicketFromText(text: string) {
             }
         } catch (e: any) {
             console.error("Failed to parse ticket text using OpenRouter API", e);
-            return { error: "Impossible d'analyser le texte avec l'IA." };
+            return { error: `Impossible d'analyser le texte avec l'IA : ${e.message || "Erreur de format"}` };
         }
     }
     return { error: "Clé d'API OpenRouter manquante." };
