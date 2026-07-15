@@ -10,7 +10,7 @@ import {
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, uploadVisaDocument,
     deletePilgrimAction,
-    addPayment, getPilgrimPayments, getGroups,
+    addPayment, getPilgrimPayments, getGroups, updatePayment, deletePayment,
     getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
     extractFlightTicketOCR, extractFlightTicketFromText, saveIndividualFlightInfo, updatePilgrimPackagePrice,
     linkFamilyMember, unlinkFamilyMember, updatePilgrimAction,
@@ -91,6 +91,14 @@ export default function ConciergeDashboard() {
     
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentForm, setPaymentForm] = useState({
+        amount: '',
+        method: 'TRANSFER' as 'CASH' | 'TRANSFER' | 'CARD' | 'CHECK',
+        reference: ''
+    });
+
+    const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
+    const [editingPayment, setEditingPayment] = useState<any>(null);
+    const [editPaymentForm, setEditPaymentForm] = useState({
         amount: '',
         method: 'TRANSFER' as 'CASH' | 'TRANSFER' | 'CARD' | 'CHECK',
         reference: ''
@@ -315,6 +323,65 @@ export default function ConciergeDashboard() {
             }
         } catch (err) {
             console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEditPayment = (payment: any) => {
+        setEditingPayment(payment);
+        setEditPaymentForm({
+            amount: payment.amount.toString(),
+            method: payment.method,
+            reference: payment.reference || ''
+        });
+        setShowEditPaymentModal(true);
+    };
+
+    const handleEditPaymentSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingPayment || !selectedPilgrim) return;
+        setLoading(true);
+        try {
+            const res = await updatePayment(
+                editingPayment.id,
+                parseFloat(editPaymentForm.amount),
+                editPaymentForm.method,
+                editPaymentForm.reference
+            );
+            if (res.success) {
+                setShowEditPaymentModal(false);
+                setEditingPayment(null);
+                await handleSelectPilgrim(selectedPilgrim);
+                alert("Règlement modifié avec succès !");
+            } else {
+                alert(res.error || "Erreur de modification");
+            }
+        } catch (err: any) {
+            console.error(err);
+            alert("Erreur lors de la modification");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeletePayment = async (paymentId: string) => {
+        if (!window.confirm("Êtes-vous sûr de vouloir supprimer définitivement ce règlement ?")) {
+            return;
+        }
+        if (!selectedPilgrim) return;
+        setLoading(true);
+        try {
+            const res = await deletePayment(paymentId);
+            if (res.success) {
+                await handleSelectPilgrim(selectedPilgrim);
+                alert("Règlement supprimé avec succès !");
+            } else {
+                alert(res.error || "Erreur de suppression");
+            }
+        } catch (err: any) {
+            console.error(err);
+            alert("Erreur lors de la suppression");
         } finally {
             setLoading(false);
         }
@@ -1119,6 +1186,7 @@ export default function ConciergeDashboard() {
                                                             <th className="pb-2 font-bold uppercase tracking-wider">Méthode</th>
                                                             <th className="pb-2 font-bold uppercase tracking-wider">Référence</th>
                                                             <th className="pb-2 font-bold uppercase tracking-wider">Statut</th>
+                                                            <th className="pb-2 font-bold uppercase tracking-wider text-right">Actions</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -1132,6 +1200,22 @@ export default function ConciergeDashboard() {
                                                                     <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-black uppercase">
                                                                         {pay.status}
                                                                     </span>
+                                                                </td>
+                                                                <td className="py-2.5 text-right space-x-2">
+                                                                    <button 
+                                                                        onClick={() => handleEditPayment(pay)}
+                                                                        className="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all inline-block"
+                                                                        title="Modifier"
+                                                                    >
+                                                                        <Edit className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => handleDeletePayment(pay.id)}
+                                                                        className="p-1 text-red-500 hover:bg-red-500/10 rounded-lg transition-all inline-block"
+                                                                        title="Supprimer"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
                                                                 </td>
                                                             </tr>
                                                         ))}
@@ -2035,6 +2119,71 @@ export default function ConciergeDashboard() {
                                 className="w-1/2 px-6 py-3 bg-emerald-600 dark:bg-emerald-500 text-white dark:text-[#050605] rounded-2xl font-black uppercase tracking-widest text-[10px]"
                             >
                                 Confirmer Encaissement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* Modal: Modifier règlement */}
+            {showEditPaymentModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+                    <form onSubmit={handleEditPaymentSubmit} className="glass w-full max-w-md p-8 rounded-[2.5rem] border-emerald-500/10 space-y-6">
+                        <h3 className="text-xl font-black uppercase tracking-tighter text-main m-0">Modifier le Règlement</h3>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Montant (€)</label>
+                                <input 
+                                    type="number" 
+                                    required
+                                    placeholder="Ex: 500"
+                                    value={editPaymentForm.amount}
+                                    onChange={(e) => setEditPaymentForm({ ...editPaymentForm, amount: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Moyen de Paiement</label>
+                                <select 
+                                    value={editPaymentForm.method}
+                                    onChange={(e) => setEditPaymentForm({ ...editPaymentForm, method: e.target.value as any })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
+                                >
+                                    <option value="TRANSFER" className="bg-[#0b0e0c] text-main">Virement Bancaire</option>
+                                    <option value="CARD" className="bg-[#0b0e0c] text-main">Carte Bancaire</option>
+                                    <option value="CASH" className="bg-[#0b0e0c] text-main">Espèces</option>
+                                    <option value="CHECK" className="bg-[#0b0e0c] text-main">Chèque</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Référence / Numéro</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ex: VIR-98212"
+                                    value={editPaymentForm.reference}
+                                    onChange={(e) => setEditPaymentForm({ ...editPaymentForm, reference: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setShowEditPaymentModal(false);
+                                    setEditingPayment(null);
+                                }}
+                                className="w-1/2 btn-secondary py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/10 text-main"
+                            >
+                                Annuler
+                            </button>
+                            <button 
+                                type="submit"
+                                className="w-1/2 px-6 py-3 bg-emerald-600 dark:bg-emerald-500 text-white dark:text-[#050605] rounded-2xl font-black uppercase tracking-widest text-[10px]"
+                            >
+                                Confirmer Modification
                             </button>
                         </div>
                     </form>

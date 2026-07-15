@@ -334,6 +334,59 @@ export async function addPayment(
     }
 }
 
+export async function updatePayment(
+    paymentId: string,
+    amount: number,
+    method: 'CASH' | 'TRANSFER' | 'CARD' | 'CHECK',
+    reference?: string
+) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        const { error } = await supabase
+            .from('payments')
+            .update({
+                amount: amount,
+                method: method,
+                reference: reference || null
+            })
+            .eq('id', paymentId);
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/concierge');
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error updating payment:", e);
+        return { error: e.message || "Erreur lors de la modification du règlement" };
+    }
+}
+
+export async function deletePayment(paymentId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createClient();
+    try {
+        const { error } = await supabase
+            .from('payments')
+            .delete()
+            .eq('id', paymentId);
+
+        if (error) throw error;
+
+        revalidatePath('/backoffice/concierge');
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error deleting payment:", e);
+        return { error: e.message || "Erreur lors de la suppression du règlement" };
+    }
+}
+
 export async function getPilgrimPayments(pilgrimId: string) {
     const supabase = createClient();
     const { data, error } = await supabase
