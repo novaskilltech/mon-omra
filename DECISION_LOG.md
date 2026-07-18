@@ -210,5 +210,16 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Trier automatiquement par vol les passagers sur le manifeste du chauffeur [shared/transfer/[token]/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/shared/transfer/[token]/page.tsx) via la fonction backend `getDriverDashboardData` de `concierge.ts`.
 *   **Version** : v1.13.0
 
+---
+
+## 21. Création de la Landing Page « La Méthode OMRAYANAIR »
+*   **Décision** : Implémenter une landing page premium, responsive et persuasive sous `/la-methode` pour promouvoir le programme d'incubation en présentiel visant à lancer sa propre conciergerie Omra.
+*   **Justification** : Permet de capter des porteurs de projet sérieux via un parcours explicatif complet, se terminant par un formulaire de candidature qualifiant qui redirige vers WhatsApp ou e-mail.
+*   **Impacts** :
+    *   Création de [page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/la-methode/page.tsx) avec styles sombres et dorés isolés.
+    *   Formulaire dynamique avec validation locale et génération d'URL WhatsApp et Mailto structurées.
+    *   Optimisation SEO et balisage sémantique Schema.org (EducationalOccupationalProgram).
+*   **Version** : v1.14.0
+
 
 
