@@ -47,6 +47,9 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-6 order-2 md:order-3">
+                    <Link href="/la-methode" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D8AA4D] hover:text-[#F2CE79] transition-colors">
+                        La Méthode (Incubateur)
+                    </Link>
                     <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-dim hover:text-emerald-500 transition-colors hidden sm:block">
                         Connexion
                     </Link>
@@ -462,6 +465,36 @@ export default function Home() {
                                     Accédez aux remises & avantages exclusifs à chaque voyage.
                                 </p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 7.5 Section Incubateur / La Méthode (Nouveau) */}
+            <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
+                <div className="bg-gradient-to-br from-[#0d1117] via-[#16120b] to-[#0d1117] rounded-[3rem] p-12 md:p-16 border border-[#D8AA4D]/20 relative overflow-hidden group shadow-2xl">
+                    <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-[#D8AA4D]/5 blur-[80px] rounded-full pointer-events-none" />
+                    
+                    <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+                        <div className="max-w-2xl space-y-6 text-left">
+                            <span className="bg-[#D8AA4D]/15 text-[#F2CE79] border border-[#D8AA4D]/25 text-[9px] font-black uppercase px-3 py-1 rounded-md tracking-wider inline-block">
+                                PROGRAMME PROFESSIONNEL & INCUBATEUR
+                            </span>
+                            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+                                Lancez votre propre <span className="text-[#D8AA4D]">Conciergerie Omra</span>
+                            </h2>
+                            <p className="text-[#A8B0BC] text-sm leading-relaxed font-medium">
+                                Devenez totalement indépendant. Créez votre propre marque, construisez vos formules, collaborez directement avec les prestataires en Arabie Saoudite et conservez vos propres marges grâce au programme d'incubation en présentiel : **La Méthode OMRAYANAIR**.
+                            </p>
+                        </div>
+                        <div className="shrink-0 w-full lg:w-auto">
+                            <Link 
+                                href="/la-methode" 
+                                className="w-full lg:w-auto bg-[#D8AA4D] hover:bg-[#F2CE79] text-black px-10 py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all shadow-[0_5px_25px_rgba(216,170,77,0.2)] inline-flex items-center justify-center gap-3 group"
+                            >
+                                Découvrir la Méthode
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
                         </div>
                     </div>
                 </div>
