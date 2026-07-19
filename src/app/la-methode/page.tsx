@@ -825,7 +825,7 @@ export default function LaMethodePage() {
           {/* Graphique de Comparaison Financière en Pourcentage & Simulateur de ROI Interactif */}
           {(() => {
             const pilgrims = simVolume === 'basse' ? 35 : 180;
-            const marginPerPilgrim = simFormule === 'eco' ? 180 : 220;
+            const marginPerPilgrim = simFormule === 'eco' ? 152.5 : 217.5;
             const totalMargin = pilgrims * marginPerPilgrim;
             
             // ROI calculations
@@ -918,14 +918,14 @@ export default function LaMethodePage() {
                           onClick={() => setSimFormule('eco')}
                           className={`px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all ${simFormule === 'eco' ? 'bg-[#D8AA4D] text-black shadow-[0_0_15px_rgba(216,170,77,0.25)] border-[#D8AA4D]' : 'bg-[#11161D] border border-white/5 text-[#A8B0BC] hover:border-white/10'}`}
                         >
-                          Économique<br />(Marge optimisée)
+                          Économique<br />(Marge ~12% à 17%)
                         </button>
                         <button 
                           type="button"
                           onClick={() => setSimFormule('classique')}
                           className={`px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all ${simFormule === 'classique' ? 'bg-[#D8AA4D] text-black shadow-[0_0_15px_rgba(216,170,77,0.25)] border-[#D8AA4D]' : 'bg-[#11161D] border border-white/5 text-[#A8B0BC] hover:border-white/10'}`}
                         >
-                          Classique<br />(Marge classique)
+                          Classique<br />(Marge ~18% à 22%)
                         </button>
                       </div>
                     </div>
