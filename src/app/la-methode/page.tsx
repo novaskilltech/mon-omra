@@ -348,6 +348,17 @@ export default function LaMethodePage() {
                 </div>
               ))}
             </div>
+
+            {/* Illustration Hero */}
+            <div className="relative w-full h-48 sm:h-60 rounded-2xl overflow-hidden border border-white/10 mt-8 shadow-2xl">
+              <Image 
+                src="/methode-hero.png" 
+                alt="Illustration La Méthode OMRAYANAIR" 
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#07090C] via-transparent to-transparent" />
+            </div>
           </div>
 
           {/* Right Cards */}
@@ -533,6 +544,22 @@ export default function LaMethodePage() {
               )}
             </div>
           ))}
+          {/* Banner Réseau */}
+          <div className="relative w-full h-64 md:h-96 rounded-[3rem] overflow-hidden border border-[#D8AA4D]/25 shadow-2xl mt-16">
+            <Image 
+              src="/methode-network.png" 
+              alt="Réseau professionnel en Arabie Saoudite" 
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+            <div className="absolute bottom-8 left-8 right-8 text-left">
+              <span className="bg-[#D8AA4D] text-black text-[9px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider inline-block mb-3">
+                RÉSEAU EXCLUSIF
+              </span>
+              <h3 className="text-xl md:text-3xl font-black uppercase text-white m-0">Négociez directement avec les acteurs locaux</h3>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -880,6 +907,23 @@ export default function LaMethodePage() {
           <p className="text-sm text-[#A8B0BC] font-medium max-w-2xl mx-auto">
             Les outils digitaux indispensables configurés et personnalisés sous votre propre marque.
           </p>
+        </div>
+
+        {/* Banner Écosystème Numérique */}
+        <div className="relative w-full h-64 md:h-96 rounded-[3rem] overflow-hidden border border-[#D8AA4D]/20 shadow-2xl mb-12">
+          <Image 
+            src="/methode-ecosystem.png" 
+            alt="Écosystème numérique OMRAYANAIR" 
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+          <div className="absolute bottom-8 left-8 right-8 text-left">
+            <span className="bg-[#D8AA4D] text-black text-[9px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider inline-block mb-3">
+              TECHNOLOGIE INTÉGRÉE
+            </span>
+            <h3 className="text-xl md:text-3xl font-black uppercase text-white m-0">Pilotez votre activité avec nos solutions logicielles</h3>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
