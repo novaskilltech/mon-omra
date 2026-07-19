@@ -31,6 +31,10 @@ export default function LaMethodePage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showFloatingBtn, setShowFloatingBtn] = useState(false);
+  
+  // Simulator states
+  const [simVolume, setSimVolume] = useState<'basse' | 'haute'>('basse');
+  const [simFormule, setSimFormule] = useState<'eco' | 'classique'>('classique');
 
   // Form states
   const [formData, setFormData] = useState({
@@ -818,54 +822,160 @@ export default function LaMethodePage() {
             ))}
           </div>
 
-          {/* Graphique de Comparaison Financière */}
-          <div className="mt-16 bg-[#11161D] border border-[#D8AA4D]/25 p-8 md:p-12 rounded-[2.5rem] text-left max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#D8AA4D]/5 blur-[60px] rounded-full pointer-events-none" />
-            <h3 className="text-xl font-black uppercase tracking-tight text-white mb-6">Comparatif de Structure de Marge</h3>
+          {/* Graphique de Comparaison Financière en Pourcentage & Simulateur de ROI Interactif */}
+          {(() => {
+            const pilgrims = simVolume === 'basse' ? 35 : 180;
+            const marginPerPilgrim = simFormule === 'eco' ? 180 : 220;
+            const totalMargin = pilgrims * marginPerPilgrim;
             
-            <div className="space-y-8">
-              {/* Option 1: Affiliation */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                  <span className="text-[#A8B0BC]">Revendeur sous commission (Affilié)</span>
-                  <span className="text-red-500">~35 € net / pèlerin</span>
-                </div>
-                <div className="w-full bg-[#07090C] h-3.5 rounded-full overflow-hidden border border-white/5">
-                  <div className="bg-red-500 h-full w-[25%] rounded-full transition-all duration-1000" />
-                </div>
-                <p className="text-[10px] text-[#A8B0BC] font-medium opacity-85 leading-relaxed">
-                  Gain moyen restreint. Vous touchez une commission fixe par dossier, tandis que le grossiste encaisse la majorité de la valeur et contrôle les clients.
-                </p>
-              </div>
+            // ROI calculations
+            const roiIndividuel = Math.ceil(4900 / marginPerPilgrim);
+            const roiCleEnMain = Math.ceil(8900 / marginPerPilgrim);
+            const roiImmersion = Math.ceil(13900 / marginPerPilgrim);
 
-              {/* Option 2: La Méthode */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                  <span className="text-white">Conciergerie Autonome (La Méthode)</span>
-                  <span className="text-[#F2CE79]">135 € net moyen / pèlerin</span>
+            return (
+              <div className="mt-16 bg-[#11161D] border border-[#D8AA4D]/25 p-8 md:p-12 rounded-[2.5rem] text-left max-w-4xl mx-auto shadow-2xl relative overflow-hidden space-y-12">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#D8AA4D]/5 blur-[80px] rounded-full pointer-events-none" />
+                
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tight text-white mb-2">Simulateur de Rentabilité & Marge</h3>
+                  <p className="text-xs text-[#A8B0BC] font-medium leading-relaxed">
+                    Comparez l'efficacité financière d'un modèle de conciergerie directe face aux agences traditionnelles encombrées de charges de structure.
+                  </p>
                 </div>
-                <div className="w-full bg-[#07090C] h-3.5 rounded-full overflow-hidden border border-white/5">
-                  <div className="bg-gradient-to-r from-[#D8AA4D] to-[#F2CE79] h-full w-[90%] rounded-full transition-all duration-1000" />
+
+                {/* Comparatif de Marge Net (%) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                  <div className="space-y-6">
+                    <h4 className="text-[10px] font-black uppercase text-[#D8AA4D] tracking-widest">Efficacité de la Marge Nette (%)</h4>
+                    
+                    {/* Agences */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-[#A8B0BC]">
+                        <span>Agences Traditionnelles (Frais fixes, Cautions, Bureaux)</span>
+                        <span className="text-red-500">~3% à 5% net</span>
+                      </div>
+                      <div className="w-full bg-[#07090C] h-2.5 rounded-full overflow-hidden border border-white/5">
+                        <div className="bg-red-500 h-full w-[5%] rounded-full" />
+                      </div>
+                    </div>
+
+                    {/* Conciergerie */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-white">
+                        <span>Votre Conciergerie (Structure Légère, Vente Directe)</span>
+                        <span className="text-[#F2CE79]">~15% à 22% net</span>
+                      </div>
+                      <div className="w-full bg-[#07090C] h-2.5 rounded-full overflow-hidden border border-white/5">
+                        <div className="bg-gradient-to-r from-[#D8AA4D] to-[#F2CE79] h-full w-[22%] rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#07090C]/50 border border-white/5 p-6 rounded-2xl flex flex-col justify-center">
+                    <h5 className="text-xs font-bold text-white uppercase mb-2">Pourquoi cette différence ?</h5>
+                    <p className="text-[10px] text-[#A8B0BC] leading-relaxed font-medium">
+                      Les agences traditionnelles vendent des formules chères mais supportent d'immenses charges d'exploitation. La Conciergerie directe réduit ces intermédiaires pour maximiser la profitabilité nette du créateur de projet sans surcoût pour le client.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-[10px] text-[#A8B0BC] font-medium opacity-85 leading-relaxed">
-                  Gain réel et optimisé. En négociant en direct avec les hôtels, transporteurs et prestataires en Arabie Saoudite, vous maximisez votre rentabilité.
-                </p>
+
+                {/* Simulateur de Volume & ROI */}
+                <div className="pt-8 border-t border-white/5 space-y-6">
+                  <h4 className="text-sm font-black uppercase text-white tracking-tight">Simulez votre potentiel d'activité</h4>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* Volume selector */}
+                    <div className="bg-[#07090C]/40 border border-white/5 p-6 rounded-2xl space-y-4">
+                      <span className="text-[9px] font-black uppercase text-[#D8AA4D] tracking-widest block">Étape 1 : Volume Mensuel de Pèlerins</span>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button 
+                          type="button" 
+                          onClick={() => setSimVolume('basse')}
+                          className={`px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all ${simVolume === 'basse' ? 'bg-[#D8AA4D] text-black shadow-[0_0_15px_rgba(216,170,77,0.25)] border-[#D8AA4D]' : 'bg-[#11161D] border border-white/5 text-[#A8B0BC] hover:border-white/10'}`}
+                        >
+                          Basse Saison<br />(35 pèl. / mois)
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setSimVolume('haute')}
+                          className={`px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all ${simVolume === 'haute' ? 'bg-[#D8AA4D] text-black shadow-[0_0_15px_rgba(216,170,77,0.25)] border-[#D8AA4D]' : 'bg-[#11161D] border border-white/5 text-[#A8B0BC] hover:border-white/10'}`}
+                        >
+                          Haute Saison<br />(180 pèl. / mois)
+                        </button>
+                      </div>
+                      <p className="text-[9px] text-[#A8B0BC] font-medium italic">
+                        * Données réelles observées en exploitation.
+                      </p>
+                    </div>
+
+                    {/* Formula Type */}
+                    <div className="bg-[#07090C]/40 border border-white/5 p-6 rounded-2xl space-y-4">
+                      <span className="text-[9px] font-black uppercase text-[#D8AA4D] tracking-widest block">Étape 2 : Type de Formule majeure</span>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button 
+                          type="button"
+                          onClick={() => setSimFormule('eco')}
+                          className={`px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all ${simFormule === 'eco' ? 'bg-[#D8AA4D] text-black shadow-[0_0_15px_rgba(216,170,77,0.25)] border-[#D8AA4D]' : 'bg-[#11161D] border border-white/5 text-[#A8B0BC] hover:border-white/10'}`}
+                        >
+                          Économique<br />(Marge optimisée)
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setSimFormule('classique')}
+                          className={`px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all ${simFormule === 'classique' ? 'bg-[#D8AA4D] text-black shadow-[0_0_15px_rgba(216,170,77,0.25)] border-[#D8AA4D]' : 'bg-[#11161D] border border-white/5 text-[#A8B0BC] hover:border-white/10'}`}
+                        >
+                          Classique<br />(Marge classique)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Profit Result Display */}
+                  <div className="p-6 bg-[#07090C]/60 border border-white/5 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                      <span className="text-[9px] font-bold text-[#A8B0BC] uppercase tracking-widest">Activité Estimée ({pilgrims} pèlerins)</span>
+                      <p className="text-lg font-black text-white mt-1">Potentiel de rentabilité de votre structure</p>
+                    </div>
+                    <div className="text-right sm:text-right text-center">
+                      <span className="text-[9px] font-bold text-[#D8AA4D] uppercase tracking-widest">Marge Nette Globale Mensuelle</span>
+                      <p className="text-3xl font-black text-[#F2CE79] mt-0.5">{totalMargin.toLocaleString('fr-FR')} € <span className="text-xs text-white">net</span></p>
+                    </div>
+                  </div>
+
+                  {/* ROI Output Card */}
+                  <div className="bg-[#D8AA4D]/5 border border-[#D8AA4D]/20 p-8 rounded-2xl space-y-6">
+                    <h5 className="text-xs font-black uppercase text-white tracking-wider">Retour sur Investissement (ROI) du Programme</h5>
+                    <p className="text-[10px] text-[#A8B0BC] leading-relaxed font-medium">
+                      Nombre de pèlerins nécessaires pour amortir intégralement le coût de votre incubateur :
+                    </p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+                      <div className="bg-[#07090C]/60 border border-white/5 p-4 rounded-xl space-y-1">
+                        <span className="text-[8px] font-black uppercase text-[#A8B0BC] tracking-widest block">Format Individuel</span>
+                        <span className="text-lg font-black text-[#F2CE79]">~{roiIndividuel} pèlerins</span>
+                        <span className="text-[8px] text-[#A8B0BC] font-medium block">pour rentabiliser 4 900 € HT</span>
+                      </div>
+                      <div className="bg-[#07090C]/60 border border-white/5 p-4 rounded-xl space-y-1">
+                        <span className="text-[8px] font-black uppercase text-[#A8B0BC] tracking-widest block">Prête à Lancer</span>
+                        <span className="text-lg font-black text-[#F2CE79]">~{roiCleEnMain} pèlerins</span>
+                        <span className="text-[8px] text-[#A8B0BC] font-medium block">pour rentabiliser 8 900 € HT</span>
+                      </div>
+                      <div className="bg-[#07090C]/60 border border-white/5 p-4 rounded-xl space-y-1">
+                        <span className="text-[8px] font-black uppercase text-[#A8B0BC] tracking-widest block">Immersion Arabie</span>
+                        <span className="text-lg font-black text-[#F2CE79]">~{roiImmersion} pèlerins</span>
+                        <span className="text-[8px] text-[#A8B0BC] font-medium block">pour rentabiliser 13 900 € HT</span>
+                      </div>
+                    </div>
+
+                    <p className="text-[9px] text-[#A8B0BC] font-semibold italic m-0 pt-2">
+                      💡 Note : Un seul départ de groupe standard de 30 personnes suffit généralement à rentabiliser l'intégralité de votre formation individuelle.
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <div className="mt-8 pt-6 border-t border-white/5 grid grid-cols-2 gap-4 text-center">
-              <div>
-                <p className="text-[9px] font-bold uppercase text-[#A8B0BC] tracking-widest">Sur 1 Groupe de 30 Pèlerins</p>
-                <p className="text-2xl font-black text-white mt-1">4 050 € <span className="text-xs text-[#D8AA4D]">Marge Nette</span></p>
-                <p className="text-[8px] text-[#A8B0BC] font-medium mt-0.5">Soit 1 350 € pour 10 pèl. et 2 700 € pour 20 pèl.</p>
-              </div>
-              <div className="border-l border-white/5">
-                <p className="text-[9px] font-bold uppercase text-[#A8B0BC] tracking-widest">Seuil de Rentabilité</p>
-                <p className="text-2xl font-black text-[#29B36A] mt-1">36 Pèlerins</p>
-                <p className="text-[8px] text-[#A8B0BC] font-medium mt-0.5">Pour rentabiliser entièrement l'offre Fondateur (4 900 € HT)</p>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
         </div>
       </section>
 
