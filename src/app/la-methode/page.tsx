@@ -828,13 +828,13 @@ export default function LaMethodePage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
                   <span className="text-[#A8B0BC]">Revendeur sous commission (Affilié)</span>
-                  <span className="text-red-500">8% de marge moyenne</span>
+                  <span className="text-red-500">~35 € net / pèlerin</span>
                 </div>
                 <div className="w-full bg-[#07090C] h-3.5 rounded-full overflow-hidden border border-white/5">
-                  <div className="bg-red-500 h-full w-[8%] rounded-full transition-all duration-1000" />
+                  <div className="bg-red-500 h-full w-[25%] rounded-full transition-all duration-1000" />
                 </div>
                 <p className="text-[10px] text-[#A8B0BC] font-medium opacity-85 leading-relaxed">
-                  Gain moyen : ~250 € par pèlerin. Vous restez tributaire du grossiste qui encaisse la majorité de la valeur et contrôle les clients.
+                  Gain moyen restreint. Vous touchez une commission fixe par dossier, tandis que le grossiste encaisse la majorité de la valeur et contrôle les clients.
                 </p>
               </div>
 
@@ -842,13 +842,13 @@ export default function LaMethodePage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
                   <span className="text-white">Conciergerie Autonome (La Méthode)</span>
-                  <span className="text-[#F2CE79]">42% de marge moyenne</span>
+                  <span className="text-[#F2CE79]">135 € net moyen / pèlerin</span>
                 </div>
                 <div className="w-full bg-[#07090C] h-3.5 rounded-full overflow-hidden border border-white/5">
-                  <div className="bg-gradient-to-r from-[#D8AA4D] to-[#F2CE79] h-full w-[42%] rounded-full transition-all duration-1000" />
+                  <div className="bg-gradient-to-r from-[#D8AA4D] to-[#F2CE79] h-full w-[90%] rounded-full transition-all duration-1000" />
                 </div>
                 <p className="text-[10px] text-[#A8B0BC] font-medium opacity-85 leading-relaxed">
-                  Gain moyen : 1 250 €+ par pèlerin. Vous négociez en direct avec les hôtels et transporteurs saoudiens, et conservez la totalité de la marge.
+                  Gain réel et optimisé. En négociant en direct avec les hôtels, transporteurs et prestataires en Arabie Saoudite, vous maximisez votre rentabilité.
                 </p>
               </div>
             </div>
@@ -856,13 +856,13 @@ export default function LaMethodePage() {
             <div className="mt-8 pt-6 border-t border-white/5 grid grid-cols-2 gap-4 text-center">
               <div>
                 <p className="text-[9px] font-bold uppercase text-[#A8B0BC] tracking-widest">Sur 1 Groupe de 30 Pèlerins</p>
-                <p className="text-2xl font-black text-white mt-1">37 500 € <span className="text-xs text-[#D8AA4D]">HT</span></p>
-                <p className="text-[8px] text-[#A8B0BC] font-medium mt-0.5">Marge nette estimée</p>
+                <p className="text-2xl font-black text-white mt-1">4 050 € <span className="text-xs text-[#D8AA4D]">Marge Nette</span></p>
+                <p className="text-[8px] text-[#A8B0BC] font-medium mt-0.5">Soit 1 350 € pour 10 pèl. et 2 700 € pour 20 pèl.</p>
               </div>
               <div className="border-l border-white/5">
                 <p className="text-[9px] font-bold uppercase text-[#A8B0BC] tracking-widest">Seuil de Rentabilité</p>
-                <p className="text-2xl font-black text-[#29B36A] mt-1">4 Pèlerins</p>
-                <p className="text-[8px] text-[#A8B0BC] font-medium mt-0.5">Pour rentabiliser le pack Fondateur</p>
+                <p className="text-2xl font-black text-[#29B36A] mt-1">36 Pèlerins</p>
+                <p className="text-[8px] text-[#A8B0BC] font-medium mt-0.5">Pour rentabiliser entièrement l'offre Fondateur (4 900 € HT)</p>
               </div>
             </div>
           </div>
