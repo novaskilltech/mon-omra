@@ -328,7 +328,7 @@ N'hésitez pas à demander de l'aide à un membre de votre groupe, à votre acco
 </blockquote>
 
 <h3>Conclusion : Vivre à Médine, un privilège qui exige du respect</h3>
-<p>Vivre la Hijra à Médine est une opportunité spirituelle sans équivalent. Cependant, habiter dans la ville du Prophète (SWS) exige également une rigueur de comportement et une politesse spirituelle exemplaire. Les bonnes actions y sont multipliées, tout comme les péchés y revêtent une gravité accrue en raison du caractère sacré du lieu. C'est une terre de paix, de sérénité (Sakinah) et de dévotion qui transforme quiconque y réside avec sincérité.</p>`,
+<p>Vivre la Hijra à Médine est une opportunité spirituelle sans équivalent. Cependant, habiter dans la ville du Prophète (SWS) exige également une rigueur de comportement et une politesse spirituelle exemplaire. Les bonnes actions y sont multipliées par la grâce d'Allah. Quant aux péchés, bien qu'ils ne soient pas multipliés en nombre — car la justice absolue d'Allah fait qu'un péché n'est comptabilisé que comme un seul —, leur gravité et leur laideur spirituelle sont plus grandes en raison de la sacralité du lieu. C'est une terre de paix, de sérénité (Sakinah) et de dévotion qui transforme quiconque y réside avec sincérité.</p>`,,StartLine:331,TargetContent:`,
     status: "published",
     imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
     publishedAt: "2026-07-20T02:00:00.000Z"
