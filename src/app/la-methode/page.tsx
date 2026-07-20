@@ -1291,7 +1291,7 @@ export default function LaMethodePage() {
           </p>
         </div>
         
-        <div className="rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative aspect-[1.8/1] max-w-4xl mx-auto bg-black/40 hover:scale-[1.01] transition-transform duration-500">
+        <div className="rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative aspect-[16/9] max-w-4xl mx-auto bg-black/40 hover:scale-[1.01] transition-transform duration-500">
           <Image 
             src="/methode-infographie.png" 
             alt="Infographie Parcours Conciergerie Omra et Atouts Directs" 
