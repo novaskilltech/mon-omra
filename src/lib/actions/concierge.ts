@@ -658,6 +658,7 @@ export async function getGroupsDetailed() {
             name,
             departure_date,
             status,
+            flyer_path,
             pilgrims (id)
         `)
         .order('departure_date', { ascending: true });
@@ -733,7 +734,8 @@ export async function getGroupsDetailed() {
             flightDepartureId: logistics?.flight_departure_id || '',
             flightReturnId: logistics?.flight_return_id || '',
             makkahHotelId: makkahStay?.hotel_id || '',
-            madinahHotelId: madinahStay?.hotel_id || ''
+            madinahHotelId: madinahStay?.hotel_id || '',
+            flyerPath: g.flyer_path || ''
         };
     });
 }
@@ -778,6 +780,7 @@ export async function createGroupAction(data: {
     flightDepartureId?: string;
     flightReturnId?: string;
     hotelIds?: string[];
+    flyerPath?: string;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -798,7 +801,8 @@ export async function createGroupAction(data: {
             agency_id: agencyId,
             name: data.name,
             departure_date: data.departureDate,
-            status: data.status
+            status: data.status,
+            flyer_path: data.flyerPath || null
         })
         .select()
         .single();
@@ -855,18 +859,24 @@ export async function updateGroupAction(id: string, data: {
     flightDepartureId?: string;
     flightReturnId?: string;
     hotelIds?: string[];
+    flyerPath?: string;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
 
     const supabase = createClient();
+    const updatePayload: any = {
+        name: data.name,
+        departure_date: data.departureDate,
+        status: data.status
+    };
+    if (data.flyerPath !== undefined) {
+        updatePayload.flyer_path = data.flyerPath;
+    }
+
     const { error } = await supabase
         .from('groups')
-        .update({
-            name: data.name,
-            departure_date: data.departureDate,
-            status: data.status
-        })
+        .update(updatePayload)
         .eq('id', id);
 
     if (error) {
@@ -950,6 +960,61 @@ export async function deleteGroupAction(id: string) {
 
     revalidatePath('/backoffice/groups');
     return { success: true };
+}
+
+export async function getGroupFlyerUrlAction(filePath: string) {
+    const supabase = createClient();
+    try {
+        const { data, error } = await supabase
+            .storage
+            .from('group-flyers')
+            .createSignedUrl(filePath, 900); // 15 minutes
+
+        if (error) throw error;
+        return { success: true, url: data.signedUrl };
+    } catch (e: any) {
+        console.error("Error getting signed flyer URL:", e);
+        return { error: e.message || "Erreur lors de la génération de l'accès au flyer" };
+    }
+}
+
+export async function uploadGroupFlyerAction(formData: FormData) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const file = formData.get('flyer') as File;
+    if (!file) return { error: "Aucun fichier fourni" };
+
+    // Validate size and format
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        return { error: "Format non supporté. Veuillez uploader une image ou un PDF." };
+    }
+    const maxSizeBytes = 5 * 1024 * 1024; // 5 MB
+    if (file.size > maxSizeBytes) {
+        return { error: "Fichier trop volumineux. La taille maximale est de 5 Mo." };
+    }
+
+    const supabase = createClient();
+    try {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `flyers/flyer_${Date.now()}.${fileExt}`;
+        const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+        const { error: uploadError } = await supabase.storage
+            .from('group-flyers')
+            .upload(filePath, fileBuffer, {
+                contentType: file.type,
+                duplex: 'half'
+            });
+
+        if (uploadError) throw uploadError;
+
+        return { success: true, path: filePath };
+    } catch (e: any) {
+        console.error("Error in uploadGroupFlyerAction:", e);
+        return { error: e.message || "Erreur lors de l'upload du flyer" };
+    }
 }
 
 function decompressPdfStreams(buffer: Buffer): string {

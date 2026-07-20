@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Users, Calendar, ArrowRight, Hotel, Bell, Edit, Trash2, X, Loader2 } from 'lucide-react';
+import { Plus, Users, Calendar, ArrowRight, Hotel, Bell, Edit, Trash2, X, Loader2, FileText } from 'lucide-react';
 import Link from 'next/link';
-import { getGroupsDetailed, createGroupAction, updateGroupAction, deleteGroupAction, getAvailableFlightsAndHotels } from '@/lib/actions/concierge';
+import { getGroupsDetailed, createGroupAction, updateGroupAction, deleteGroupAction, getAvailableFlightsAndHotels, uploadGroupFlyerAction, getGroupFlyerUrlAction } from '@/lib/actions/concierge';
 
 interface Group {
     id: string;
@@ -14,6 +14,7 @@ interface Group {
     flightReturnId?: string;
     makkahHotelId?: string;
     madinahHotelId?: string;
+    flyerPath?: string;
 }
 
 export default function GroupsPage() {
@@ -30,6 +31,8 @@ export default function GroupsPage() {
     const [pelerinCount, setPelerinCount] = useState(0);
     const [date, setDate] = useState('');
     const [status, setStatus] = useState<'En préparation' | 'Complet' | 'Brouillon'>('En préparation');
+    const [flyerFile, setFlyerFile] = useState<File | null>(null);
+    const [flyerPath, setFlyerPath] = useState('');
 
     // Available options
     const [availableFlights, setAvailableFlights] = useState<any[]>([]);
@@ -78,6 +81,8 @@ export default function GroupsPage() {
         setFlightDepartureId('');
         setFlightReturnId('');
         setSelectedHotels([]);
+        setFlyerFile(null);
+        setFlyerPath('');
         setIsModalOpen(true);
     };
 
@@ -90,6 +95,8 @@ export default function GroupsPage() {
         setStatus(group.status);
         setFlightDepartureId(group.flightDepartureId || '');
         setFlightReturnId(group.flightReturnId || '');
+        setFlyerFile(null);
+        setFlyerPath(group.flyerPath || '');
         
         const hIds: string[] = [];
         if (group.makkahHotelId) hIds.push(group.makkahHotelId);
@@ -105,6 +112,21 @@ export default function GroupsPage() {
 
         setLoading(true);
         try {
+            let currentFlyerPath = flyerPath;
+            if (flyerFile) {
+                const formData = new FormData();
+                formData.append('flyer', flyerFile);
+                const uploadRes = await uploadGroupFlyerAction(formData);
+                if (uploadRes.error) {
+                    alert(uploadRes.error);
+                    setLoading(false);
+                    return;
+                }
+                if (uploadRes.success && uploadRes.path) {
+                    currentFlyerPath = uploadRes.path;
+                }
+            }
+
             if (modalMode === 'add') {
                 const res = await createGroupAction({
                     name,
@@ -112,7 +134,8 @@ export default function GroupsPage() {
                     status,
                     flightDepartureId: flightDepartureId || undefined,
                     flightReturnId: flightReturnId || undefined,
-                    hotelIds: selectedHotels
+                    hotelIds: selectedHotels,
+                    flyerPath: currentFlyerPath || undefined
                 });
                 if (res.error) alert(res.error);
             } else if (modalMode === 'edit' && selectedGroup) {
@@ -122,7 +145,8 @@ export default function GroupsPage() {
                     status,
                     flightDepartureId: flightDepartureId || undefined,
                     flightReturnId: flightReturnId || undefined,
-                    hotelIds: selectedHotels
+                    hotelIds: selectedHotels,
+                    flyerPath: currentFlyerPath
                 });
                 if (res.error) alert(res.error);
             }
@@ -198,6 +222,21 @@ export default function GroupsPage() {
                                         <span className="flex items-center gap-2 text-sub opacity-20">|</span>
                                         <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-emerald-500" /> {formatDateDisplay(g.date)}</span>
                                     </div>
+                                    {g.flyerPath && (
+                                        <button
+                                            onClick={async () => {
+                                                const res = await getGroupFlyerUrlAction(g.flyerPath!);
+                                                if (res.success && res.url) {
+                                                    window.open(res.url, '_blank');
+                                                } else {
+                                                    alert(res.error || "Impossible d'accéder au flyer");
+                                                }
+                                            }}
+                                            className="mt-3 text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 flex items-center gap-1.5 transition-all bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20"
+                                        >
+                                            <FileText className="w-3.5 h-3.5" /> Voir le Flyer
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -259,7 +298,7 @@ export default function GroupsPage() {
                             </button>
                         </header>
 
-                        <form onSubmit={handleSave} className="p-8 space-y-6">
+                        <form onSubmit={handleSave} className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
                             <div className="space-y-2">
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Nom du Groupe</label>
                                 <input 
@@ -305,6 +344,62 @@ export default function GroupsPage() {
                                     <option value="Complet" className="bg-[#050605] text-main">Complet</option>
                                     <option value="Brouillon" className="bg-[#050605] text-main">Brouillon</option>
                                 </select>
+                            </div>
+
+                            {/* Flyer Upload Field */}
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Flyer de l'offre (PDF ou Image, max 5 Mo)</label>
+                                {flyerPath ? (
+                                    <div className="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4">
+                                        <div className="flex items-center gap-3 text-xs text-main font-bold">
+                                            <FileText className="w-5 h-5 text-emerald-500" />
+                                            <span>Flyer configuré</span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    const res = await getGroupFlyerUrlAction(flyerPath);
+                                                    if (res.success && res.url) {
+                                                        window.open(res.url, '_blank');
+                                                    } else {
+                                                        alert(res.error || "Impossible d'accéder au flyer");
+                                                    }
+                                                }}
+                                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-main transition-all"
+                                            >
+                                                Consulter
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFlyerPath('');
+                                                    setFlyerFile(null);
+                                                }}
+                                                className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest text-red-500 transition-all"
+                                            >
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <input 
+                                        type="file" 
+                                        accept="application/pdf,image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                if (file.size > 5 * 1024 * 1024) {
+                                                    alert("Fichier trop volumineux. La taille maximale est de 5 Mo.");
+                                                    e.target.value = '';
+                                                    return;
+                                                }
+                                                setFlyerFile(file);
+                                            }
+                                        }}
+                                        className="w-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-xs font-medium text-main outline-none focus:border-emerald-500/40 focus:bg-white/10 transition-all"
+                                    />
+                                )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
