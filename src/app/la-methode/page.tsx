@@ -1271,7 +1271,7 @@ export default function LaMethodePage() {
                 value={formData.nomPrenom}
                 onChange={handleInputChange}
                 className="w-full bg-[#07090C] border border-white/10 rounded-xl px-4 py-3.5 text-[#F6F3EB] text-sm focus:border-[#D8AA4D] outline-none transition-colors"
-                placeholder="Ex: Sofiane Lamkhannet"
+                placeholder="Ex: Jean Dupont"
               />
               {formErrors.nomPrenom && <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">{formErrors.nomPrenom}</p>}
             </div>
