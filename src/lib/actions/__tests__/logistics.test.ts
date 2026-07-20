@@ -37,7 +37,7 @@ describe('getPilgrimProgram Server Action', () => {
     vi.clearAllMocks();
   });
 
-  it('should generate Makkah First program by default with 14 days duration', async () => {
+  it('should generate empty guidedActivities by default with 14 days duration', async () => {
     const mockSupabase = createClient();
     
     // Mock profiles select
@@ -102,11 +102,92 @@ describe('getPilgrimProgram Server Action', () => {
     expect(result.mode).toBe('MAKKAH_FIRST');
     expect(result.duration).toBe(14);
     expect(result.days).toHaveLength(14);
-    // Verify first day has guided activities for Makkah first (arrival/OMRA)
+    // Verify first day has no pre-populated guided activities
     const day1 = result.days[0];
     expect(day1.city).toBe('MAKKAH');
-    expect(day1.guidedActivities[0].title).toContain('Arrivée');
-    expect(day1.guidedActivities[2].title).toContain('Omra');
+    expect(day1.guidedActivities).toHaveLength(0);
+  });
+
+  it('should load custom_planning when defined in group_logistics', async () => {
+    const mockSupabase = createClient();
+    
+    const selectMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { id: 'pilgrim-123', full_name: 'Salah Lamkhannet' },
+            error: null,
+          }),
+        };
+      }
+      if (table === 'pilgrims') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { group_id: 'group-123', individual_flight_info: null },
+            error: null,
+          }),
+        };
+      }
+      if (table === 'groups') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { name: 'Ramadan Classic', departure_date: '2026-03-25T12:00:00Z' },
+            error: null,
+          }),
+        };
+      }
+      if (table === 'group_hotel_stays') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({
+            data: [
+              { hotels: { city: 'MAKKAH' } },
+            ],
+            error: null,
+          }),
+        };
+      }
+      if (table === 'group_logistics') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+          single: vi.fn().mockResolvedValue({ data: null, error: null }),
+          // mock response for logistics list
+          then: (resolve: any) => resolve({
+            data: [{
+              custom_planning: {
+                '1': [{ time: '09:00', title: 'Visite guidée Uhud', location: 'Uhud', type: 'ZIYARAT', description: 'Visite guidée' }]
+              }
+            }],
+            error: null
+          })
+        };
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+    });
+
+    mockSupabase.from = selectMock as any;
+
+    const result = await getPilgrimProgram('pilgrim-123');
+
+    expect(result.success).toBe(true);
+    expect(result.days[0].guidedActivities).toHaveLength(1);
+    expect(result.days[0].guidedActivities[0].title).toBe('Visite guidée Uhud');
   });
 
   it('should detect MADINAH_FIRST when the first hotel is in Madinah', async () => {
@@ -173,7 +254,7 @@ describe('getPilgrimProgram Server Action', () => {
     expect(result.mode).toBe('MADINAH_FIRST');
     const day1 = result.days[0];
     expect(day1.city).toBe('MADINAH');
-    expect(day1.guidedActivities[0].title).toContain('Arrivée à Médine');
+    expect(day1.guidedActivities).toHaveLength(0);
   });
 
   it('should detect TWO_OMRAS when name matches double/two/deux or has 3 city hops', async () => {
@@ -239,10 +320,8 @@ describe('getPilgrimProgram Server Action', () => {
 
     expect(result.success).toBe(true);
     expect(result.mode).toBe('TWO_OMRAS');
-    // Day 10 is second Omra transition
     const day10 = result.days[9];
-    expect(day10.guidedActivities[0].title).toContain('Retour à Makkah');
-    expect(day10.guidedActivities[2].title).toContain('Deuxième Omra');
+    expect(day10.guidedActivities).toHaveLength(0);
   });
 });
 
