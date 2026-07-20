@@ -1528,6 +1528,17 @@ export default function LaMethodePage() {
               <Link href="/legal" className="hover:text-white transition-colors">Mentions Légales</Link>
               <span className="opacity-45">© 2026 OMRAYANAIR</span>
             </div>
+
+            {/* Compteur de visites */}
+            <div className="flex items-center gap-3">
+              <span className="text-[9px] font-black uppercase tracking-widest text-[#A8B0BC]">Visites :</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="https://api.visitorbadge.io/api/visitors?path=omrayanair.vercel.app-la-methode&label=INCUBATEUR&labelColor=%2311161d&countColor=%23d8aa4d&style=flat-square" 
+                alt="Compteur de visites" 
+                className="rounded border border-white/10"
+              />
+            </div>
           </div>
         </div>
       </footer>
