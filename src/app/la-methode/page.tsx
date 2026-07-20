@@ -577,6 +577,25 @@ export default function LaMethodePage() {
             </h2>
           </div>
 
+          {/* Infographie du Parcours */}
+          <div className="hidden lg:flex justify-between items-center relative max-w-5xl mx-auto px-12 py-8 bg-[#11161D]/30 border border-white/5 rounded-[2.5rem] overflow-hidden my-8">
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D8AA4D]/10 via-[#D8AA4D]/50 to-[#29B36A]/50 -translate-y-1/2 pointer-events-none" />
+            
+            {[
+              { label: "Audit & Cadrage", num: "01" },
+              { label: "Formation Présentielle", num: "02" },
+              { label: "Intégration Outils & Fournisseurs", num: "03" },
+              { label: "Lancement & Ventes", num: "04", accent: true }
+            ].map((step, i) => (
+              <div key={i} className="relative z-10 flex flex-col items-center text-center space-y-3">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm border-2 ${step.accent ? 'bg-[#29B36A] text-black border-[#29B36A]' : 'bg-[#07090C] text-[#D8AA4D] border-[#D8AA4D]/30'}`}>
+                  {step.num}
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white max-w-[120px]">{step.label}</span>
+              </div>
+            ))}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
@@ -628,6 +647,23 @@ export default function LaMethodePage() {
           <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white">
             Trois offres adaptées à vos ambitions
           </h2>
+        </div>
+
+        {/* Banner Packages */}
+        <div className="relative w-full h-48 md:h-64 rounded-[2.5rem] overflow-hidden border border-[#D8AA4D]/25 shadow-2xl my-8">
+          <Image 
+            src="/methode-packages.png" 
+            alt="Packs d'accompagnement OMRAYANAIR" 
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#07090C] via-[#07090C]/50 to-transparent" />
+          <div className="absolute bottom-6 left-8 text-left">
+            <span className="bg-[#D8AA4D] text-black text-[9px] font-black uppercase px-2 py-1 rounded tracking-wider inline-block mb-2">
+              PROGRAMMES D'INCUBATION
+            </span>
+            <p className="text-sm font-black uppercase text-white m-0">Trois niveaux d'accompagnement pour lancer votre propre marque de conciergerie.</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -1044,6 +1080,17 @@ export default function LaMethodePage() {
             </p>
             <div className="bg-amber-500/5 border border-amber-500/10 p-6 rounded-2xl text-[10px] text-[#A8B0BC] font-medium italic leading-relaxed">
               ⚠️ Rappel : L'IA doit rester un outil d'assistance. Les informations juridiques, religieuses, financières et opérationnelles critiques doivent être validées manuellement.
+            </div>
+            
+            {/* Visual AI Assistant */}
+            <div className="relative w-full h-40 rounded-2xl overflow-hidden border border-[#D8AA4D]/10">
+              <Image 
+                src="/methode-ia.png" 
+                alt="Assistant IA" 
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#07090C] to-transparent" />
             </div>
           </div>
 
