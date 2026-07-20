@@ -844,6 +844,22 @@ export default function LaMethodePage() {
             Vous ne devenez pas un simple revendeur OMRAYANAIR sous commission. Vous développez votre propre marque, vos propres formules exclusives et votre propre portefeuille de fournisseurs directs en Arabie Saoudite.
           </p>
 
+          {/* Image de Philosophie / Autonomie */}
+          <div className="max-w-2xl mx-auto rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative aspect-[16/9] my-8">
+            <Image 
+              src="/methode-autonomie.png" 
+              alt="Guidage vers l'autonomie" 
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-700"
+              sizes="(max-w-2xl) 100vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07090C] via-transparent to-transparent opacity-80" />
+            <div className="absolute bottom-4 left-6 text-left">
+              <span className="text-[9px] font-black uppercase text-[#D8AA4D] tracking-widest bg-black/40 backdrop-blur-sm px-2 py-1 rounded">ACCOMPAGNEMENT VERS L'ENVOL</span>
+              <p className="text-xs text-white font-bold mt-1">Nous vous guidons au début, pour que vous puissiez voler de vos propres ailes.</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-8">
             {[
               "Vous conservez vos clients",
