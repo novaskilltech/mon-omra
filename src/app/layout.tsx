@@ -64,7 +64,6 @@ export default function RootLayout({
         <ToastProvider>
           {children}
         </ToastProvider>
-        <ThemeSwitcher />
       </body>
     </html>
   );
