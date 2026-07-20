@@ -1279,26 +1279,26 @@ export default function LaMethodePage() {
         </div>
       </section>
 
-      {/* CTA Fiche Découverte Vulgarisée */}
-      <section className="py-12 px-6 max-w-4xl mx-auto">
-        <div className="bg-[#D8AA4D]/5 border border-[#D8AA4D]/10 rounded-[2rem] p-8 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D8AA4D]/10 border border-[#D8AA4D]/20 text-[#D8AA4D] text-[9px] font-black uppercase tracking-[0.2em] mx-auto">
-            <Sparkles className="w-3.5 h-3.5" /> NOUVEAUTÉ SPIRITUELLE & APPRENTISSAGE
-          </div>
-          <h3 className="text-2xl font-black uppercase text-white tracking-tight">
-            Nouveau : Le guide de la formation pour « les nuls »
-          </h3>
-          <p className="text-xs text-[#A8B0BC] font-medium max-w-xl mx-auto leading-relaxed">
-            Vous préférez une explication simplifiée et imagée, sans termes techniques ? Découvrez notre fiche infographique interactive inspirée de NotebookLM pour comprendre les packages et le programme en un coup d'œil.
+      {/* Infographie Parcours & Atouts */}
+      <section className="py-12 px-6 max-w-5xl mx-auto space-y-8">
+        <div className="text-center space-y-3">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D8AA4D]">MÉTHODOLOGIE</span>
+          <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter text-white">
+            Le Parcours de l'Idée au Lancement
+          </h2>
+          <p className="text-xs text-[#A8B0BC] font-medium max-w-xl mx-auto">
+            Une vision claire et vulgarisée des étapes clés et des atouts de la conciergerie directe.
           </p>
-          <div className="pt-2">
-            <Link 
-              href="/la-methode/decouverte" 
-              className="inline-flex items-center gap-2 bg-[#D8AA4D] hover:bg-[#F2CE79] text-black px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:scale-102"
-            >
-              Consulter la Fiche Découverte &rarr;
-            </Link>
-          </div>
+        </div>
+        
+        <div className="rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative aspect-[1.8/1] max-w-4xl mx-auto bg-black/40 hover:scale-[1.01] transition-transform duration-500">
+          <Image 
+            src="/methode-infographie.png" 
+            alt="Infographie Parcours Conciergerie Omra et Atouts Directs" 
+            fill
+            className="object-contain"
+            sizes="(max-w-4xl) 100vw"
+          />
         </div>
       </section>
 
