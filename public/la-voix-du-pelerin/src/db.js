@@ -328,10 +328,72 @@ N'hésitez pas à demander de l'aide à un membre de votre groupe, à votre acco
 </blockquote>
 
 <h3>Conclusion : Vivre à Médine, un privilège qui exige du respect</h3>
-<p>Vivre la Hijra à Médine est une opportunité spirituelle sans équivalent. Cependant, habiter dans la ville du Prophète (SWS) exige également une rigueur de comportement et une politesse spirituelle exemplaire. Les bonnes actions y sont multipliées par la grâce d'Allah. Quant aux péchés, bien qu'ils ne soient pas multipliés en nombre — car la justice absolue d'Allah fait qu'un péché n'est comptabilisé que comme un seul —, leur gravité et leur laideur spirituelle sont plus grandes en raison de la sacralité du lieu. C'est une terre de paix, de sérénité (Sakinah) et de dévotion qui transforme quiconque y réside avec sincérité.</p>`,,StartLine:331,TargetContent:`,
+<p>Vivre la Hijra à Médine est une opportunité spirituelle sans équivalent. Cependant, habiter dans la ville du Prophète (SWS) exige également une rigueur de comportement et une politesse spirituelle exemplaire. Les bonnes actions y sont multipliées par la grâce d'Allah. Quant aux péchés, bien qu'ils ne soient pas multipliés en nombre — car la justice absolue d'Allah fait qu'un péché n'est comptabilisé que comme un seul —, leur gravité et leur laideur spirituelle sont plus grandes en raison de la sacralité du lieu. C'est une terre de paix, de sérénité (Sakinah) et de dévotion qui transforme quiconque y réside avec sincérité.</p>`,
     status: "published",
     imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
     publishedAt: "2026-07-20T02:00:00.000Z"
+  },
+  {
+    id: "art-10",
+    title: "Les mérites de La Mecque : Vertus de la cité sacrée et récompenses des adorations",
+    summary: "Découvrez les mérites uniques d'Al-Masjid Al-Haram à La Mecque à travers les textes prophétiques authentiques, les bénédictions des prières multipliées, du Tawaf et de l'eau de Zamzam.",
+    category: "La Mecque",
+    content: `<h3>La Mecque, mère des cités et terre aimée d'Allah</h3>
+<p>La Mecque (Bakkah) est le centre spirituel de l'Islam. C'est là que se dresse la Kaaba, la première Maison construite pour l'humanité pour adorer Allah le Très-Haut. Elle possède des mérites exclusifs et sacrés définis par les textes authentiques du Coran et de la Sunnah du Prophète (SWS).</p>
+
+<h3>1. La sacralisation éternelle de La Mecque</h3>
+<p>La Mecque est une terre inviolable et protégée par décret divin. Lors de la conquête de La Mecque, le Prophète (que la paix et le salut soient sur lui) a proclamé sa sacralité dans un hadith célèbre rapporté par Al-Bukhari et Muslim :</p>
+<blockquote>
+  "Certes, cette ville a été sacrée par Allah le jour où Il a créé les cieux et la terre. Elle est donc sacrée par la sacralisation d'Allah jusqu'au Jour de la Résurrection. On ne doit pas couper ses arbres épineux, ni chasser son gibier, ni ramasser les objets trouvés à moins de les faire connaître, ni couper ses herbes fraîches."
+</blockquote>
+<p>Le Messager d'Allah (SWS) a également exprimé son amour profond pour cette ville sainte en s'adressant à elle :</p>
+<blockquote>
+  "Par Allah ! Tu es certes la meilleure terre d'Allah, et la terre la plus aimée d'Allah. Si je n'avais pas été contraint de te quitter, je ne t'aurais jamais quittée." (Rapporté par At-Tirmidhi et authentifié par Al-Albani)
+</blockquote>
+
+<h3>2. La prière multipliée à 100 000 dans la Mosquée Sacrée</h3>
+<p>L'acte d'adoration le plus fondamental et accessible à La Mecque est la prière obligatoire ou surérogatoire. La récompense y est inestimable :</p>
+<blockquote>
+  "Une prière dans ma mosquée-ci [à Médine] est meilleure que mille prières ailleurs, sauf dans la Mosquée Sacrée [de La Mecque]. Et une prière dans la Mosquée Sacrée est meilleure que cent mille prières ailleurs." (Rapporté par l'Imam Ahmad et Ibn Majah, authentifié par Al-Busiri et Al-Albani)
+</blockquote>
+<p>Cela signifie qu'une seule prière accomplie au Haram de La Mecque équivaut spirituellement à plus de 54 ans de prières quotidiennes accomplies en dehors de ce lieu sacré.</p>
+
+<h3>3. Le Tawaf : Une adoration exclusive et purificatrice</h3>
+<p>Le Tawaf (les sept tours autour de la Kaaba) est une adoration que l'on ne peut accomplir nulle part ailleurs sur Terre. Ses mérites sont immenses :</p>
+<ul>
+  <li><strong>Équivalence à l'affranchissement d'un esclave :</strong><br>
+    Le Prophète (SWS) a dit : "Quiconque fait le Tawaf autour de la Maison en faisant sept tours complets sans prononcer de paroles inutiles, c'est comme s'il avait affranchi un esclave." (Rapporté par An-Nasa'i et authentifié par Al-Albani)
+  </li>
+  <li><strong>Des récompenses à chaque pas :</strong><br>
+    Le Prophète (SWS) a affirmé : "Il ne pose pas un pied et ne lève pas l'autre sans qu'Allah ne lui écrive pour cela une bonne action, lui efface un péché et l'élève d'un degré." (Rapporté par At-Tirmidhi)
+  </li>
+  <li><strong>L'effacement des péchets aux Coins Sacrés :</strong><br>
+    Le Messager d'Allah (SWS) a enseigné : "Certes, passer la main sur la Pierre Noire et le Coin Yéménite efface complètement les péchés." (Rapporté par At-Tirmidhi, authentifié par Al-Albani)
+  </li>
+</ul>
+
+<h3>4. Les mérites de l'eau bénite de Zamzam</h3>
+<p>Boire l'eau de Zamzam sur place avec une intention de guérison, de pardon ou d'apprentissage est vivement recommandé. Le Prophète (SWS) a dit :</p>
+<blockquote>
+  "L'eau de Zamzam est utile à tout ce pour quoi elle a été bue." (Rapporté par Ibn Majah et authentifié par Al-Albani)
+</blockquote>
+<p>Il a également été rapporté dans le Sahih de l'Imam Muslim que le Prophète a dit au sujet de Zamzam :</p>
+<blockquote>
+  "Elle est une nourriture qui rassasie et une guérison pour les maladies."
+</blockquote>
+
+<h3>5. La Omra durant le Ramadan : Équivalente à un Hajj avec le Prophète (SWS)</h3>
+<p>Accomplir la Omra à La Mecque durant le mois béni de Ramadan détient une valeur spirituelle équivalente au grand pèlerinage :</p>
+<blockquote>
+  "Une Omra accomplie durant le mois de Ramadan équivaut à un Hajj [dans une autre version : à un Hajj en ma compagnie]." (Sahih Al-Bukhari & Muslim)
+</blockquote>
+<p>Bien que cela ne dispense pas de l'obligation d'accomplir le Hajj prescrit une fois dans sa vie pour celui qui en a les moyens, la récompense est immense et égale à celle du Hajj accompli aux côtés du Prophète.</p>
+
+<h3>Conclusion : Maximiser son temps à La Mecque</h3>
+<p>Chaque minute passée à La Mecque doit être mise à profit pour multiplier les adorations : prières, Tawafs surérogatoires, récitation du Coran, évocations (Dhikr) et aumônes. C'est un trésor spirituel à préserver avec la plus grande piété, tout en veillant à éviter les comportements futiles ou les péchés qui, bien qu'ils ne soient pas multipliés en nombre, revêtent une gravité d'autant plus grande sur cette terre sacrée.</p>`,
+    status: "published",
+    imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
+    publishedAt: "2026-07-20T03:00:00.000Z"
   }
 ];
 
