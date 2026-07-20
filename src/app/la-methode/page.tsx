@@ -53,6 +53,23 @@ export default function LaMethodePage() {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+  const [visits, setVisits] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('/api/visits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: 'la-methode' })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.count === 'number') {
+          setVisits(data.count);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       // Show floating button after scrolling down 600px
@@ -1530,14 +1547,11 @@ export default function LaMethodePage() {
             </div>
 
             {/* Compteur de visites */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <span className="text-[9px] font-black uppercase tracking-widest text-[#A8B0BC]">Visites :</span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fomrayanair.vercel.app%2Fla-methode&count_bg=%23d8aa4d&title_bg=%2311161d&title=INCUBATEUR&edge_flat=true" 
-                alt="Compteur de visites" 
-                className="rounded border border-white/10"
-              />
+              <span className="bg-[#11161d] border border-white/10 px-2.5 py-1 rounded text-[10px] font-black text-[#d8aa4d] tracking-wider min-w-[36px] text-center">
+                {visits !== null ? visits : '...'}
+              </span>
             </div>
           </div>
         </div>

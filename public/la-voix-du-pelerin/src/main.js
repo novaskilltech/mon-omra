@@ -20,6 +20,23 @@ const app = {
     window.addEventListener('hashchange', () => this.route());
     this.route();
     this.setupGlobalEvents();
+    this.fetchVisitorCount();
+  },
+
+  fetchVisitorCount() {
+    fetch('/api/visits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: 'la-voix-du-pelerin' })
+    })
+      .then(res => res.json())
+      .then(data => {
+        const countEl = document.getElementById('site-visit-count');
+        if (countEl && data && typeof data.count === 'number') {
+          countEl.textContent = data.count;
+        }
+      })
+      .catch(() => {});
   },
 
   route() {
