@@ -1534,7 +1534,7 @@ export default function LaMethodePage() {
               <span className="text-[9px] font-black uppercase tracking-widest text-[#A8B0BC]">Visites :</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
-                src="https://api.visitorbadge.io/api/visitors?path=omrayanair.vercel.app-la-methode&label=INCUBATEUR&labelColor=%2311161d&countColor=%23d8aa4d&style=flat-square" 
+                src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fomrayanair.vercel.app%2Fla-methode&count_bg=%23d8aa4d&title_bg=%2311161d&title=INCUBATEUR&edge_flat=true" 
                 alt="Compteur de visites" 
                 className="rounded border border-white/10"
               />
