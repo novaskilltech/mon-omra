@@ -2,6 +2,13 @@ import Image from 'next/image';
 import { Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, MessageSquare, Heart, Sparkles, ShoppingBag, ShieldAlert, Star } from 'lucide-react';
 import Link from 'next/link';
 import ThemeSelector from '@/components/ThemeSelector';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "OMRAYANAIR — Conciergerie Omra Autonome & Voyage Spirituel",
+  description: "Simplifiez votre voyage en Terre Sainte. Centralisez vos documents de Omra, suivez votre programme spirituel et découvrez comment lancer votre propre conciergerie autonome en direct.",
+  keywords: ["omra", "conciergerie omra", "voyage spirituel", "guide omra", "hajj", "médine", "la mecque", "omrayanair"],
+};
 
 export default function Home() {
     return (
