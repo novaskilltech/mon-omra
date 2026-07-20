@@ -548,21 +548,22 @@ export default function LaMethodePage() {
               )}
             </div>
           ))}
-          {/* Banner Réseau */}
-          <div className="relative w-full h-64 md:h-96 rounded-[3rem] overflow-hidden border border-[#D8AA4D]/25 shadow-2xl mt-16">
-            <Image 
-              src="/methode-network.png" 
-              alt="Réseau professionnel en Arabie Saoudite" 
-              fill
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-            <div className="absolute bottom-8 left-8 right-8 text-left">
-              <span className="bg-[#D8AA4D] text-black text-[9px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider inline-block mb-3">
-                RÉSEAU EXCLUSIF
-              </span>
-              <h3 className="text-xl md:text-3xl font-black uppercase text-white m-0">Négociez directement avec les acteurs locaux</h3>
-            </div>
+        </div>
+
+        {/* Banner Réseau */}
+        <div className="relative w-full h-64 md:h-96 rounded-[3rem] overflow-hidden border border-[#D8AA4D]/25 shadow-2xl mt-16">
+          <Image 
+            src="/methode-network.png" 
+            alt="Réseau professionnel en Arabie Saoudite" 
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+          <div className="absolute bottom-8 left-8 right-8 text-left">
+            <span className="bg-[#D8AA4D] text-black text-[9px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider inline-block mb-3">
+              RÉSEAU EXCLUSIF
+            </span>
+            <h3 className="text-xl md:text-3xl font-black uppercase text-white m-0">Négociez directement avec les acteurs locaux</h3>
           </div>
         </div>
       </section>
