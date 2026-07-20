@@ -1279,6 +1279,29 @@ export default function LaMethodePage() {
         </div>
       </section>
 
+      {/* CTA Fiche Découverte Vulgarisée */}
+      <section className="py-12 px-6 max-w-4xl mx-auto">
+        <div className="bg-[#D8AA4D]/5 border border-[#D8AA4D]/10 rounded-[2rem] p-8 text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D8AA4D]/10 border border-[#D8AA4D]/20 text-[#D8AA4D] text-[9px] font-black uppercase tracking-[0.2em] mx-auto">
+            <Sparkles className="w-3.5 h-3.5" /> NOUVEAUTÉ SPIRITUELLE & APPRENTISSAGE
+          </div>
+          <h3 className="text-2xl font-black uppercase text-white tracking-tight">
+            Nouveau : Le guide de la formation pour « les nuls »
+          </h3>
+          <p className="text-xs text-[#A8B0BC] font-medium max-w-xl mx-auto leading-relaxed">
+            Vous préférez une explication simplifiée et imagée, sans termes techniques ? Découvrez notre fiche infographique interactive inspirée de NotebookLM pour comprendre les packages et le programme en un coup d'œil.
+          </p>
+          <div className="pt-2">
+            <Link 
+              href="/la-methode/decouverte" 
+              className="inline-flex items-center gap-2 bg-[#D8AA4D] hover:bg-[#F2CE79] text-black px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:scale-102"
+            >
+              Consulter la Fiche Découverte &rarr;
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* 13. Formulaire de candidature */}
       <section id="candidature" className="py-24 px-6 max-w-4xl mx-auto space-y-16">
         <div className="text-center space-y-3">
