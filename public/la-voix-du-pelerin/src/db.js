@@ -259,6 +259,79 @@ N'hésitez pas à demander de l'aide à un membre de votre groupe, à votre acco
     status: "published",
     imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
     publishedAt: "2026-07-06T00:00:00.000Z"
+  },
+  {
+    id: "art-8",
+    title: "Créer sa propre conciergerie Omra : L'indépendance avec la Méthode OMRAYANAIR",
+    summary: "Découvrez comment le modèle de la conciergerie autonome révolutionne l'organisation du pèlerinage sacré en éliminant les intermédiaires pour maximiser la qualité de service et la rentabilité.",
+    category: "Entreprendre",
+    content: `<h3>Une nouvelle ère pour l'organisation du pèlerinage</h3>
+<p>Pendant des décennies, organiser un voyage pour la Omra nécessitait de passer par des intermédiaires lourds et des grossistes commissionnés. Ce modèle traditionnel imposait des marges réduites pour les organisateurs et une perte de contrôle sur la qualité réelle des prestations fournies aux pèlerins (hôtels éloignés, transferts en bus de mauvaise qualité, manque d'accompagnement).</p>
+<p>Aujourd'hui, grâce à la numérisation des visas et à la libéralisation des services en Arabie Saoudite, une opportunité unique s'ouvre : créer votre propre **Conciergerie Omra Autonome**. La Méthode OMRAYANAIR a été conçue précisément pour vous transmettre les clés de ce modèle performant et éthique.</p>
+
+<h3>1. Qu'est-ce qu'une Conciergerie Omra Autonome ?</h3>
+<p>Contrairement au rôle de simple revendeur (ou sous-agent) qui touche une commission fixe de 35 € par pèlerin, le créateur de conciergerie travaille **en direct**. Vous négociez vos propres tarifs de vols auprès des compagnies low-cost et régulières, vous réservez directement vos chambres dans les hôtels de La Mecque et Médine, et vous sélectionnez vos propres guides de confiance sur place. Ce modèle vous permet de conserver l'intégralité de la valeur créée (avec une marge moyenne de 12% à 22% par dossier) tout en garantissant des prestations haut de gamme à vos pèlerins.</p>
+
+<h3>2. Les piliers de la formation d'accompagnement OMRAYANAIR</h3>
+<p>Le programme d'incubation d'OMRAYANAIR n'est pas une simple formation théorique en vidéo. C'est un accompagnement **100% présentiel et personnalisé** axé sur la mise en application immédiate :</p>
+<ul>
+  <li><strong>Ingénierie Logistique :</strong> Apprenez à assembler des packages sur mesure (vols, hôtels, transferts, visas, visites).</li>
+  <li><strong>Réseau Saoudien en direct :</strong> Accédez à notre carnet d'adresses de fournisseurs locaux certifiés (hôtels, transporteurs officiels, guides francophones).</li>
+  <li><strong>Écosystème Numérique :</strong> Nous configurons pour vous votre site internet, vos outils de gestion de pèlerins et votre facturation sous votre propre marque.</li>
+  <li><strong>Marketing d'Acquisition :</strong> Maîtrisez les stratégies d'acquisition organique via TikTok et l'intelligence artificielle pour attirer vos premiers clients sans budget publicitaire.</li>
+</ul>
+
+<h3>3. Un retour sur investissement rapide</h3>
+<p>L'accompagnement est structuré pour être rentabilisé dès vos premiers départs. Avec les formules optimisées apprises lors de l'incubation, le coût de votre formation se rentabilise rapidement :</p>
+<ul>
+  <li>Format Individuel (4 900 € HT) : Rentabilisé dès ~25 pèlerins accompagnés.</li>
+  <li>Formule Prête à Lancer (8 900 € HT) : Rentabilisée dès ~45 pèlerins.</li>
+  <li>Pack Immersion Arabie (13 900 € HT) : Rentabilisé dès ~70 pèlerins.</li>
+</ul>
+<p>En moyenne, un seul départ de groupe standard de 30 personnes suffit à couvrir l'intégralité de l'investissement initial.</p>`,
+    status: "published",
+    imageUrl: "/la-voix-du-pelerin/assets/rites_omra.png",
+    publishedAt: "2026-07-20T01:00:00.000Z"
+  },
+  {
+    id: "art-9",
+    title: "La Hijra à Médine : Les mérites spirituels et prophétiques de la ville sainte",
+    summary: "Médine Al-Munawwarah n'est pas seulement un lieu historique, c'est un refuge béni. Découvrez l'importance de s'installer ou d'accomplir sa Hijra à Médine à la lumière des hadiths authentiques.",
+    category: "Médine & Hijra",
+    content: `<h3>Médine, le refuge de la foi et du Prophète (SWS)</h3>
+<p>Médine Al-Munawwarah (la Lumineuse), anciennement appelée Yathrib, occupe une place unique dans le cœur des croyants. Ville d'accueil du Messager d'Allah (que la paix et le salut soient sur lui) lors de la noble émigration (la Hijra), elle est le berceau de la société islamique et le lieu où repose le Prophète. S'installer à Médine ou y accomplir sa Hijra est un idéal spirituel profond pour de nombreux musulmans cherchant à vivre dans la proximité physique de la Sunnah.</p>
+
+<h3>1. Médine, le sanctuaire protecteur et la bénédiction multipliée</h3>
+<p>Tout comme La Mecque, Médine est un territoire sacré (Haram) décrété par le Prophète lui-même. Dans un hadith authentique rapporté par l'Imam Al-Bukhari et l'Imam Muslim, le Prophète (SWS) a dit :</p>
+<blockquote>
+  "Médine est un sanctuaire entre le mont 'Ayr et le mont Thawr. Quiconque y commet une hérésie ou y donne refuge à un hérétique encourt la malédiction d'Allah, des anges et de toute l'humanité."
+</blockquote>
+<p>De plus, la bénédiction (Barakah) de Médine a fait l'objet d'une invocation prophétique spécifique :</p>
+<blockquote>
+  "Ô Allah ! Mets à Médine le double de la bénédiction que Tu as mise à La Mecque." (Sahih Al-Bukhari & Muslim)
+</blockquote>
+
+<h3>2. La foi se réfugie à Médine</h3>
+<p>Dans les moments de troubles et à l'approche de la fin des temps, Médine demeure une forteresse pour la foi. Le Prophète (SWS) a affirmé :</p>
+<blockquote>
+  "La foi se réfugie à Médine comme le serpent se réfugie dans son terrier." (Sahih Al-Bukhari)
+</blockquote>
+<p>C'est une ville qui purifie ses habitants de leurs défauts et de leurs hypocrisies. Le Messager d'Allah (SWS) l'a comparée à un outil de métallurgie :</p>
+<blockquote>
+  "Elle purifie les gens de leurs impuretés comme le soufflet élimine les scories du fer." (Sahih Al-Bukhari)
+</blockquote>
+
+<h3>3. L'immense mérite de mourir à Médine</h3>
+<p>Le plus beau cadeau auquel puisse aspirer un habitant de Médine est de terminer ses jours sur cette terre bénie et d'être enterré au cimetière d'Al-Baqi', aux côtés des compagnons du Prophète. Le Messager d'Allah (SWS) a encouragé les croyants à s'y installer avec cette promesse :</p>
+<blockquote>
+  "Quiconque parmi vous peut mourir à Médine, qu'il y meure, car j'intercéderai pour quiconque y meurt." (Rapporté par l'Imam Ahmad et l'Imam At-Tirmidhi, authentifié par Al-Albani)
+</blockquote>
+
+<h3>Conclusion : Vivre à Médine, un privilège qui exige du respect</h3>
+<p>Vivre la Hijra à Médine est une opportunité spirituelle sans équivalent. Cependant, habiter dans la ville du Prophète (SWS) exige également une rigueur de comportement et une politesse spirituelle exemplaire. Les bonnes actions y sont multipliées, tout comme les péchés y revêtent une gravité accrue en raison du caractère sacré du lieu. C'est une terre de paix, de sérénité (Sakinah) et de dévotion qui transforme quiconque y réside avec sincérité.</p>`,
+    status: "published",
+    imageUrl: "/la-voix-du-pelerin/assets/spiritual_prep.png",
+    publishedAt: "2026-07-20T02:00:00.000Z"
   }
 ];
 
