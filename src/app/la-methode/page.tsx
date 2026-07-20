@@ -1147,20 +1147,19 @@ export default function LaMethodePage() {
           </p>
         </div>
 
-        {/* Banner Écosystème Numérique */}
-        <div className="relative w-full h-64 md:h-96 rounded-[3rem] overflow-hidden border border-[#D8AA4D]/20 shadow-2xl mb-12">
+        {/* Banner Écosystème Numérique - Centered dashboard screen mock */}
+        <div className="max-w-2xl mx-auto rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative aspect-[16/9] mb-12">
           <Image 
             src="/methode-ecosystem.png" 
-            alt="Écosystème numérique OMRAYANAIR" 
+            alt="Dashboard de Gestion OMRAYANAIR" 
             fill
-            className="object-cover"
+            className="object-cover hover:scale-105 transition-transform duration-700"
+            sizes="(max-w-2xl) 100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-          <div className="absolute bottom-8 left-8 right-8 text-left">
-            <span className="bg-[#D8AA4D] text-black text-[9px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider inline-block mb-3">
-              TECHNOLOGIE INTÉGRÉE
-            </span>
-            <h3 className="text-xl md:text-3xl font-black uppercase text-white m-0">Pilotez votre activité avec nos solutions logicielles</h3>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#07090C] via-transparent to-transparent opacity-85" />
+          <div className="absolute bottom-4 left-6 text-left">
+            <span className="text-[9px] font-black uppercase text-[#D8AA4D] tracking-widest bg-black/40 backdrop-blur-sm px-2 py-1 rounded">LOGICIEL DE GESTION</span>
+            <p className="text-xs text-white font-bold mt-1">Pilotez vos pèlerins, vols et hébergements depuis une interface unique en français.</p>
           </div>
         </div>
 
