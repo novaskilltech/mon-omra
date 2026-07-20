@@ -1048,6 +1048,29 @@ export default function LaMethodePage() {
         </div>
       </section>
 
+      {/* Infographie Parcours & Atouts */}
+      <section className="py-12 px-6 max-w-5xl mx-auto space-y-8">
+        <div className="text-center space-y-3">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D8AA4D]">MÉTHODOLOGIE</span>
+          <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter text-white">
+            Le Parcours de l'Idée au Lancement
+          </h2>
+          <p className="text-xs text-[#A8B0BC] font-medium max-w-xl mx-auto">
+            Une vision claire et vulgarisée des étapes clés et des atouts de la conciergerie directe.
+          </p>
+        </div>
+        
+        <div className="rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative aspect-[16/9] max-w-4xl mx-auto bg-black/40 hover:scale-[1.01] transition-transform duration-500">
+          <Image 
+            src="/methode-infographie.png" 
+            alt="Infographie Parcours Conciergerie Omra et Atouts Directs" 
+            fill
+            className="object-contain"
+            sizes="(max-w-4xl) 100vw"
+          />
+        </div>
+      </section>
+
       {/* 9. Section « Ce programme n’est pas pour tout le monde » */}
       <section className="py-24 px-6 max-w-5xl mx-auto text-center space-y-12">
         <div className="bg-red-500/[0.02] border border-red-500/10 p-10 md:p-16 rounded-[3rem] space-y-6">
@@ -1276,29 +1299,6 @@ export default function LaMethodePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Infographie Parcours & Atouts */}
-      <section className="py-12 px-6 max-w-5xl mx-auto space-y-8">
-        <div className="text-center space-y-3">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D8AA4D]">MÉTHODOLOGIE</span>
-          <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter text-white">
-            Le Parcours de l'Idée au Lancement
-          </h2>
-          <p className="text-xs text-[#A8B0BC] font-medium max-w-xl mx-auto">
-            Une vision claire et vulgarisée des étapes clés et des atouts de la conciergerie directe.
-          </p>
-        </div>
-        
-        <div className="rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative aspect-[16/9] max-w-4xl mx-auto bg-black/40 hover:scale-[1.01] transition-transform duration-500">
-          <Image 
-            src="/methode-infographie.png" 
-            alt="Infographie Parcours Conciergerie Omra et Atouts Directs" 
-            fill
-            className="object-contain"
-            sizes="(max-w-4xl) 100vw"
-          />
         </div>
       </section>
 
