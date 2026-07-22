@@ -53,7 +53,7 @@ export default function ConciergeDashboard() {
     const [availableFlights, setAvailableFlights] = useState<any[]>([]);
     
     // Tab active view
-    const [activeView, setActiveView] = useState<'pilgrims' | 'requests' | 'urgences'>('pilgrims');
+    const [activeView, setActiveView] = useState<'pilgrims' | 'archived' | 'requests' | 'urgences'>('pilgrims');
     const [requests, setRequests] = useState<any[]>([]);
     const [assistanceRequests, setAssistanceRequests] = useState<any[]>([]);
     const [selectedRequest, setSelectedRequest] = useState<any>(null);
@@ -764,7 +764,16 @@ export default function ConciergeDashboard() {
     const tripPrice = selectedPilgrim?.package_price !== undefined && selectedPilgrim?.package_price !== null ? Number(selectedPilgrim.package_price) : 2500;
     const remainingBalance = tripPrice - totalPaid;
 
-    const filteredPilgrims = pilgrims.filter(p => 
+    const viewPilgrims = pilgrims.filter(p => {
+        if (activeView === 'pilgrims') {
+            return p.group_status !== 'Terminé';
+        } else if (activeView === 'archived') {
+            return p.group_status === 'Terminé';
+        }
+        return true;
+    });
+
+    const filteredPilgrims = viewPilgrims.filter(p => 
         `${p.first_name} ${p.family_name}`.toLowerCase().includes(search.toLowerCase())
     );
 
@@ -798,7 +807,13 @@ export default function ConciergeDashboard() {
                     onClick={() => setActiveView('pilgrims')}
                     className={`pb-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${activeView === 'pilgrims' ? 'border-emerald-500 text-main' : 'border-transparent text-dim hover:text-main'}`}
                 >
-                    Pèlerins Actifs ({pilgrims.length})
+                    Pèlerins Actifs ({pilgrims.filter(p => p.group_status !== 'Terminé').length})
+                </button>
+                <button
+                    onClick={() => setActiveView('archived')}
+                    className={`pb-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${activeView === 'archived' ? 'border-emerald-500 text-main' : 'border-transparent text-dim hover:text-main'}`}
+                >
+                    Pèlerins Archivés ({pilgrims.filter(p => p.group_status === 'Terminé').length})
                 </button>
                 <button
                     onClick={() => setActiveView('requests')}
@@ -813,7 +828,7 @@ export default function ConciergeDashboard() {
                 </button>
             </div>
 
-            {activeView === 'pilgrims' ? (
+            {activeView === 'pilgrims' || activeView === 'archived' ? (
                 <>
                     {/* Filters Row */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

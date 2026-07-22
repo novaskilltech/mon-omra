@@ -129,7 +129,7 @@ export default function LaMethodePage() {
 - *Budget de lancement* : ${formData.budget}
 - *Délai souhaité* : ${formData.delai}
 - *Projet* : ${formData.description}`;
-    return `https://wa.me/33752280890?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/212716014148?text=${encodeURIComponent(text)}`;
   };
 
   const getEmailLink = () => {

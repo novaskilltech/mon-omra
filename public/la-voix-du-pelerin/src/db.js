@@ -246,7 +246,7 @@ N'hésitez pas à demander de l'aide à un membre de votre groupe, à votre acco
 <ul>
   <li>Site internet : <a href="http://omrayanair.novaskill.tech" target="_blank">omrayanair.novaskill.tech</a></li>
   <li>E-mail : <a href="mailto:omrayanair@gmail.com">omrayanair@gmail.com</a></li>
-  <li>WhatsApp : <strong>+33 7 52 28 08 90</strong></li>
+  <li>WhatsApp : <strong>+212 7 16 01 41 48</strong></li>
   <li>Siège social : OmraYanair LLC, Albuquerque, New Mexico, États-Unis.</li>
 </ul>
 <blockquote><strong>Remarque :</strong> OmraYanair LLC n'est ni une compagnie d'assurance ni un établissement de santé. Pour toute urgence médicale, contactez immédiatement les services d'urgence ou votre compagnie d'assurance.</blockquote>
@@ -433,7 +433,8 @@ export const db = {
   init() {
     // If already seeded, check if we need to update/reset to get the latest articles
     const existing = localStorage.getItem(ARTICLES_KEY);
-    if (!existing || JSON.parse(existing).length < SEED_ARTICLES.length || JSON.parse(existing)[0].content.length < 1000) {
+    const hasOldNumber = existing && existing.includes("+33 7 52 28 08 90");
+    if (!existing || JSON.parse(existing).length < SEED_ARTICLES.length || JSON.parse(existing)[0].content.length < 1000 || hasOldNumber) {
       // Seed or override to ensure the new long articles are loaded
       localStorage.setItem(ARTICLES_KEY, JSON.stringify(SEED_ARTICLES));
     }

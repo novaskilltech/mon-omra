@@ -9,7 +9,7 @@ interface Group {
     name: string;
     pelerinCount: number;
     date: string;
-    status: 'En préparation' | 'Complet' | 'Brouillon';
+    status: 'En préparation' | 'Complet' | 'Brouillon' | 'Terminé';
     flightDepartureId?: string;
     flightReturnId?: string;
     makkahHotelId?: string;
@@ -30,7 +30,7 @@ export default function GroupsPage() {
     const [name, setName] = useState('');
     const [pelerinCount, setPelerinCount] = useState(0);
     const [date, setDate] = useState('');
-    const [status, setStatus] = useState<'En préparation' | 'Complet' | 'Brouillon'>('En préparation');
+    const [status, setStatus] = useState<'En préparation' | 'Complet' | 'Brouillon' | 'Terminé'>('En préparation');
     const [flyerFile, setFlyerFile] = useState<File | null>(null);
     const [flyerPath, setFlyerPath] = useState('');
 
@@ -255,7 +255,8 @@ export default function GroupsPage() {
 
                                 <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm ${g.status === 'Complet' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' :
                                     g.status === 'En préparation' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                                        'bg-gray-500/10 border-gray-500/20 text-dim'
+                                        g.status === 'Terminé' ? 'bg-gray-500/20 border-white/10 text-dim' :
+                                            'bg-gray-500/10 border-gray-500/20 text-dim'
                                     }`}>
                                     {g.status}
                                 </span>
@@ -343,6 +344,7 @@ export default function GroupsPage() {
                                     <option value="En préparation" className="bg-[#050605] text-main">En préparation</option>
                                     <option value="Complet" className="bg-[#050605] text-main">Complet</option>
                                     <option value="Brouillon" className="bg-[#050605] text-main">Brouillon</option>
+                                    <option value="Terminé" className="bg-[#050605] text-main">Terminé (Archivé)</option>
                                 </select>
                             </div>
 

@@ -24,7 +24,7 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
                 land_transfers,
                 package_price,
                 family_head_id,
-                groups(name)
+                groups(name, status)
             )
         `)
         .eq('role', 'PILGRIM');
@@ -69,6 +69,7 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
             visa_url: visaUrl,
             checkin_done: !!p.checkin_done,
             group_name: pilgrimDetail?.groups?.name || 'Sans Groupe',
+            group_status: pilgrimDetail?.groups?.status || null,
             group_id: pilgrimDetail?.group_id || null,
             individual_flight_info: pilgrimDetail?.individual_flight_info || null,
             individual_hotel_info: pilgrimDetail?.individual_hotel_info || null,

@@ -112,7 +112,7 @@ const app = {
         <div class="hero-ctas">
           <a href="#/guide" class="btn-premium">Consulter le Guide Omra</a>
           <a href="#/experiences" class="btn-premium btn-accent">Lire les Expériences</a>
-          <a href="https://wa.me/33752280890?text=Bonjour,%20je%20souhaite%20des%20informations%20pour%20une%20Omra%20avec%20OmraYanair." target="_blank" class="btn-premium btn-whatsapp">
+          <a href="https://wa.me/212716014148?text=Bonjour,%20je%20souhaite%20des%20informations%20pour%20une%20Omra%20avec%20OmraYanair." target="_blank" class="btn-premium btn-whatsapp">
             <svg style="width:20px;height:20px;fill:currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.488 1.449 5.413 1.451 5.428 0 9.85-4.414 9.853-9.843.002-2.63-1.012-5.101-2.859-6.95C17.207 1.963 14.73 1.96 12.01 1.96c-5.43 0-9.85 4.414-9.853 9.845-.001 1.925.501 3.805 1.458 5.41l-.984 3.591 3.684-.966zm11.23-6.843c-.3-.15-1.772-.875-2.046-.975-.276-.102-.476-.15-.676.15-.2.3-.778.976-.951 1.177-.174.2-.347.225-.648.075-.3-.15-1.264-.467-2.409-1.487-.889-.79-1.49-1.77-1.664-2.07-.174-.3-.019-.462.13-.61.135-.133.3-.35.45-.525.15-.175.2-.3.3-.5s.05-.375-.025-.525C9.444 8.01 8.82 6.48 8.563 5.86c-.25-.605-.503-.522-.689-.532-.177-.01-.379-.01-.581-.01-.203 0-.532.075-.812.379-.28.305-1.063 1.04-1.063 2.537 0 1.497 1.09 2.946 1.24 3.149.15.2 2.146 3.279 5.198 4.6c.725.313 1.292.5 1.734.64.73.23 1.393.197 1.918.12.585-.087 1.773-.725 2.022-1.397.25-.673.25-1.25.175-1.373-.075-.125-.275-.2-.575-.35z"/></svg>
             Contact WhatsApp
           </a>
@@ -231,7 +231,7 @@ const app = {
         <div class="article-cta-box">
           <h3>Un projet de Omra ?</h3>
           <p>Des questions spécifiques sur l'organisation de votre futur pèlerinage ? Contactez directement nos conseillers OmraYanair via WhatsApp.</p>
-          <a href="https://wa.me/33752280890?text=Bonjour,%20je%20souhaite%20des%20informations%20pour%20une%20Omra%20avec%20OmraYanair." target="_blank" class="btn-premium btn-whatsapp">
+          <a href="https://wa.me/212716014148?text=Bonjour,%20je%20souhaite%20des%20informations%20pour%20une%20Omra%20avec%20OmraYanair." target="_blank" class="btn-premium btn-whatsapp">
             Discuter sur WhatsApp
           </a>
         </div>
