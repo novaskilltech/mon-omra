@@ -33,6 +33,7 @@ export default function GroupsPage() {
     const [status, setStatus] = useState<'En préparation' | 'Complet' | 'Brouillon' | 'Terminé'>('En préparation');
     const [flyerFile, setFlyerFile] = useState<File | null>(null);
     const [flyerPath, setFlyerPath] = useState('');
+    const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
     // Available options
     const [availableFlights, setAvailableFlights] = useState<any[]>([]);
@@ -186,6 +187,44 @@ export default function GroupsPage() {
         }
     };
 
+    const getCityFromAirportCode = (code: string) => {
+        if (!code) return 'Sans Vol / Non assigné';
+        const c = code.toUpperCase();
+        if (c.includes('CDG') || c.includes('ORY') || c.includes('PAR')) return 'Paris';
+        if (c.includes('LYS')) return 'Lyon';
+        if (c.includes('MRS')) return 'Marseille';
+        if (c.includes('NCE')) return 'Nice';
+        if (c.includes('TLS')) return 'Toulouse';
+        if (c.includes('RUN') || c.includes('REUNION') || c.includes('RÉUNION')) return 'La Réunion';
+        if (c.includes('NTE')) return 'Nantes';
+        if (c.includes('BSL') || c.includes('EAP') || c.includes('MLH')) return 'Bâle-Mulhouse';
+        return code;
+    };
+
+    const groupsWithCity = groups.map(g => {
+        const flight = availableFlights.find(f => f.id === g.flightDepartureId);
+        const firstSeg = flight?.flight_segments?.[0];
+        const airport = firstSeg?.departure_airport || '';
+        const city = getCityFromAirportCode(airport);
+        return { ...g, city };
+    });
+
+    const cities = Array.from(new Set(groupsWithCity.map(g => g.city))).sort((a, b) => {
+        if (a.includes('Non assigné')) return 1;
+        if (b.includes('Non assigné')) return -1;
+        return a.localeCompare(b);
+    });
+
+    const cityStats = cities.map(city => {
+        const cityGroups = groupsWithCity.filter(g => g.city === city);
+        const totalPilgrims = cityGroups.reduce((acc, g) => acc + g.pelerinCount, 0);
+        return {
+            name: city,
+            groupCount: cityGroups.length,
+            pilgrimCount: totalPilgrims
+        };
+    });
+
     return (
         <div className="space-y-8 p-6">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -201,90 +240,158 @@ export default function GroupsPage() {
                 </button>
             </header>
 
-            <div className="grid grid-cols-1 gap-4">
-                {loading && groups.length === 0 ? (
-                    <div className="flex justify-center items-center py-12">
-                        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-                    </div>
-                ) : groups.length === 0 ? (
-                    <p className="text-center text-dim text-sm italic py-12">Aucun groupe trouvé dans la base de données. Créez-en un nouveau !</p>
-                ) : (
-                    groups.map((g) => (
-                        <div key={g.id} className="glass p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between group hover:border-emerald-500/30 transition-all shadow-sm">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/5 flex items-center justify-center border border-emerald-500/10">
-                                    <Users className="w-8 h-8 text-emerald-600 dark:text-emerald-500" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black uppercase tracking-tighter text-main">{g.name}</h3>
-                                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-dim mt-2">
-                                        <span className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-500" /> {g.pelerinCount} pèlerins</span>
-                                        <span className="flex items-center gap-2 text-sub opacity-20">|</span>
-                                        <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-emerald-500" /> {formatDateDisplay(g.date)}</span>
-                                    </div>
-                                    {g.flyerPath && (
-                                        <button
-                                            onClick={async () => {
-                                                const res = await getGroupFlyerUrlAction(g.flyerPath!);
-                                                if (res.success && res.url) {
-                                                    window.open(res.url, '_blank');
-                                                } else {
-                                                    alert(res.error || "Impossible d'accéder au flyer");
-                                                }
-                                            }}
-                                            className="mt-3 text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 flex items-center gap-1.5 transition-all bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20"
-                                        >
-                                            <FileText className="w-3.5 h-3.5" /> Voir le Flyer
-                                        </button>
+            {loading && groups.length === 0 ? (
+                <div className="flex justify-center items-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                </div>
+            ) : groups.length === 0 ? (
+                <p className="text-center text-dim text-sm italic py-12">Aucun groupe trouvé dans la base de données. Créez-en un nouveau !</p>
+            ) : (
+                <div className="space-y-10 animate-in fade-in duration-500">
+                    {/* Bento Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {cityStats.map((stat) => {
+                            const isSelected = selectedCity === stat.name;
+                            return (
+                                <div 
+                                    key={stat.name}
+                                    onClick={() => setSelectedCity(isSelected ? null : stat.name)}
+                                    className={`glass p-8 rounded-[2.5rem] cursor-pointer border transition-all relative overflow-hidden select-none hover:scale-[1.02] ${
+                                        isSelected 
+                                            ? 'bg-emerald-500/10 border-emerald-500/40 shadow-inner' 
+                                            : 'border-emerald-500/5 hover:border-emerald-500/25'
+                                    }`}
+                                >
+                                    {/* Accent background glow */}
+                                    {isSelected && (
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 blur-[40px] rounded-full pointer-events-none" />
                                     )}
+                                    <div className="flex justify-between items-start">
+                                        <div className="space-y-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                                <Users className="w-6 h-6 text-emerald-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-2xl font-black uppercase tracking-tighter text-main leading-tight">{stat.name}</h3>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-dim mt-1.5 flex items-center gap-1.5">
+                                                    <span>{stat.groupCount} {stat.groupCount > 1 ? 'groupes' : 'groupe'}</span>
+                                                    <span className="text-sub opacity-25">•</span>
+                                                    <span className="text-emerald-500 font-black">{stat.pilgrimCount} pèlerins</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[9px] font-black uppercase tracking-widest py-1.5 px-3 rounded-full ${
+                                            isSelected ? 'bg-emerald-500 text-black' : 'bg-white/5 border border-white/5 text-dim'
+                                        }`}>
+                                            {isSelected ? 'Ouvert' : 'Consulter'}
+                                        </span>
+                                    </div>
                                 </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Chronological Accordion Panel */}
+                    {selectedCity && (
+                        <div className="glass p-8 rounded-[3rem] border border-emerald-500/10 space-y-6 animate-in slide-in-from-top-6 duration-300">
+                            <div className="flex justify-between items-center border-b border-emerald-500/10 pb-4">
+                                <h3 className="text-lg font-black uppercase tracking-tight text-main">
+                                    Départs de <span className="text-emerald-500">{selectedCity}</span> (Ordre Chronologique)
+                                </h3>
+                                <button 
+                                    onClick={() => setSelectedCity(null)}
+                                    className="text-xs font-bold uppercase tracking-widest text-dim hover:text-main transition-colors"
+                                >
+                                    Fermer
+                                </button>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-4 mt-6 md:mt-0">
-                                <div className="flex bg-emerald-500/5 dark:bg-white/5 p-1 rounded-2xl border border-emerald-500/10 dark:border-white/5 shadow-inner">
-                                    <Link href={`/backoffice/groups/${g.id}/planning`} className="p-3 hover:bg-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl transition-all text-dim" title="Planning">
-                                        <Calendar className="w-5 h-5" />
-                                    </Link>
-                                    <Link href={`/backoffice/groups/${g.id}/rooming`} className="p-3 hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 rounded-xl transition-all text-dim" title="Rooming">
-                                        <Hotel className="w-5 h-5" />
-                                    </Link>
-                                    <Link href={`/backoffice/groups/${g.id}/notifications`} className="p-3 hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl transition-all text-dim" title="Broadcast">
-                                        <Bell className="w-5 h-5" />
-                                    </Link>
-                                </div>
+                            <div className="space-y-4">
+                                {groupsWithCity
+                                    .filter(g => g.city === selectedCity)
+                                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                                    .map((g) => (
+                                        <div key={g.id} className="glass p-6 rounded-[2rem] border-white/5 hover:border-emerald-500/20 transition-all flex flex-col md:flex-row items-center justify-between shadow-sm animate-in fade-in duration-300">
+                                            <div className="flex items-center gap-6">
+                                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/5 flex items-center justify-center border border-emerald-500/10">
+                                                    <Calendar className="w-6 h-6 text-emerald-600 dark:text-emerald-500" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-lg font-black uppercase tracking-tighter text-main">{g.name}</h4>
+                                                    <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-dim mt-2">
+                                                        <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-emerald-500" /> {g.pelerinCount} pèlerins</span>
+                                                        <span className="flex items-center gap-1.5 text-sub opacity-20">|</span>
+                                                        <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-emerald-500" /> {formatDateDisplay(g.date)}</span>
+                                                    </div>
+                                                    {g.flyerPath && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                const res = await getGroupFlyerUrlAction(g.flyerPath!);
+                                                                if (res.success && res.url) {
+                                                                    window.open(res.url, '_blank');
+                                                                } else {
+                                                                    alert(res.error || "Impossible d'accéder au flyer");
+                                                                }
+                                                            }}
+                                                            className="mt-3 text-[8px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 flex items-center gap-1 transition-all bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/15"
+                                                        >
+                                                            <FileText className="w-3 h-3" /> Voir le Flyer
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
 
-                                <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm ${g.status === 'Complet' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' :
-                                    g.status === 'En préparation' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                                        g.status === 'Terminé' ? 'bg-gray-500/20 border-white/10 text-dim' :
-                                            'bg-gray-500/10 border-gray-500/20 text-dim'
-                                    }`}>
-                                    {g.status}
-                                </span>
-                                
-                                <div className="flex items-center gap-2">
-                                    <button 
-                                        onClick={() => openEditModal(g)}
-                                        className="p-3 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-2xl border border-emerald-500/10 hover:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 transition-all"
-                                        title="Modifier le groupe"
-                                    >
-                                        <Edit className="w-4 h-4" />
-                                    </button>
-                                    <button 
-                                        onClick={() => handleDelete(g.id)}
-                                        className="p-3 bg-red-500/5 hover:bg-red-500/10 rounded-2xl border border-red-500/10 hover:border-red-500/30 text-red-600 dark:text-red-500 transition-all"
-                                        title="Supprimer"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                    <Link href={`/backoffice/groups/${g.id}/planning`} className="p-3.5 bg-white/5 border border-white/5 rounded-full hover:bg-emerald-500/5 text-dim hover:text-emerald-500 transition-all group-hover:scale-105">
-                                        <ArrowRight className="w-5 h-5" />
-                                    </Link>
-                                </div>
+                                            <div className="flex flex-wrap items-center gap-4 mt-6 md:mt-0">
+                                                <div className="flex bg-emerald-500/5 dark:bg-white/5 p-1 rounded-2xl border border-emerald-500/10 dark:border-white/5 shadow-inner">
+                                                    <Link href={`/backoffice/groups/${g.id}/planning`} className="p-2.5 hover:bg-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl transition-all text-dim" title="Planning">
+                                                        <Calendar className="w-4.5 h-4.5" />
+                                                    </Link>
+                                                    <Link href={`/backoffice/groups/${g.id}/rooming`} className="p-2.5 hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400 rounded-xl transition-all text-dim" title="Rooming">
+                                                        <Hotel className="w-4.5 h-4.5" />
+                                                    </Link>
+                                                    <Link href={`/backoffice/groups/${g.id}/notifications`} className="p-2.5 hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl transition-all text-dim" title="Broadcast">
+                                                        <Bell className="w-4.5 h-4.5" />
+                                                    </Link>
+                                                </div>
+
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm ${
+                                                    g.status === 'Complet' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' :
+                                                    g.status === 'En préparation' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
+                                                    g.status === 'Terminé' ? 'bg-gray-500/20 border-white/10 text-dim' :
+                                                    'bg-gray-500/10 border-gray-500/20 text-dim'
+                                                }`}>
+                                                    {g.status}
+                                                </span>
+                                                
+                                                <div className="flex items-center gap-1.5">
+                                                    <button 
+                                                        onClick={() => openEditModal(g)}
+                                                        className="p-2.5 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl border border-emerald-500/10 hover:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 transition-all"
+                                                        title="Modifier le groupe"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDelete(g.id)}
+                                                        className="p-2.5 bg-red-500/5 hover:bg-red-500/10 rounded-xl border border-red-500/10 hover:border-red-500/30 text-red-600 dark:text-red-500 transition-all"
+                                                        title="Supprimer"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                    <Link href={`/backoffice/groups/${g.id}/planning`} className="p-3 bg-white/5 border border-white/5 rounded-full hover:bg-emerald-500/5 text-dim hover:text-emerald-500 transition-all">
+                                                        <ArrowRight className="w-4.5 h-4.5" />
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                             </div>
                         </div>
-                    ))
-                )}
-            </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
 
             {/* Modal de Saisie (Add/Edit) */}
             {isModalOpen && (
