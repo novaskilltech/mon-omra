@@ -390,8 +390,6 @@ export default function GroupsPage() {
                     )}
                 </div>
             )}
-        </div>
-    );
 
             {/* Modal de Saisie (Add/Edit) */}
             {isModalOpen && (
