@@ -187,31 +187,30 @@ export default function GroupsPage() {
         }
     };
 
-    const getCityFromAirportCode = (code: string) => {
-        if (!code) return 'Sans Vol / Non assigné';
-        const c = code.toUpperCase();
-        if (c.includes('CDG') || c.includes('ORY') || c.includes('PAR')) return 'Paris';
-        if (c.includes('LYS')) return 'Lyon';
-        if (c.includes('MRS')) return 'Marseille';
-        if (c.includes('NCE')) return 'Nice';
-        if (c.includes('TLS')) return 'Toulouse';
-        if (c.includes('RUN') || c.includes('REUNION') || c.includes('RÉUNION')) return 'La Réunion';
-        if (c.includes('NTE')) return 'Nantes';
-        if (c.includes('BSL') || c.includes('EAP') || c.includes('MLH')) return 'Bâle-Mulhouse';
-        return code;
+    const getCityFromGroupName = (groupName: string) => {
+        if (!groupName) return 'Autres / Non spécifié';
+        const nameUpper = groupName.toUpperCase();
+
+        if (nameUpper.includes('CDG') || nameUpper.includes('ORY') || nameUpper.includes('PARIS') || nameUpper.includes('PAR')) return 'Paris';
+        if (nameUpper.includes('LYS') || nameUpper.includes('LYON')) return 'Lyon';
+        if (nameUpper.includes('MRS') || nameUpper.includes('MARSEILLE')) return 'Marseille';
+        if (nameUpper.includes('NCE') || nameUpper.includes('NICE')) return 'Nice';
+        if (nameUpper.includes('TLS') || nameUpper.includes('TOULOUSE')) return 'Toulouse';
+        if (nameUpper.includes('RUN') || nameUpper.includes('REUNION') || nameUpper.includes('RÉUNION')) return 'La Réunion';
+        if (nameUpper.includes('NTE') || nameUpper.includes('NANTES')) return 'Nantes';
+        if (nameUpper.includes('BSL') || nameUpper.includes('EAP') || nameUpper.includes('MLH') || nameUpper.includes('BALE') || nameUpper.includes('BÂLE')) return 'Bâle-Mulhouse';
+
+        return 'Autres / Non spécifié';
     };
 
     const groupsWithCity = groups.map(g => {
-        const flight = availableFlights.find(f => f.id === g.flightDepartureId);
-        const firstSeg = flight?.flight_segments?.[0];
-        const airport = firstSeg?.departure_airport || '';
-        const city = getCityFromAirportCode(airport);
+        const city = getCityFromGroupName(g.name);
         return { ...g, city };
     });
 
     const cities = Array.from(new Set(groupsWithCity.map(g => g.city))).sort((a, b) => {
-        if (a.includes('Non assigné')) return 1;
-        if (b.includes('Non assigné')) return -1;
+        if (a.includes('Autres')) return 1;
+        if (b.includes('Autres')) return -1;
         return a.localeCompare(b);
     });
 
@@ -509,44 +508,6 @@ export default function GroupsPage() {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Vol Aller</label>
-                                    <select 
-                                        value={flightDepartureId} 
-                                        onChange={(e) => setFlightDepartureId(e.target.value)} 
-                                        className="w-full bg-[#0b0f0d] dark:bg-[#0b0f0d] border border-white/10 dark:border-white/10 rounded-2xl px-3 py-3.5 text-xs font-medium text-main outline-none focus:border-emerald-500/40 transition-all"
-                                    >
-                                        <option value="">-- Aucun vol --</option>
-                                        {availableFlights.map((f: any) => {
-                                            const seg = f.flight_segments?.[0];
-                                            return (
-                                                <option key={f.id} value={f.id}>
-                                                    {seg ? `${seg.airline} (${seg.flight_number})` : f.id.slice(0, 8)}
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Vol Retour</label>
-                                    <select 
-                                        value={flightReturnId} 
-                                        onChange={(e) => setFlightReturnId(e.target.value)} 
-                                        className="w-full bg-[#0b0f0d] dark:bg-[#0b0f0d] border border-white/10 dark:border-white/10 rounded-2xl px-3 py-3.5 text-xs font-medium text-main outline-none focus:border-emerald-500/40 transition-all"
-                                    >
-                                        <option value="">-- Aucun vol --</option>
-                                        {availableFlights.map((f: any) => {
-                                            const seg = f.flight_segments?.[0];
-                                            return (
-                                                <option key={f.id} value={f.id}>
-                                                    {seg ? `${seg.airline} (${seg.flight_number})` : f.id.slice(0, 8)}
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
-                                </div>
-                            </div>
 
                             <div className="grid grid-cols-2 gap-6 pt-2">
                                 <div className="space-y-3">
