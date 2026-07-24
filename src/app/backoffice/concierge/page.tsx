@@ -21,6 +21,7 @@ import { getAssistanceRequestsAction, resolveAssistanceRequestAction } from '@/l
 
 export default function ConciergeDashboard() {
     const [pilgrims, setPilgrims] = useState<any[]>([]);
+    const [allPilgrims, setAllPilgrims] = useState<any[]>([]);
     const [groups, setGroups] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedPilgrim, setSelectedPilgrim] = useState<any>(null);
@@ -135,6 +136,9 @@ export default function ConciergeDashboard() {
                 visaStatus: visaFilter || undefined
             });
             setPilgrims(list);
+
+            const fullList = await getPilgrimsList();
+            setAllPilgrims(fullList);
 
             const grps = await getGroups();
             setGroups(grps);
@@ -719,6 +723,8 @@ export default function ConciergeDashboard() {
                     visaStatus: visaFilter || undefined
                 });
                 setPilgrims(list);
+                const fullList = await getPilgrimsList();
+                setAllPilgrims(fullList);
                 // Refresh selected pilgrim reference in UI
                 const updatedSelected = list.find((p: any) => p.id === selectedPilgrim.id);
                 if (updatedSelected) setSelectedPilgrim(updatedSelected);
@@ -746,6 +752,8 @@ export default function ConciergeDashboard() {
                     visaStatus: visaFilter || undefined
                 });
                 setPilgrims(list);
+                const fullList = await getPilgrimsList();
+                setAllPilgrims(fullList);
                 // Refresh selected pilgrim reference in UI
                 const updatedSelected = list.find((p: any) => p.id === selectedPilgrim.id);
                 if (updatedSelected) setSelectedPilgrim(updatedSelected);
@@ -777,11 +785,10 @@ export default function ConciergeDashboard() {
         `${p.first_name} ${p.family_name}`.toLowerCase().includes(search.toLowerCase())
     );
 
-    const linkedFamilyMembers = pilgrims.filter(p => p.family_head_id === selectedPilgrim?.id);
-    const eligiblePilgrimsToLink = pilgrims.filter(p => 
-        p.id !== selectedPilgrim?.id && 
-        !p.family_head_id &&
-        p.id !== selectedPilgrim?.family_head_id &&
+    const pilgrimPool = allPilgrims.length > 0 ? allPilgrims : pilgrims;
+    const linkedFamilyMembers = pilgrimPool.filter(p => p.family_head_id === selectedPilgrim?.id);
+    const eligiblePilgrimsToLink = pilgrimPool.filter(p => 
+        p.id !== selectedPilgrim?.id &&
         p.family_head_id !== selectedPilgrim?.id
     );
 
@@ -1288,23 +1295,31 @@ export default function ConciergeDashboard() {
                                                             onChange={(e) => setFamilySearchText(e.target.value)}
                                                             className="w-full bg-[#0b0f0d]/40 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500" 
                                                         />
-                                                        {familySearchText && (
-                                                            <select
-                                                                value={selectedFamilyMemberId}
-                                                                onChange={(e) => setSelectedFamilyMemberId(e.target.value)}
-                                                                className="w-full bg-[#0b0f0d]/90 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500 mt-1"
-                                                            >
-                                                                <option value="">-- Choisir un pèlerin à lier --</option>
-                                                                {eligiblePilgrimsToLink
-                                                                    .filter((p: any) => `${p.first_name} ${p.family_name}`.toLowerCase().includes(familySearchText.toLowerCase()))
-                                                                    .map((p: any) => (
+                                                        <select
+                                                            value={selectedFamilyMemberId}
+                                                            onChange={(e) => setSelectedFamilyMemberId(e.target.value)}
+                                                            className="w-full bg-[#0b0f0d]/90 border border-emerald-500/10 rounded-xl px-3 py-2 text-xs text-main focus:outline-none focus:border-emerald-500 mt-1"
+                                                        >
+                                                            <option value="">-- Choisir un pèlerin à lier --</option>
+                                                            {eligiblePilgrimsToLink
+                                                                .filter((p: any) => {
+                                                                    if (!familySearchText.trim()) return true;
+                                                                    const searchWords = familySearchText.toLowerCase().trim().split(/\s+/);
+                                                                    const targetStr = `${p.first_name || ''} ${p.family_name || ''} ${p.email || ''}`.toLowerCase();
+                                                                    return searchWords.every(word => targetStr.includes(word));
+                                                                })
+                                                                .map((p: any) => {
+                                                                    const isLinkedToOther = p.family_head_id && p.family_head_id !== selectedPilgrim?.id;
+                                                                    const headPilgrim = isLinkedToOther ? pilgrimPool.find((hp: any) => hp.id === p.family_head_id) : null;
+                                                                    const headInfo = headPilgrim ? ` (Lié à ${headPilgrim.first_name} ${headPilgrim.family_name})` : isLinkedToOther ? ' (Déjà lié)' : '';
+                                                                    return (
                                                                         <option key={p.id} value={p.id}>
-                                                                            {p.first_name.toUpperCase()} {p.family_name.toUpperCase()} ({p.group_name})
+                                                                            {(p.first_name || '').toUpperCase()} {(p.family_name || '').toUpperCase()} ({p.group_name || 'Sans groupe'}){headInfo}
                                                                         </option>
-                                                                    ))
-                                                                }
-                                                            </select>
-                                                        )}
+                                                                    );
+                                                                })
+                                                            }
+                                                        </select>
                                                     </div>
                                                     <button
                                                         type="button"
