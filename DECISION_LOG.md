@@ -221,5 +221,14 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Optimisation SEO et balisage sémantique Schema.org (EducationalOccupationalProgram).
 *   **Version** : v1.14.0
 
+---
 
-
+## 22. Remplacement des Demandes d'Accès par des Demandes de Renseignement
+*   **Décision** : Transformer le flux de demande d'accès côté pèlerin en formulaire de demande de renseignement (inquiry form) et retirer le mécanisme d'approbation automatique en backoffice au profit d'options de contact direct (WhatsApp, Mail, Téléphone).
+*   **Justification** : Élimine les erreurs d'adresses e-mail en doublon lorsque l'administrateur crée le dossier d'un pèlerin en premier et que le pèlerin tente de s'inscrire manuellement ensuite. Les pèlerins se connectent directement avec l'e-mail saisi par l'admin via OTP.
+*   **Impacts** :
+    *   Modification de la table `registration_requests` avec les nouveaux critères (message, ancien client, club de fidélité).
+    *   Mise à jour de l'action serveur `requestRegistration` et retrait/adaptation de la validation d'accès.
+    *   Remplacement des placeholders réels "Salah / Lamkhannet" par des noms fictifs neutres "Karim / Dupont" dans le formulaire de connexion/renseignement [login/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/login/page.tsx).
+    *   Intégration du tableau enrichi et des boutons d'actions directes (WhatsApp, E-mail, Téléphone) avec bouton "Traité" dans [backoffice/concierge/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/concierge/page.tsx).
+*   **Version** : v1.15.0

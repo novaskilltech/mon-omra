@@ -421,23 +421,59 @@ export async function requestRegistration(data: {
     familyName: string;
     gender: 'M' | 'F';
     phone?: string;
+    message?: string;
+    isFormerClient?: boolean;
+    wantsLoyaltyBenefits?: boolean;
 }) {
     const supabase = createClient();
     try {
+        const cleanEmail = data.email.trim().toLowerCase();
+
+        // 1. Check if profile already exists for this email (dossier pèlerin déjà créé par l'agence)
+        const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .ilike('email', cleanEmail)
+            .maybeSingle();
+
+        if (existingProfile) {
+            return {
+                alreadyRegistered: true,
+                error: "Votre dossier a déjà été créé par notre agence ! Vous pouvez vous connecter directement en entrant votre adresse e-mail dans l'onglet Connexion."
+            };
+        }
+
+        // 2. Check if a registration request already exists
+        const { data: existingRequest } = await supabase
+            .from('registration_requests')
+            .select('id, status')
+            .ilike('email', cleanEmail)
+            .maybeSingle();
+
+        if (existingRequest) {
+            return { error: "Une demande de renseignement pour cette adresse e-mail a déjà été soumise et est en cours d'étude par l'agence." };
+        }
+
         const { error } = await supabase
             .from('registration_requests')
             .insert({
-                email: data.email,
+                email: cleanEmail,
                 first_name: data.firstName,
                 family_name: data.familyName,
                 gender: data.gender,
                 phone: data.phone || null,
+                message: data.message || null,
+                is_former_client: data.isFormerClient || false,
+                wants_loyalty_benefits: data.wantsLoyaltyBenefits || false,
                 status: 'PENDING'
             });
 
         if (error) {
             if (error.code === '23505') {
-                return { error: "Une demande pour cette adresse e-mail a déjà été soumise." };
+                return {
+                    alreadyRegistered: true,
+                    error: "Votre dossier ou demande existe déjà. Veuillez vous connecter avec votre adresse e-mail."
+                };
             }
             throw error;
         }
@@ -455,14 +491,14 @@ export async function requestRegistration(data: {
                     body: JSON.stringify({
                         from: 'OMRAYANAIR <onboarding@resend.dev>',
                         to: 'omrayanair@gmail.com',
-                        subject: '🚨 Nouvelle demande d\'inscription - OMRAYANAIR',
+                        subject: '🚨 Nouvelle demande de renseignement - OMRAYANAIR',
                         html: `
                             <div style="font-family: sans-serif; padding: 20px; color: #1f2937;">
-                                <h2 style="color: #059669; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Nouvelle demande d'inscription</h2>
-                                <p style="font-size: 14px;">Un nouveau pèlerin a soumis une demande d'accès au portail <strong>OMRAYANAIR</strong> :</p>
+                                <h2 style="color: #059669; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Nouvelle demande de renseignement</h2>
+                                <p style="font-size: 14px;">Un prospect a soumis une demande de renseignement sur le portail <strong>OMRAYANAIR</strong> :</p>
                                 <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                                     <tr>
-                                        <td style="padding: 8px 0; font-weight: bold; width: 120px;">Nom complet :</td>
+                                        <td style="padding: 8px 0; font-weight: bold; width: 150px;">Nom complet :</td>
                                         <td style="padding: 8px 0;">${data.firstName} ${data.familyName}</td>
                                     </tr>
                                     <tr>
@@ -477,6 +513,18 @@ export async function requestRegistration(data: {
                                         <td style="padding: 8px 0; font-weight: bold;">Genre :</td>
                                         <td style="padding: 8px 0;">${data.gender === 'M' ? 'Homme' : 'Femme'}</td>
                                     </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">Ancien client :</td>
+                                        <td style="padding: 8px 0;">${data.isFormerClient ? 'Oui' : 'Non'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">Club Fidélité :</td>
+                                        <td style="padding: 8px 0;">${data.wantsLoyaltyBenefits ? 'Oui' : 'Non'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">Message :</td>
+                                        <td style="padding: 8px 0; white-space: pre-wrap;">${data.message || 'Aucun message'}</td>
+                                    </tr>
                                 </table>
                                 <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
                                     <a href="https://omrayanair.vercel.app/backoffice/concierge" style="background-color: #059669; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Accéder au Backoffice</a>
@@ -489,7 +537,7 @@ export async function requestRegistration(data: {
                 console.error("Erreur lors de l'envoi de la notification par e-mail:", emailErr);
             }
         } else {
-            console.log(`[Notification Email Simulée] Nouvelle demande d'inscription pour ${data.firstName} ${data.familyName} (${data.email}) envoyée à omrayanair@gmail.com`);
+            console.log(`[Notification Email Simulée] Nouvelle demande de renseignement pour ${data.firstName} ${data.familyName} (${data.email}) envoyée à omrayanair@gmail.com`);
         }
 
         return { success: true };

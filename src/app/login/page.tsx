@@ -32,9 +32,13 @@ export default function LoginPage() {
         firstName: '',
         familyName: '',
         gender: 'M' as 'M' | 'F',
-        phone: ''
+        phone: '',
+        message: '',
+        isFormerClient: false,
+        wantsLoyaltyBenefits: false
     });
     const [regSuccess, setRegSuccess] = useState(false);
+    const [alreadyExistsNotice, setAlreadyExistsNotice] = useState<string | null>(null);
 
     const handleDriverLoginSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -127,10 +131,13 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setAlreadyExistsNotice(null);
 
         try {
             const res = await requestRegistration(regForm);
-            if (res.error) {
+            if (res.alreadyRegistered) {
+                setAlreadyExistsNotice(res.error || "Votre dossier a déjà été créé. Connectez-vous avec votre e-mail.");
+            } else if (res.error) {
                 setError(res.error);
             } else {
                 setRegSuccess(true);
@@ -190,7 +197,7 @@ export default function LoginPage() {
                             onClick={() => { setActiveTab('register'); setError(null); }}
                             className={`flex-1 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'register' ? 'bg-white/10 text-main shadow' : 'text-dim hover:text-main'}`}
                         >
-                            Demande d'accès
+                            Demande de renseignement
                         </button>
                     </div>
                 )}
@@ -396,7 +403,7 @@ export default function LoginPage() {
                             </div>
                             <h2 className="text-2xl font-black uppercase tracking-tighter mb-3 text-main">Demande reçue</h2>
                             <p className="text-sub text-xs leading-relaxed mb-8">
-                                Votre demande d'inscription a été transmise avec succès. L'administrateur de l'agence validera votre compte manuellement sous peu. Vous recevrez une notification d'activation.
+                                Votre demande de renseignement a été transmise avec succès. Notre équipe vous recontactera sous peu par e-mail, téléphone ou WhatsApp.
                             </p>
                             <button
                                 onClick={() => { setRegSuccess(false); setActiveTab('login'); }}
@@ -405,12 +412,36 @@ export default function LoginPage() {
                                 Retour à la connexion
                             </button>
                         </div>
+                    ) : alreadyExistsNotice ? (
+                        <div className="text-center py-6 space-y-6 animate-in zoom-in-95 duration-500">
+                            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto border border-amber-500/30">
+                                <User className="w-8 h-8 text-amber-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black uppercase tracking-tighter mb-2 text-main">Dossier Déjà Existant</h2>
+                                <p className="text-dim text-xs leading-relaxed font-normal px-2">
+                                    {alreadyExistsNotice}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEmail(regForm.email);
+                                    setActiveTab('login');
+                                    setAlreadyExistsNotice(null);
+                                    setError(null);
+                                }}
+                                className="w-full bg-emerald-500 hover:bg-emerald-400 text-[#050605] py-4 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20"
+                            >
+                                Se connecter directement <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
                     ) : (
                         <div>
                             <div className="mb-8">
-                                <h1 className="text-2xl font-black mb-2 text-main uppercase tracking-tighter">Demande d'inscription</h1>
+                                <h1 className="text-2xl font-black mb-2 text-main uppercase tracking-tighter">Demande de renseignement</h1>
                                 <p className="text-sub text-xs leading-relaxed font-light">
-                                    Veuillez renseigner vos informations réelles afin que l'agence puisse autoriser l'accès à votre dossier de voyage.
+                                    Veuillez renseigner vos coordonnées et votre requête afin que notre équipe puisse vous recontacter.
                                 </p>
                             </div>
 
@@ -423,7 +454,7 @@ export default function LoginPage() {
                                             type="text"
                                             value={regForm.firstName}
                                             onChange={(e) => setRegForm({ ...regForm, firstName: e.target.value })}
-                                            placeholder="Salah"
+                                            placeholder="Karim"
                                             className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                         />
                                     </div>
@@ -434,7 +465,7 @@ export default function LoginPage() {
                                             type="text"
                                             value={regForm.familyName}
                                             onChange={(e) => setRegForm({ ...regForm, familyName: e.target.value })}
-                                            placeholder="Lamkhannet"
+                                            placeholder="Dupont"
                                             className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                         />
                                     </div>
@@ -483,6 +514,46 @@ export default function LoginPage() {
                                         placeholder="+33 6 12 34 56 78"
                                         className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                     />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-dim ml-4">Votre message / Requête</label>
+                                    <textarea
+                                        required
+                                        rows={3}
+                                        value={regForm.message}
+                                        onChange={(e) => setRegForm({ ...regForm, message: e.target.value })}
+                                        placeholder="Décrivez votre demande d'informations ou votre projet de voyage..."
+                                        className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main resize-none"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-3 py-2">
+                                    <label className="flex items-center gap-3 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={regForm.isFormerClient}
+                                            onChange={(e) => setRegForm({ ...regForm, isFormerClient: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-5 h-5 rounded border border-emerald-500/20 bg-white/5 flex items-center justify-center peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all">
+                                            <CheckCircle className="w-3.5 h-3.5 text-[#050605] hidden peer-checked:block" />
+                                        </div>
+                                        <span className="text-[11px] text-dim group-hover:text-main transition-colors">Je suis un ancien client de l'agence</span>
+                                    </label>
+
+                                    <label className="flex items-center gap-3 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={regForm.wantsLoyaltyBenefits}
+                                            onChange={(e) => setRegForm({ ...regForm, wantsLoyaltyBenefits: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-5 h-5 rounded border border-emerald-500/20 bg-white/5 flex items-center justify-center peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all">
+                                            <CheckCircle className="w-3.5 h-3.5 text-[#050605] hidden peer-checked:block" />
+                                        </div>
+                                        <span className="text-[11px] text-dim group-hover:text-main transition-colors">Je souhaite bénéficier des avantages du club de fidélité</span>
+                                    </label>
                                 </div>
 
                                 <button

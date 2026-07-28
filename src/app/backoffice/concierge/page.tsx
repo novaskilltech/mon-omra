@@ -5,7 +5,8 @@ import {
     Users, Plus, Search, User, CreditCard, 
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
     CheckCircle, XCircle, Clock, CheckCircle2,
-    DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2, Eye
+    DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2, Eye,
+    Mail, Phone, MessageCircle
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, uploadVisaDocument,
@@ -826,7 +827,7 @@ export default function ConciergeDashboard() {
                     onClick={() => setActiveView('requests')}
                     className={`pb-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 relative ${activeView === 'requests' ? 'border-emerald-500 text-main' : 'border-transparent text-dim hover:text-main'}`}
                 >
-                    Demandes d'inscription ({requests.length})
+                    Demandes de renseignement ({requests.length})
                     {requests.length > 0 && (
                         <span className="absolute -top-1 -right-4 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">
                             {requests.length}
@@ -1686,7 +1687,7 @@ export default function ConciergeDashboard() {
             ) : activeView === 'requests' ? (
                 <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 space-y-6">
                     <h3 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
-                        <Users className="w-4 h-4 text-emerald-500 animate-pulse" /> Demandes d'inscription en attente ({requests.length})
+                        <Users className="w-4 h-4 text-emerald-500 animate-pulse" /> Demandes de renseignement en attente ({requests.length})
                     </h3>
                     
                     {loading ? (
@@ -1705,33 +1706,78 @@ export default function ConciergeDashboard() {
                                         <th className="pb-3 font-bold uppercase tracking-wider">E-mail</th>
                                         <th className="pb-3 font-bold uppercase tracking-wider">Téléphone</th>
                                         <th className="pb-3 font-bold uppercase tracking-wider">Genre</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Ancien Client</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Fidélité</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Message</th>
                                         <th className="pb-3 font-bold uppercase tracking-wider text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {requests.map((req) => (
-                                        <tr key={req.id} className="border-b border-emerald-500/5 text-main hover:bg-emerald-500/[0.02] transition-colors">
-                                            <td className="py-4">{new Date(req.created_at).toLocaleDateString('fr-FR')}</td>
-                                            <td className="py-4 font-bold uppercase">{req.family_name} {req.first_name}</td>
-                                            <td className="py-4 font-mono text-dim">{req.email}</td>
-                                            <td className="py-4">{req.phone || '-'}</td>
-                                            <td className="py-4">{req.gender === 'M' ? 'Homme' : 'Femme'}</td>
-                                            <td className="py-4 text-right flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => { setSelectedRequest(req); setShowApproveModal(true); }}
-                                                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-[#050605] rounded-xl text-[9px] font-black uppercase tracking-wider shadow transition-all"
-                                                >
-                                                    Approuver
-                                                </button>
-                                                <button
-                                                    onClick={() => handleRejectRequest(req.id)}
-                                                    className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[9px] font-black uppercase tracking-wider border border-red-500/15 transition-all"
-                                                >
-                                                    Rejeter
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {requests.map((req) => {
+                                        const cleanPhone = req.phone ? req.phone.replace(/[^0-9]/g, '') : '';
+                                        return (
+                                            <tr key={req.id} className="border-b border-emerald-500/5 text-main hover:bg-emerald-500/[0.02] transition-colors">
+                                                <td className="py-4">{new Date(req.created_at).toLocaleDateString('fr-FR')}</td>
+                                                <td className="py-4 font-bold uppercase">{req.family_name} {req.first_name}</td>
+                                                <td className="py-4 font-mono text-dim">{req.email}</td>
+                                                <td className="py-4">{req.phone || '-'}</td>
+                                                <td className="py-4">{req.gender === 'M' ? 'Homme' : 'Femme'}</td>
+                                                <td className="py-4">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${req.is_former_client ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-dim'}`}>
+                                                        {req.is_former_client ? 'Oui' : 'Non'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${req.wants_loyalty_benefits ? 'bg-amber-500/10 text-amber-400' : 'bg-white/5 text-dim'}`}>
+                                                        {req.wants_loyalty_benefits ? 'Oui' : 'Non'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 max-w-xs truncate" title={req.message}>
+                                                    {req.message || <span className="text-dim/40 italic">Aucun message</span>}
+                                                </td>
+                                                <td className="py-4 text-right flex justify-end gap-1.5">
+                                                    {req.phone && (
+                                                        <>
+                                                            <a
+                                                                href={`https://wa.me/${cleanPhone}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all"
+                                                                title="Contacter sur WhatsApp"
+                                                            >
+                                                                <MessageCircle className="w-3.5 h-3.5" />
+                                                            </a>
+                                                            <a
+                                                                href={`tel:${req.phone}`}
+                                                                className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl transition-all"
+                                                                title="Appeler par téléphone"
+                                                            >
+                                                                <Phone className="w-3.5 h-3.5" />
+                                                            </a>
+                                                        </>
+                                                    )}
+                                                    <a
+                                                        href={`mailto:${req.email}`}
+                                                        className="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-xl transition-all"
+                                                        title="Envoyer un e-mail"
+                                                    >
+                                                        <Mail className="w-3.5 h-3.5" />
+                                                    </a>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (confirm("Marquer cette demande de renseignement comme traitée ?")) {
+                                                                handleRejectRequest(req.id);
+                                                            }
+                                                        }}
+                                                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-dim hover:text-main rounded-xl text-[9px] font-black uppercase tracking-wider transition-all"
+                                                        title="Marquer comme traité"
+                                                    >
+                                                        Traité
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
