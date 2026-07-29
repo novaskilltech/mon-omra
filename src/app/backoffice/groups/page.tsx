@@ -202,8 +202,17 @@ export default function GroupsPage() {
         if (nameUpper.includes('CDG') || nameUpper.includes('ORY') || nameUpper.includes('PARIS') || nameUpper.includes('PAR')) return 'Paris';
         if (nameUpper.includes('LYS') || nameUpper.includes('LYON')) return 'Lyon';
         if (nameUpper.includes('MRS') || nameUpper.includes('MARSEILLE')) return 'Marseille';
+        if (nameUpper.includes('BRU') || nameUpper.includes('BRUXELLES')) return 'Bruxelles';
+        if (nameUpper.includes('CRL') || nameUpper.includes('CHARLEROI')) return 'Charleroi';
+        if (nameUpper.includes('BVA') || nameUpper.includes('BEAUVAIS')) return 'Paris Beauvais';
+        if (nameUpper.includes('BCN') || nameUpper.includes('BARCELONE') || nameUpper.includes('BARCELONA')) return 'Barcelone';
+        if (nameUpper.includes('MAD') || nameUpper.includes('MADRID')) return 'Madrid';
+        if (nameUpper.includes('AGP') || nameUpper.includes('MALAGA')) return 'Malaga';
+        if (nameUpper.includes('ZRH') || nameUpper.includes('ZURICH')) return 'Zurich';
         if (nameUpper.includes('NCE') || nameUpper.includes('NICE')) return 'Nice';
         if (nameUpper.includes('TLS') || nameUpper.includes('TOULOUSE')) return 'Toulouse';
+        if (nameUpper.includes('FCO') || nameUpper.includes('CIA') || nameUpper.includes('ROME')) return 'Rome';
+        if (nameUpper.includes('MXP') || nameUpper.includes('LIN') || nameUpper.includes('BGY') || nameUpper.includes('MILAN')) return 'Milan';
         if (nameUpper.includes('RUN') || nameUpper.includes('REUNION') || nameUpper.includes('RÉUNION')) return 'La Réunion';
         if (nameUpper.includes('NTE') || nameUpper.includes('NANTES')) return 'Nantes';
         if (nameUpper.includes('BSL') || nameUpper.includes('EAP') || nameUpper.includes('MLH') || nameUpper.includes('BALE') || nameUpper.includes('BÂLE')) return 'Bâle-Mulhouse';
