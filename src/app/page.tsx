@@ -85,7 +85,7 @@ export default function Home() {
                         Commencer mon voyage
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
-                    <Link href="#features" className="glass px-10 py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] text-white hover:bg-white/5 transition-all">
+                    <Link href="#features" className="glass px-10 py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] text-main hover:bg-emerald-500/10 transition-all">
                         Découvrir les fonctions
                     </Link>
                 </div>
@@ -188,7 +188,7 @@ export default function Home() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-full">
                     {/* Feature 1: Ritual Guide */}
-                    <div className="md:col-span-2 md:row-span-2 glass p-10 rounded-[2.5rem] border-emerald-500/10 flex flex-col justify-between group overflow-hidden relative min-h-[500px]">
+                    <div className="md:col-span-2 md:row-span-2 glass p-10 rounded-[2.5rem] border-emerald-500/10 flex flex-col justify-between group overflow-hidden relative min-h-[500px] text-white">
                         <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700">
                             <Image 
                                 src="/features-guide.png" 
@@ -243,7 +243,7 @@ export default function Home() {
                     </div>
 
                     {/* Feature 3: Logistics */}
-                    <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 hover:border-emerald-500/30 transition-all flex flex-col justify-between group overflow-hidden relative min-h-[220px]">
+                    <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 hover:border-emerald-500/30 transition-all flex flex-col justify-between group overflow-hidden relative min-h-[220px] text-white">
                         <div className="absolute inset-0 z-0 opacity-15 group-hover:opacity-25 group-hover:scale-105 transition-all duration-700">
                             <Image 
                                 src="/features-logistics.png" 
@@ -264,7 +264,7 @@ export default function Home() {
                     </div>
 
                     {/* Feature 4: Support */}
-                    <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 bg-emerald-500/5 flex flex-col justify-between group cursor-pointer hover:bg-emerald-500/10 transition-all overflow-hidden relative min-h-[220px]">
+                    <div className="glass p-8 rounded-[2.5rem] border-emerald-500/10 bg-[#050605]/40 flex flex-col justify-between group cursor-pointer hover:bg-emerald-500/10 transition-all overflow-hidden relative min-h-[220px] text-white">
                         <div className="absolute inset-0 z-0 opacity-15 group-hover:opacity-25 group-hover:scale-105 transition-all duration-700">
                             <Image 
                                 src="/features-assistance.png" 
