@@ -1706,6 +1706,7 @@ export default function ConciergeDashboard() {
                                         <th className="pb-3 font-bold uppercase tracking-wider">E-mail</th>
                                         <th className="pb-3 font-bold uppercase tracking-wider">Téléphone</th>
                                         <th className="pb-3 font-bold uppercase tracking-wider">Genre</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Départ ciblé</th>
                                         <th className="pb-3 font-bold uppercase tracking-wider">Ancien Client</th>
                                         <th className="pb-3 font-bold uppercase tracking-wider">Fidélité</th>
                                         <th className="pb-3 font-bold uppercase tracking-wider">Message</th>
@@ -1722,6 +1723,9 @@ export default function ConciergeDashboard() {
                                                 <td className="py-4 font-mono text-dim">{req.email}</td>
                                                 <td className="py-4">{req.phone || '-'}</td>
                                                 <td className="py-4">{req.gender === 'M' ? 'Homme' : 'Femme'}</td>
+                                                <td className="py-4 text-emerald-500 font-bold">
+                                                    {req.groups?.name || <span className="text-dim/40 italic">Tous départs</span>}
+                                                </td>
                                                 <td className="py-4">
                                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${req.is_former_client ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-dim'}`}>
                                                         {req.is_former_client ? 'Oui' : 'Non'}

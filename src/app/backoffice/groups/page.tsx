@@ -15,6 +15,7 @@ interface Group {
     makkahHotelId?: string;
     madinahHotelId?: string;
     flyerPath?: string;
+    price?: number;
 }
 
 export default function GroupsPage() {
@@ -33,6 +34,7 @@ export default function GroupsPage() {
     const [status, setStatus] = useState<'En préparation' | 'Complet' | 'Brouillon' | 'Terminé'>('En préparation');
     const [flyerFile, setFlyerFile] = useState<File | null>(null);
     const [flyerPath, setFlyerPath] = useState('');
+    const [price, setPrice] = useState<string>('');
     const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
     // Available options
@@ -84,6 +86,7 @@ export default function GroupsPage() {
         setSelectedHotels([]);
         setFlyerFile(null);
         setFlyerPath('');
+        setPrice('');
         setIsModalOpen(true);
     };
 
@@ -98,6 +101,7 @@ export default function GroupsPage() {
         setFlightReturnId(group.flightReturnId || '');
         setFlyerFile(null);
         setFlyerPath(group.flyerPath || '');
+        setPrice(group.price ? group.price.toString() : '');
         
         const hIds: string[] = [];
         if (group.makkahHotelId) hIds.push(group.makkahHotelId);
@@ -128,6 +132,8 @@ export default function GroupsPage() {
                 }
             }
 
+            const numericPrice = price ? parseFloat(price) : undefined;
+
             if (modalMode === 'add') {
                 const res = await createGroupAction({
                     name,
@@ -136,7 +142,8 @@ export default function GroupsPage() {
                     flightDepartureId: flightDepartureId || undefined,
                     flightReturnId: flightReturnId || undefined,
                     hotelIds: selectedHotels,
-                    flyerPath: currentFlyerPath || undefined
+                    flyerPath: currentFlyerPath || undefined,
+                    price: numericPrice
                 });
                 if (res.error) alert(res.error);
             } else if (modalMode === 'edit' && selectedGroup) {
@@ -147,7 +154,8 @@ export default function GroupsPage() {
                     flightDepartureId: flightDepartureId || undefined,
                     flightReturnId: flightReturnId || undefined,
                     hotelIds: selectedHotels,
-                    flyerPath: currentFlyerPath
+                    flyerPath: currentFlyerPath,
+                    price: numericPrice
                 });
                 if (res.error) alert(res.error);
             }
@@ -321,6 +329,12 @@ export default function GroupsPage() {
                                                         <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-emerald-500" /> {g.pelerinCount} pèlerins</span>
                                                         <span className="flex items-center gap-1.5 text-sub opacity-20">|</span>
                                                         <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-emerald-500" /> {formatDateDisplay(g.date)}</span>
+                                                        {g.price && (
+                                                            <>
+                                                                <span className="flex items-center gap-1.5 text-sub opacity-20">|</span>
+                                                                <span className="flex items-center gap-1.5 text-emerald-500 font-bold">{g.price.toLocaleString('fr-FR')} €</span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                     {g.flyerPath && (
                                                         <button
@@ -438,18 +452,32 @@ export default function GroupsPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Statut</label>
-                                <select 
-                                    value={status} 
-                                    onChange={(e: any) => setStatus(e.target.value)} 
-                                    className="w-full bg-[#0b0f0d] dark:bg-[#0b0f0d] border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-sm font-medium text-main outline-none focus:border-emerald-500/40 transition-all"
-                                >
-                                    <option value="En préparation" className="bg-[#050605] text-main">En préparation</option>
-                                    <option value="Complet" className="bg-[#050605] text-main">Complet</option>
-                                    <option value="Brouillon" className="bg-[#050605] text-main">Brouillon</option>
-                                    <option value="Terminé" className="bg-[#050605] text-main">Terminé (Archivé)</option>
-                                </select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Statut</label>
+                                    <select 
+                                        value={status} 
+                                        onChange={(e: any) => setStatus(e.target.value)} 
+                                        className="w-full bg-[#0b0f0d] dark:bg-[#0b0f0d] border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-sm font-medium text-main outline-none focus:border-emerald-500/40 transition-all"
+                                    >
+                                        <option value="En préparation" className="bg-[#050605] text-main">En préparation</option>
+                                        <option value="Complet" className="bg-[#050605] text-main">Complet</option>
+                                        <option value="Brouillon" className="bg-[#050605] text-main">Brouillon</option>
+                                        <option value="Terminé" className="bg-[#050605] text-main">Terminé (Archivé)</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Tarif (€)</label>
+                                    <input 
+                                        type="number" 
+                                        value={price} 
+                                        onChange={(e) => setPrice(e.target.value)} 
+                                        placeholder="Ex: 2490" 
+                                        min="0"
+                                        step="0.01"
+                                        className="w-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-sm font-medium text-main outline-none focus:border-emerald-500/40 focus:bg-white/10 transition-all"
+                                    />
+                                </div>
                             </div>
 
                             {/* Flyer Upload Field */}

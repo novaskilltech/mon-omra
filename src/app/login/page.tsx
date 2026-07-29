@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Mail, ArrowRight, ShieldCheck, AlertCircle, CheckCircle, Lock, Users, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, ArrowRight, ShieldCheck, AlertCircle, CheckCircle, Lock, Users, User, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { sendOtpToPilgrim, verifyPilgrimOtp, loginAdmin } from '@/lib/actions/auth';
-import { requestRegistration } from '@/lib/actions/concierge';
+import { requestRegistration, getPublicActiveGroups } from '@/lib/actions/concierge';
 
 export default function LoginPage() {
     const [role, setRole] = useState<'pilgrim' | 'agency'>('pilgrim');
@@ -35,10 +35,28 @@ export default function LoginPage() {
         phone: '',
         message: '',
         isFormerClient: false,
-        wantsLoyaltyBenefits: false
+        wantsLoyaltyBenefits: false,
+        desiredGroupId: ''
     });
     const [regSuccess, setRegSuccess] = useState(false);
     const [alreadyExistsNotice, setAlreadyExistsNotice] = useState<string | null>(null);
+
+    // Active public groups list
+    const [publicGroups, setPublicGroups] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchGroups = async () => {
+            try {
+                const res = await getPublicActiveGroups();
+                if (res.success && res.groups) {
+                    setPublicGroups(res.groups);
+                }
+            } catch (err) {
+                console.error("Failed to load departures:", err);
+            }
+        };
+        fetchGroups();
+    }, []);
 
     const handleDriverLoginSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -445,6 +463,34 @@ export default function LoginPage() {
                                 </p>
                             </div>
 
+                            {/* Planified departures catalog list */}
+                            {publicGroups.length > 0 && (
+                                <div className="mb-6 space-y-2">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-dim ml-1">Départs Planifiés & Tarifs</label>
+                                    <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto pr-1">
+                                        {publicGroups.map((grp) => (
+                                            <div key={grp.id} className="flex justify-between items-center bg-white/5 border border-emerald-500/10 p-3.5 rounded-2xl">
+                                                <div className="flex items-center gap-2.5">
+                                                    <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                                                    <div className="text-left">
+                                                        <p className="text-[10px] font-black text-main uppercase tracking-tight">{grp.name}</p>
+                                                        <p className="text-[8px] text-dim">{new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[11px] font-black text-emerald-500">
+                                                        {grp.price ? `${Number(grp.price).toLocaleString('fr-FR')} €` : 'Sur demande'}
+                                                    </p>
+                                                    <span className={`text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md ${grp.status === 'Complet' ? 'bg-blue-500/10 text-blue-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                                        {grp.status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <form onSubmit={handleRegisterSubmit} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
@@ -514,6 +560,22 @@ export default function LoginPage() {
                                         placeholder="+33 6 12 34 56 78"
                                         className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
                                     />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-dim ml-4">Départ ciblé / Souhaité</label>
+                                    <select
+                                        value={regForm.desiredGroupId}
+                                        onChange={(e) => setRegForm({ ...regForm, desiredGroupId: e.target.value })}
+                                        className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
+                                    >
+                                        <option value="" className="bg-[#0a0e0c] text-dim">-- Sélectionner un départ (optionnel) --</option>
+                                        {publicGroups.map((grp) => (
+                                            <option key={grp.id} value={grp.id} className="bg-[#0a0e0c] text-main">
+                                                {grp.name} ({new Date(grp.departure_date).toLocaleDateString('fr-FR')}){grp.price ? ` - ${Number(grp.price).toLocaleString('fr-FR')} €` : ''}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div className="space-y-1">

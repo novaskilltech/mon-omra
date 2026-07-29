@@ -424,6 +424,7 @@ export async function requestRegistration(data: {
     message?: string;
     isFormerClient?: boolean;
     wantsLoyaltyBenefits?: boolean;
+    desiredGroupId?: string;
 }) {
     const supabase = createClient();
     try {
@@ -465,6 +466,7 @@ export async function requestRegistration(data: {
                 message: data.message || null,
                 is_former_client: data.isFormerClient || false,
                 wants_loyalty_benefits: data.wantsLoyaltyBenefits || false,
+                group_id: data.desiredGroupId || null,
                 status: 'PENDING'
             });
 
@@ -476,6 +478,17 @@ export async function requestRegistration(data: {
                 };
             }
             throw error;
+        }
+
+        // Fetch desired group name if any
+        let groupName = 'Non spécifié';
+        if (data.desiredGroupId) {
+            const { data: grp } = await supabase
+                .from('groups')
+                .select('name')
+                .eq('id', data.desiredGroupId)
+                .single();
+            if (grp) groupName = grp.name;
         }
 
         // Notification par e-mail à l'agence
@@ -514,6 +527,10 @@ export async function requestRegistration(data: {
                                         <td style="padding: 8px 0;">${data.gender === 'M' ? 'Homme' : 'Femme'}</td>
                                     </tr>
                                     <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">Départ ciblé :</td>
+                                        <td style="padding: 8px 0; font-weight: bold; color: #059669;">${groupName}</td>
+                                    </tr>
+                                    <tr>
                                         <td style="padding: 8px 0; font-weight: bold;">Ancien client :</td>
                                         <td style="padding: 8px 0;">${data.isFormerClient ? 'Oui' : 'Non'}</td>
                                     </tr>
@@ -537,7 +554,7 @@ export async function requestRegistration(data: {
                 console.error("Erreur lors de l'envoi de la notification par e-mail:", emailErr);
             }
         } else {
-            console.log(`[Notification Email Simulée] Nouvelle demande de renseignement pour ${data.firstName} ${data.familyName} (${data.email}) envoyée à omrayanair@gmail.com`);
+            console.log(`[Notification Email Simulée] Nouvelle demande de renseignement pour ${data.firstName} ${data.familyName} (${data.email}) - Voyage : ${groupName} envoyée à omrayanair@gmail.com`);
         }
 
         return { success: true };
@@ -554,7 +571,12 @@ export async function getRegistrationRequests() {
     const supabase = createClient();
     const { data, error } = await supabase
         .from('registration_requests')
-        .select('*')
+        .select(`
+            *,
+            groups (
+                name
+            )
+        `)
         .eq('status', 'PENDING')
         .order('created_at', { ascending: false });
 
@@ -708,6 +730,7 @@ export async function getGroupsDetailed() {
             departure_date,
             status,
             flyer_path,
+            price,
             pilgrims (id)
         `)
         .order('departure_date', { ascending: true });
@@ -784,7 +807,8 @@ export async function getGroupsDetailed() {
             flightReturnId: logistics?.flight_return_id || '',
             makkahHotelId: makkahStay?.hotel_id || '',
             madinahHotelId: madinahStay?.hotel_id || '',
-            flyerPath: g.flyer_path || ''
+            flyerPath: g.flyer_path || '',
+            price: g.price || null
         };
     });
 }
@@ -830,6 +854,7 @@ export async function createGroupAction(data: {
     flightReturnId?: string;
     hotelIds?: string[];
     flyerPath?: string;
+    price?: number;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -851,7 +876,8 @@ export async function createGroupAction(data: {
             name: data.name,
             departure_date: data.departureDate,
             status: data.status,
-            flyer_path: data.flyerPath || null
+            flyer_path: data.flyerPath || null,
+            price: data.price || null
         })
         .select()
         .single();
@@ -909,6 +935,7 @@ export async function updateGroupAction(id: string, data: {
     flightReturnId?: string;
     hotelIds?: string[];
     flyerPath?: string;
+    price?: number;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -921,6 +948,9 @@ export async function updateGroupAction(id: string, data: {
     };
     if (data.flyerPath !== undefined) {
         updatePayload.flyer_path = data.flyerPath;
+    }
+    if (data.price !== undefined) {
+        updatePayload.price = data.price;
     }
 
     const { error } = await supabase
@@ -2568,7 +2598,19 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
     }
 }
 
+export async function getPublicActiveGroups() {
+    const supabase = createClient();
+    try {
+        const { data, error } = await supabase
+            .from('groups')
+            .select('id, name, departure_date, price, status')
+            .in('status', ['En préparation', 'Complet'])
+            .order('departure_date', { ascending: true });
 
-
-
-
+        if (error) throw error;
+        return { success: true, groups: data || [] };
+    } catch (e: any) {
+        console.error("Error fetching public active groups:", e);
+        return { error: "Erreur lors du chargement des groupes" };
+    }
+}
