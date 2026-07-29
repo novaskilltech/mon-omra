@@ -3,6 +3,7 @@ import { Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, MessageS
 import Link from 'next/link';
 import ThemeSelector from '@/components/ThemeSelector';
 import type { Metadata } from 'next';
+import PublicDeparturesCatalog from '@/components/PublicDeparturesCatalog';
 
 export const metadata: Metadata = {
   title: "OMRAYANAIR — Conciergerie Omra Autonome & Voyage Spirituel",
@@ -129,6 +130,9 @@ export default function Home() {
                     </div>
                 </div>
             </section>
+
+            {/* Catalog of Active departures and prices */}
+            <PublicDeparturesCatalog />
 
             {/* 3. Le Plan en 3 Étapes (Clarté) */}
             <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
