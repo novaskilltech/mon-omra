@@ -45,6 +45,13 @@ export default function LoginPage() {
     const [publicGroups, setPublicGroups] = useState<any[]>([]);
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('tab') === 'register') {
+                setActiveTab('register');
+            }
+        }
+
         const fetchGroups = async () => {
             try {
                 const res = await getPublicActiveGroups();

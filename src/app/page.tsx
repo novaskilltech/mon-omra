@@ -89,6 +89,16 @@ export default function Home() {
                     </Link>
                 </div>
 
+                {/* Promo inquiry banner */}
+                <div className="mt-10 animate-fade-in">
+                    <Link 
+                        href="/login?tab=register" 
+                        className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#D8AA4D] hover:text-[#F2CE79] transition-all bg-[#D8AA4D]/10 px-6 py-3.5 rounded-2xl border border-[#D8AA4D]/25 hover:scale-102 hover:shadow-[0_0_20px_rgba(216,170,77,0.15)]"
+                    >
+                        ✨ Si vous êtes intéressé par une Omra, cliquez ici pour demander des renseignements
+                    </Link>
+                </div>
+
                 <div className="mt-20 w-full max-w-4xl mx-auto rounded-[3rem] overflow-hidden border border-emerald-500/20 shadow-[0_0_80px_rgba(16,185,129,0.15)] relative animate-fade-in group">
                     <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                     <Image 
