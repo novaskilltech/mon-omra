@@ -188,21 +188,20 @@ export default function Home() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-full">
                     {/* Feature 1: Ritual Guide */}
-                    <div className="md:col-span-2 md:row-span-2 bg-[#002320] p-10 rounded-[2.5rem] border border-white/10 flex flex-col justify-between group overflow-hidden relative min-h-[500px] text-white shadow-2xl">
-                        <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700">
+                    <div className="md:col-span-2 md:row-span-2 glass p-10 rounded-[2.5rem] flex flex-col justify-between group overflow-hidden relative min-h-[500px]">
+                        <div className="absolute inset-0 z-0 opacity-[0.08] group-hover:opacity-[0.12] group-hover:scale-105 transition-all duration-700">
                             <Image 
                                 src="/features-guide.png" 
                                 alt="Guide Interactif des Rituels" 
                                 fill
                                 className="object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                         </div>
                         <div className="relative z-10">
                             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mb-8">
                                 <Map className="w-6 h-6" />
                             </div>
-                            <h3 className="text-3xl font-black mb-4 uppercase tracking-tighter">Guide Interactif <br />des Rituels</h3>
+                            <h3 className="text-3xl font-black mb-4 uppercase tracking-tighter text-main">Guide Interactif <br />des Rituels</h3>
                             <p className="text-sub text-sm leading-relaxed max-w-xs opacity-80 font-medium">
                                 Suivez chaque étape de l'Omra avec des guides vocaux, des invocations en arabe/français et un suivi de progression en temps réel.
                             </p>
@@ -213,9 +212,9 @@ export default function Home() {
                                 { label: "Tawaf (7 tours)", ok: false },
                                 { label: "Sa'i entre Safa & Marwa", ok: false }
                             ].map((step, i) => (
-                                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 backdrop-blur-md">
-                                    <div className={`w-4 h-4 rounded-full border ${step.ok ? 'bg-emerald-500 border-emerald-500' : 'border-white/20'}`} />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{step.label}</span>
+                                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 backdrop-blur-md">
+                                    <div className={`w-4 h-4 rounded-full border ${step.ok ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'}`} />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-main opacity-80">{step.label}</span>
                                 </div>
                             ))}
                         </div>
@@ -243,41 +242,39 @@ export default function Home() {
                     </div>
 
                     {/* Feature 3: Logistics */}
-                    <div className="bg-[#002320] p-8 rounded-[2.5rem] border border-white/10 hover:border-emerald-500/30 transition-all flex flex-col justify-between group overflow-hidden relative min-h-[220px] text-white shadow-2xl">
-                        <div className="absolute inset-0 z-0 opacity-15 group-hover:opacity-25 group-hover:scale-105 transition-all duration-700">
+                    <div className="glass p-8 rounded-[2.5rem] hover:border-emerald-500/30 transition-all flex flex-col justify-between group overflow-hidden relative min-h-[220px]">
+                        <div className="absolute inset-0 z-0 opacity-[0.08] group-hover:opacity-[0.12] group-hover:scale-105 transition-all duration-700">
                             <Image 
                                 src="/features-logistics.png" 
                                 alt="Logistique" 
                                 fill
                                 className="object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                         </div>
                         <div className="relative z-10">
                             <Plane className="w-8 h-8 text-emerald-500 mb-4" />
-                            <h3 className="text-lg font-black uppercase tracking-tighter mb-2">Logistique</h3>
-                            <p className="text-[10px] leading-relaxed opacity-70 font-medium max-w-[170px]">Horaires de vols, réservations d'hôtels et transferts mis à jour en direct.</p>
+                            <h3 className="text-lg font-black uppercase tracking-tighter mb-2 text-main">Logistique</h3>
+                            <p className="text-sub text-[10px] leading-relaxed opacity-80 font-medium max-w-[170px]">Horaires de vols, réservations d'hôtels et transferts mis à jour en direct.</p>
                         </div>
-                        <div className="relative z-10 pt-4 border-t border-white/5 mt-4">
+                        <div className="relative z-10 pt-4 border-t border-black/5 dark:border-white/5 mt-4">
                             <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Hôtel 5★ Makkah</span>
                         </div>
                     </div>
 
                     {/* Feature 4: Support */}
-                    <div className="bg-[#002320] p-8 rounded-[2.5rem] border border-white/10 flex flex-col justify-between group cursor-pointer hover:bg-emerald-500/10 transition-all overflow-hidden relative min-h-[220px] text-white shadow-2xl">
-                        <div className="absolute inset-0 z-0 opacity-15 group-hover:opacity-25 group-hover:scale-105 transition-all duration-700">
+                    <div className="glass p-8 rounded-[2.5rem] flex flex-col justify-between group cursor-pointer hover:bg-emerald-500/5 transition-all overflow-hidden relative min-h-[220px]">
+                        <div className="absolute inset-0 z-0 opacity-[0.08] group-hover:opacity-[0.12] group-hover:scale-105 transition-all duration-700">
                             <Image 
                                 src="/features-assistance.png" 
                                 alt="Assistance" 
                                 fill
                                 className="object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                         </div>
                         <div className="relative z-10">
                             <MessageSquare className="w-8 h-8 text-emerald-500 mb-4 group-hover:scale-110 transition-transform" />
-                            <h3 className="text-lg font-black uppercase tracking-tighter mb-2">Assistance 24/7</h3>
-                            <p className="text-[10px] leading-relaxed opacity-70 font-medium max-w-[170px]">Un doute ? Un besoin imminent ? Votre guide spirituel ou logistique est à portée de main.</p>
+                            <h3 className="text-lg font-black uppercase tracking-tighter mb-2 text-main">Assistance 24/7</h3>
+                            <p className="text-sub text-[10px] leading-relaxed opacity-80 font-medium max-w-[170px]">Un doute ? Un besoin imminent ? Votre guide spirituel ou logistique est à portée de main.</p>
                         </div>
                         <div className="relative z-10 bg-emerald-500 text-white text-[9px] font-black uppercase p-2 rounded-xl text-center tracking-widest">
                             SOS GUIDE
