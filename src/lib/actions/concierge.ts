@@ -98,10 +98,12 @@ export async function createPilgrim(data: {
     try {
         let realUserId: string = crypto.randomUUID();
 
+        const normalizedEmail = data.email ? data.email.trim().toLowerCase() : null;
+
         // 1. Si un email est renseigné, créer un vrai utilisateur dans Supabase Auth
-        if (data.email) {
+        if (normalizedEmail) {
             const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-                email: data.email,
+                email: normalizedEmail,
                 email_confirm: true
             });
 
@@ -110,7 +112,7 @@ export async function createPilgrim(data: {
                 if (authError.message.includes("already registered") || authError.status === 422) {
                     const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
                     if (!listError && listData?.users) {
-                        const matchedUser = listData.users.find(u => u.email === data.email);
+                        const matchedUser = listData.users.find(u => u.email === normalizedEmail);
                         if (matchedUser) {
                             realUserId = matchedUser.id;
                         } else {
@@ -138,7 +140,7 @@ export async function createPilgrim(data: {
                 role: 'PILGRIM',
                 visa_status: 'PENDING',
                 checkin_done: false,
-                email: data.email || null
+                email: normalizedEmail
             });
 
         if (profileError) throw profileError;
@@ -199,6 +201,8 @@ export async function updatePilgrimAction(id: string, data: {
 
     const supabase = createClient();
     try {
+        const normalizedEmail = data.email ? data.email.trim().toLowerCase() : null;
+
         // 1. Mettre à jour profiles
         const { error: profileError } = await supabase
             .from('profiles')
@@ -206,7 +210,7 @@ export async function updatePilgrimAction(id: string, data: {
                 full_name: `${data.firstName} ${data.familyName}`,
                 family_name: data.familyName,
                 gender: data.gender,
-                email: data.email || null
+                email: normalizedEmail
             })
             .eq('id', id);
 
@@ -635,11 +639,13 @@ export async function approveRegistrationRequest(requestId: string, groupId?: st
             }
         }
 
+        const normalizedRequestEmail = request.email ? request.email.trim().toLowerCase() : null;
+
         // 2. Vérifier si le profil existe déjà avant d'insérer
         const { data: existingProfile } = await supabase
             .from('profiles')
             .select('id')
-            .eq('email', request.email)
+            .ilike('email', request.email)
             .single();
 
         if (existingProfile) {
@@ -657,7 +663,7 @@ export async function approveRegistrationRequest(requestId: string, groupId?: st
                     role: 'PILGRIM',
                     visa_status: 'PENDING',
                     checkin_done: false,
-                    email: request.email || null
+                    email: normalizedRequestEmail
                 });
 
             if (profileError) throw profileError;

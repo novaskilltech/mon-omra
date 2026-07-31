@@ -9,7 +9,7 @@ export async function checkEmailRegistration(email: string) {
     const { data, error } = await supabase
         .from('profiles')
         .select('id, role')
-        .eq('email', email)
+        .ilike('email', email)
         .single();
     
     if (error || !data) {
@@ -62,7 +62,7 @@ export async function sendOtpToPilgrim(email: string) {
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .ilike('email', email)
         .single();
         
     if (profileError || !profile) {
@@ -102,7 +102,7 @@ export async function verifyPilgrimOtp(email: string, token: string) {
     const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .ilike('email', email)
         .single();
 
     if (profile) {

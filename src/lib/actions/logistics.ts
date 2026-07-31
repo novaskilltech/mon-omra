@@ -821,7 +821,7 @@ export async function resolvePilgrimIdByEmail(userId: string, email?: string): P
         const { data: profile } = await supabase
             .from('profiles')
             .select('id')
-            .eq('email', email)
+            .ilike('email', email)
             .maybeSingle();
         if (profile) return profile.id;
     }

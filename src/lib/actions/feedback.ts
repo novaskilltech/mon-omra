@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { resolvePilgrimIdByEmail } from './logistics';
@@ -20,6 +20,7 @@ export interface FeedbackData {
  */
 export async function submitFeedbackAction(data: FeedbackData) {
     const supabase = createClient();
+    const adminClient = createAdminClient();
     const { data: { user } } = await supabase.auth.getUser();
     const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
     const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
@@ -45,7 +46,7 @@ export async function submitFeedbackAction(data: FeedbackData) {
 
     try {
         // Fetch pilgrim's group_id
-        const { data: pilgrim } = await supabase
+        const { data: pilgrim } = await adminClient
             .from('pilgrims')
             .select('group_id')
             .eq('id', resolvedId)
@@ -54,7 +55,7 @@ export async function submitFeedbackAction(data: FeedbackData) {
         const groupId = pilgrim?.group_id || null;
 
         // Upsert to ensure one feedback per pilgrim
-        const { error } = await supabase
+        const { error } = await adminClient
             .from('pilgrim_feedbacks')
             .upsert({
                 pilgrim_id: resolvedId,
@@ -88,6 +89,7 @@ export async function submitFeedbackAction(data: FeedbackData) {
  */
 export async function getPilgrimFeedback() {
     const supabase = createClient();
+    const adminClient = createAdminClient();
     const { data: { user } } = await supabase.auth.getUser();
     const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
     const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
@@ -97,7 +99,7 @@ export async function getPilgrimFeedback() {
     }
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await adminClient
             .from('pilgrim_feedbacks')
             .select('*')
             .eq('pilgrim_id', resolvedId)
@@ -120,10 +122,10 @@ export async function getAllFeedbacks() {
         throw new Error('Non autorisé');
     }
 
-    const supabase = createClient();
+    const adminClient = createAdminClient();
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await adminClient
             .from('pilgrim_feedbacks')
             .select(`
                 *,
@@ -149,12 +151,12 @@ export async function getAllFeedbacks() {
  * and if they have already submitted one.
  */
 export async function checkFeedbackStatus(pilgrimId: string, email?: string) {
-    const supabase = createClient();
+    const adminClient = createAdminClient();
     const resolvedId = await resolvePilgrimIdByEmail(pilgrimId, email);
 
     try {
         // 1. Check if feedback has already been submitted
-        const { data: existingFeedback } = await supabase
+        const { data: existingFeedback } = await adminClient
             .from('pilgrim_feedbacks')
             .select('id')
             .eq('pilgrim_id', resolvedId)
@@ -166,7 +168,7 @@ export async function checkFeedbackStatus(pilgrimId: string, email?: string) {
         let returnDate: Date | null = null;
 
         // A. Check pilgrim table for group_id and individual_flight_info
-        const { data: pilgrim } = await supabase
+        const { data: pilgrim } = await adminClient
             .from('pilgrims')
             .select('group_id, individual_flight_info')
             .eq('id', resolvedId)
@@ -193,14 +195,14 @@ export async function checkFeedbackStatus(pilgrimId: string, email?: string) {
 
             // B. If no return date found from individual flight, check group return flight
             if (!returnDate && pilgrim.group_id) {
-                const { data: groupLogistics } = await supabase
+                const { data: groupLogistics } = await adminClient
                     .from('group_logistics')
                     .select('flight_return_id')
                     .eq('group_id', pilgrim.group_id)
                     .maybeSingle();
 
                 if (groupLogistics && groupLogistics.flight_return_id) {
-                    const { data: flight } = await supabase
+                    const { data: flight } = await adminClient
                         .from('flights')
                         .select('*, flight_segments(*)')
                         .eq('id', groupLogistics.flight_return_id)
@@ -222,7 +224,7 @@ export async function checkFeedbackStatus(pilgrimId: string, email?: string) {
 
                 // C. If still no flight return date, fall back to check_out date of latest group hotel stay
                 if (!returnDate) {
-                    const { data: stays } = await supabase
+                    const { data: stays } = await adminClient
                         .from('group_hotel_stays')
                         .select('check_out')
                         .eq('group_id', pilgrim.group_id)

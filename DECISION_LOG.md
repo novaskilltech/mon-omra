@@ -232,3 +232,24 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Remplacement des placeholders réels "Salah / Lamkhannet" par des noms fictifs neutres "Karim / Dupont" dans le formulaire de connexion/renseignement [login/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/login/page.tsx).
     *   Intégration du tableau enrichi et des boutons d'actions directes (WhatsApp, E-mail, Téléphone) avec bouton "Traité" dans [backoffice/concierge/page.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/backoffice/concierge/page.tsx).
 *   **Version** : v1.15.0
+
+---
+
+## 23. Normalisation et Recherche d'E-mails Insensible à la Casse
+*   **Décision** : Normalisation automatique en minuscules de toutes les adresses e-mail lors de la création ou modification d'un pèlerin par le concierge, et passage à des recherches insensibles à la casse (`.ilike`) lors de la résolution de compte et de l'authentification (OTP).
+*   **Justification** : Évite les blocages de connexion pour les pèlerins enregistrés avec des majuscules dans leur e-mail (ex: par l'agence ou le client).
+*   **Impacts** :
+    *   Normalisation de l'e-mail avec `.trim().toLowerCase()` dans `createPilgrim` et `updatePilgrimAction` (`concierge.ts`).
+    *   Remplacement de `.eq('email', ...)` par `.ilike('email', ...)` dans `checkEmailRegistration`, `sendOtpToPilgrim`, `verifyPilgrimOtp` (`auth.ts`), `resolvePilgrimIdByEmail` (`logistics.ts`) et `approveRegistrationRequest` (`concierge.ts`).
+*   **Version** : v1.15.1
+
+---
+
+## 24. Résolution de l'Erreur RLS sur les Évaluations Pèlerins (Feedbacks)
+*   **Décision** : Remplacement du client Supabase standard par le client d'administration (`createAdminClient()`) pour l'écriture, la lecture et la validation de statut de soumission des évaluations sur la table `pilgrim_feedbacks`.
+*   **Justification** : Les sessions pèlerins et administrateurs n'utilisant pas Supabase Auth standard côté client mais des cookies de session dédiés, l'identifiant Supabase `auth.uid()` était évalué à `NULL`, provoquant un blocage par les politiques RLS à l'insertion et à la lecture. La sécurité d'accès est garantie côté serveur par les validations de cookies avant l'usage du client d'administration.
+*   **Impacts** :
+    *   Mise à jour de `submitFeedbackAction`, `getPilgrimFeedback`, `getAllFeedbacks` et `checkFeedbackStatus` dans [feedback.ts](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/lib/actions/feedback.ts).
+*   **Version** : v1.15.2
+
+
