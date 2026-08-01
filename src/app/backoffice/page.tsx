@@ -74,7 +74,7 @@ export default function BackofficeDashboard() {
             {/* Top Bento Row: KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {kpis.map((k: any, i: number) => (
-                    <div key={i} className="glass group p-6 rounded-[2rem] border-emerald-500/5 hover:border-emerald-500/20 transition-all cursor-default relative overflow-hidden">
+                    <div key={i} className="glass group p-6 rounded-[2rem] border-emerald-500/5 hover:border-emerald-500/20 transition-all cursor-default relative overflow-hidden hover-3d">
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <k.icon className={`w-12 h-12 ${k.color.split(' ')[0]}`} />
                         </div>
@@ -98,7 +98,7 @@ export default function BackofficeDashboard() {
                     <FinanceSummary data={stats?.finance} />
                 </div>
 
-                <div className="lg:col-span-5 glass p-8 rounded-[2.5rem] flex flex-col justify-between border-emerald-500/5">
+                <div className="lg:col-span-5 glass p-8 rounded-[2.5rem] flex flex-col justify-between border-emerald-500/5 hover-3d">
                     <div>
                         <h3 className="text-lg font-black uppercase tracking-tighter mb-6 flex items-center gap-2 text-main">
                             <Plane className="w-5 h-5 text-emerald-500" />
@@ -130,7 +130,7 @@ export default function BackofficeDashboard() {
 
             {/* Bottom Grid: Activity & Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="glass p-8 rounded-[3rem] border-emerald-500/5">
+                <div className="glass p-8 rounded-[3rem] border-emerald-500/5 hover-3d">
                     <h3 className="text-xl font-black uppercase tracking-tighter mb-8 text-main">Flux d'activités</h3>
                     <div className="space-y-6">
                         {activities.map((a: any, i: number) => (
@@ -151,7 +151,7 @@ export default function BackofficeDashboard() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <Link
                         href="/backoffice/groups"
-                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5"
+                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5 hover-3d"
                     >
                         <div className="w-12 h-12 rounded-2xl bg-emerald-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Users className="w-6 h-6 text-emerald-500" />
@@ -161,7 +161,7 @@ export default function BackofficeDashboard() {
 
                     <Link
                         href="/backoffice/notifications"
-                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5"
+                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5 hover-3d"
                     >
                         <div className="w-12 h-12 rounded-2xl bg-emerald-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Bell className="w-6 h-6 text-emerald-500" />
@@ -173,7 +173,7 @@ export default function BackofficeDashboard() {
 
                     <Link
                         href="/backoffice/shop"
-                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5"
+                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5 hover-3d"
                     >
                         <div className="w-12 h-12 rounded-2xl bg-emerald-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <ShoppingBag className="w-6 h-6 text-emerald-500" />
@@ -183,7 +183,7 @@ export default function BackofficeDashboard() {
 
                     <Link
                         href="/backoffice/settings"
-                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5"
+                        className="glass flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] hover:bg-emerald-500/5 group transition-all border-emerald-500/5 hover-3d"
                     >
                         <div className="w-12 h-12 rounded-2xl bg-emerald-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Star className="w-6 h-6 text-emerald-500" />

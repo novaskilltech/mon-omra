@@ -178,7 +178,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
 
                 {/* Feedback Invitation Banner */}
                 {feedbackStatus && feedbackStatus.ready && !feedbackStatus.hasSubmitted && (
-                    <div className="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent p-6 rounded-[2rem] border border-emerald-500/20 shadow-md flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse-subtle">
+                    <div className="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent p-6 rounded-[2rem] border border-emerald-500/20 shadow-md flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse-subtle hover-3d">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-emerald-500/20 rounded-full border border-emerald-500/30 text-emerald-500">
                                 <Compass className="w-6 h-6" />
@@ -190,7 +190,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                                 </p>
                             </div>
                         </div>
-                        <Link href="/dashboard/feedback" className="w-full md:w-auto text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-102">
+                        <Link href="/dashboard/feedback" className="w-full md:w-auto text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-102 btn-3d">
                             Évaluer mon séjour
                         </Link>
                     </div>
@@ -198,7 +198,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
 
                 {/* Visa Availability Banner */}
                 {(data as any).visaStatus === 'APPROVED' && (data as any).visaUrl && (
-                    <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-6 rounded-[2rem] border border-emerald-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-6 rounded-[2rem] border border-emerald-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 hover-3d">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 text-emerald-500">
                                 <FileText className="w-6 h-6" />
@@ -214,7 +214,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                             href={(data as any).visaUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="w-full md:w-auto text-center bg-emerald-500 hover:bg-emerald-600 text-white dark:text-[#050605] font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-emerald-500/10 transition-all hover:scale-102"
+                            className="w-full md:w-auto text-center bg-emerald-500 hover:bg-emerald-600 text-white dark:text-[#050605] font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-emerald-500/10 transition-all hover:scale-102 btn-3d"
                         >
                             Télécharger mon Visa
                         </a>
@@ -251,7 +251,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Next Flight Card */}
-                        <div className="md:col-span-2 glass p-8 rounded-[2.5rem] relative overflow-hidden group border-emerald-500/5 shadow-sm">
+                        <div className="md:col-span-2 glass p-8 rounded-[2.5rem] relative overflow-hidden group border-emerald-500/5 shadow-sm hover-3d">
                             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <Plane className="w-24 h-24 rotate-45 text-emerald-500" />
                             </div>
@@ -315,7 +315,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                 {!data.hasNoGroup && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Column 1 & 2: Chronogramme interactif */}
-                        <div className="md:col-span-2 glass p-8 rounded-[2.5rem] border-emerald-500/5 shadow-sm space-y-6">
+                        <div className="md:col-span-2 glass p-8 rounded-[2.5rem] border-emerald-500/5 shadow-sm space-y-6 hover-3d">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                                     <Calendar className="w-5 h-5" />
@@ -385,7 +385,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                         </div>
 
                         {/* Column 3: Point de rassemblement */}
-                        <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+                        <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 shadow-sm flex flex-col justify-between relative overflow-hidden group hover-3d">
                             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <Navigation className="w-24 h-24 text-amber-500 animate-pulse" />
                             </div>
@@ -442,7 +442,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                 {isAdmin && (
                     <Link 
                         href={`/dashboard/shop?pilgrimId=${targetPilgrimId}`} 
-                        className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-6 rounded-[2rem] border border-amber-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 hover:bg-amber-500/15 transition-all text-left block"
+                        className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-6 rounded-[2rem] border border-amber-500/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 hover:bg-amber-500/15 transition-all text-left block hover-3d"
                     >
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 text-left">
                             <div className="p-3 bg-amber-500/10 rounded-full border border-amber-500/20 text-amber-500">

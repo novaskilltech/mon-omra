@@ -285,6 +285,17 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/app/backoffice/groups/page.tsx` pour inclure les formulaires et les badges de cartes de groupe.
 *   **Version** : v1.17.0
 
+---
+
+## 28. Effets Premium 3D Interactifs au Survol (Tableaux de bord)
+*   **Décision** : Ajout d'une classe CSS utilitaire `.hover-3d` et `.btn-3d` dans le fichier de styles globaux et application sur les sections clés et les boutons des tableaux de bord.
+*   **Justification** : Améliore significativement l'expérience utilisateur (UX/UI) en créant une sensation de relief, de profondeur et d'interactivité premium.
+*   **Impacts** :
+    *   Mise à jour de `src/app/globals.css`.
+    *   Mise à jour de `src/app/backoffice/page.tsx` et `src/app/dashboard/page.tsx`.
+*   **Version** : v1.18.0
+
+
 
 
 
