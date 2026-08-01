@@ -274,6 +274,18 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/app/backoffice/concierge/page.tsx` pour afficher la case à cocher dans les formulaires et la valeur sur la fiche détaillée.
 *   **Version** : v1.16.1
 
+---
+
+## 27. Configuration du Type de Vol et de Formule de Package par Groupe
+*   **Décision** : Ajout de la sélection du type de vol (Direct / Avec Escale) et de la formule (Classique / Eco) lors de la création et de la modification d'un groupe, avec badges d'information associés dans les listes.
+*   **Justification** : Permet aux organisateurs de catégoriser les offres et d'afficher clairement les spécificités des vols et des formules.
+*   **Impacts** :
+    *   Ajout des colonnes `flight_type` et `formula_type` sur la table `groups`.
+    *   Mise à jour des Server Actions `getGroupsDetailed`, `createGroupAction` et `updateGroupAction` dans `src/lib/actions/concierge.ts`.
+    *   Mise à jour de `src/app/backoffice/groups/page.tsx` pour inclure les formulaires et les badges de cartes de groupe.
+*   **Version** : v1.17.0
+
+
 
 
 

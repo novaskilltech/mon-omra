@@ -16,6 +16,8 @@ interface Group {
     madinahHotelId?: string;
     flyerPath?: string;
     price?: number;
+    flightType?: 'DIRECT' | 'LAYOVER';
+    formulaType?: 'ECO' | 'CLASSIQUE';
 }
 
 export default function GroupsPage() {
@@ -36,6 +38,8 @@ export default function GroupsPage() {
     const [flyerPath, setFlyerPath] = useState('');
     const [price, setPrice] = useState<string>('');
     const [selectedCity, setSelectedCity] = useState<string | null>(null);
+    const [flightType, setFlightType] = useState<'DIRECT' | 'LAYOVER'>('DIRECT');
+    const [formulaType, setFormulaType] = useState<'ECO' | 'CLASSIQUE'>('CLASSIQUE');
 
     // Available options
     const [availableFlights, setAvailableFlights] = useState<any[]>([]);
@@ -87,6 +91,8 @@ export default function GroupsPage() {
         setFlyerFile(null);
         setFlyerPath('');
         setPrice('');
+        setFlightType('DIRECT');
+        setFormulaType('CLASSIQUE');
         setIsModalOpen(true);
     };
 
@@ -102,6 +108,8 @@ export default function GroupsPage() {
         setFlyerFile(null);
         setFlyerPath(group.flyerPath || '');
         setPrice(group.price ? group.price.toString() : '');
+        setFlightType(group.flightType || 'DIRECT');
+        setFormulaType(group.formulaType || 'CLASSIQUE');
         
         const hIds: string[] = [];
         if (group.makkahHotelId) hIds.push(group.makkahHotelId);
@@ -143,7 +151,9 @@ export default function GroupsPage() {
                     flightReturnId: flightReturnId || undefined,
                     hotelIds: selectedHotels,
                     flyerPath: currentFlyerPath || undefined,
-                    price: numericPrice
+                    price: numericPrice,
+                    flightType,
+                    formulaType
                 });
                 if (res.error) alert(res.error);
             } else if (modalMode === 'edit' && selectedGroup) {
@@ -155,7 +165,9 @@ export default function GroupsPage() {
                     flightReturnId: flightReturnId || undefined,
                     hotelIds: selectedHotels,
                     flyerPath: currentFlyerPath,
-                    price: numericPrice
+                    price: numericPrice,
+                    flightType,
+                    formulaType
                 });
                 if (res.error) alert(res.error);
             }
@@ -334,7 +346,7 @@ export default function GroupsPage() {
                                                 </div>
                                                 <div>
                                                     <h4 className="text-lg font-black uppercase tracking-tighter text-main">{g.name}</h4>
-                                                    <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-dim mt-2">
+                                                    <div className="flex flex-wrap items-center gap-4 text-[9px] font-black uppercase tracking-widest text-dim mt-2">
                                                         <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-emerald-500" /> {g.pelerinCount} pèlerins</span>
                                                         <span className="flex items-center gap-1.5 text-sub opacity-20">|</span>
                                                         <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-emerald-500" /> {formatDateDisplay(g.date)}</span>
@@ -344,6 +356,18 @@ export default function GroupsPage() {
                                                                 <span className="flex items-center gap-1.5 text-emerald-500 font-bold">{g.price.toLocaleString('fr-FR')} €</span>
                                                             </>
                                                         )}
+                                                        <span className="flex items-center gap-1.5 text-sub opacity-20">|</span>
+                                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                                                            g.flightType === 'DIRECT' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                                                        }`}>
+                                                            {g.flightType === 'DIRECT' ? 'Direct' : 'Avec Escale'}
+                                                        </span>
+                                                        <span className="flex items-center gap-1.5 text-sub opacity-20">|</span>
+                                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                                                            g.formulaType === 'ECO' ? 'bg-sky-500/10 text-sky-500' : 'bg-purple-500/10 text-purple-500'
+                                                        }`}>
+                                                            {g.formulaType || 'CLASSIQUE'}
+                                                        </span>
                                                     </div>
                                                     {g.flyerPath && (
                                                         <button
@@ -486,6 +510,31 @@ export default function GroupsPage() {
                                         step="0.01"
                                         className="w-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-sm font-medium text-main outline-none focus:border-emerald-500/40 focus:bg-white/10 transition-all"
                                     />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Type de Vol</label>
+                                    <select 
+                                        value={flightType} 
+                                        onChange={(e: any) => setFlightType(e.target.value)} 
+                                        className="w-full bg-[#0b0f0d] dark:bg-[#0b0f0d] border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-sm font-medium text-main outline-none focus:border-emerald-500/40 transition-all"
+                                    >
+                                        <option value="DIRECT" className="bg-[#050605] text-main">Vol Direct</option>
+                                        <option value="LAYOVER" className="bg-[#050605] text-main">Avec Escale</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-dim ml-1">Formule / Package</label>
+                                    <select 
+                                        value={formulaType} 
+                                        onChange={(e: any) => setFormulaType(e.target.value)} 
+                                        className="w-full bg-[#0b0f0d] dark:bg-[#0b0f0d] border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-sm font-medium text-main outline-none focus:border-emerald-500/40 transition-all"
+                                    >
+                                        <option value="CLASSIQUE" className="bg-[#050605] text-main">Classique</option>
+                                        <option value="ECO" className="bg-[#050605] text-main">Eco</option>
+                                    </select>
                                 </div>
                             </div>
 

@@ -753,6 +753,8 @@ export async function getGroupsDetailed() {
             status,
             flyer_path,
             price,
+            flight_type,
+            formula_type,
             pilgrims (id)
         `)
         .order('departure_date', { ascending: true });
@@ -830,7 +832,9 @@ export async function getGroupsDetailed() {
             makkahHotelId: makkahStay?.hotel_id || '',
             madinahHotelId: madinahStay?.hotel_id || '',
             flyerPath: g.flyer_path || '',
-            price: g.price || null
+            price: g.price || null,
+            flightType: g.flight_type || 'DIRECT',
+            formulaType: g.formula_type || 'CLASSIQUE'
         };
     });
 }
@@ -877,6 +881,8 @@ export async function createGroupAction(data: {
     hotelIds?: string[];
     flyerPath?: string;
     price?: number;
+    flightType?: 'DIRECT' | 'LAYOVER';
+    formulaType?: 'ECO' | 'CLASSIQUE';
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -899,7 +905,9 @@ export async function createGroupAction(data: {
             departure_date: data.departureDate,
             status: data.status,
             flyer_path: data.flyerPath || null,
-            price: data.price || null
+            price: data.price || null,
+            flight_type: data.flightType || 'DIRECT',
+            formula_type: data.formulaType || 'CLASSIQUE'
         })
         .select()
         .single();
@@ -958,6 +966,8 @@ export async function updateGroupAction(id: string, data: {
     hotelIds?: string[];
     flyerPath?: string;
     price?: number;
+    flightType?: 'DIRECT' | 'LAYOVER';
+    formulaType?: 'ECO' | 'CLASSIQUE';
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -973,6 +983,12 @@ export async function updateGroupAction(id: string, data: {
     }
     if (data.price !== undefined) {
         updatePayload.price = data.price;
+    }
+    if (data.flightType !== undefined) {
+        updatePayload.flight_type = data.flightType;
+    }
+    if (data.formulaType !== undefined) {
+        updatePayload.formula_type = data.formulaType;
     }
 
     const { error } = await supabase
