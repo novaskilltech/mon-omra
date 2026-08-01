@@ -77,7 +77,9 @@ export default function ConciergeDashboard() {
         email: '',
         gender: 'M' as 'M' | 'F',
         groupId: '',
-        flightId: ''
+        flightId: '',
+        requestedRoomType: 'DOUBLE' as 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE',
+        hasBreakfast: false
     });
 
     const [showEditModal, setShowEditModal] = useState(false);
@@ -88,7 +90,9 @@ export default function ConciergeDashboard() {
         email: '',
         gender: 'M' as 'M' | 'F',
         groupId: '',
-        flightId: ''
+        flightId: '',
+        requestedRoomType: 'DOUBLE' as 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE',
+        hasBreakfast: false
     });
     
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -263,7 +267,7 @@ export default function ConciergeDashboard() {
             const res = await createPilgrim(addForm);
             if (res.success) {
                 setShowAddModal(false);
-                setAddForm({ firstName: '', familyName: '', email: '', gender: 'M', groupId: '', flightId: '' });
+                setAddForm({ firstName: '', familyName: '', email: '', gender: 'M', groupId: '', flightId: '', requestedRoomType: 'DOUBLE', hasBreakfast: false });
                 await loadData();
             } else {
                 alert(res.error || "Erreur lors de la création");
@@ -285,7 +289,9 @@ export default function ConciergeDashboard() {
                 email: editForm.email,
                 gender: editForm.gender,
                 groupId: editForm.groupId || undefined,
-                flightId: editForm.flightId
+                flightId: editForm.flightId,
+                requestedRoomType: editForm.requestedRoomType,
+                hasBreakfast: editForm.hasBreakfast
             });
             if (res.success) {
                 setShowEditModal(false);
@@ -956,7 +962,9 @@ export default function ConciergeDashboard() {
                                                         email: selectedPilgrim.email || '',
                                                         gender: selectedPilgrim.gender as 'M' | 'F',
                                                         groupId: selectedPilgrim.group_id || '',
-                                                        flightId: selectedPilgrim.individual_flight_info?.selected_flight_id || ''
+                                                        flightId: selectedPilgrim.individual_flight_info?.selected_flight_id || '',
+                                                        requestedRoomType: selectedPilgrim.requested_room_type || 'DOUBLE',
+                                                        hasBreakfast: !!selectedPilgrim.has_breakfast
                                                     });
                                                     setShowEditModal(true);
                                                 }}
@@ -1002,6 +1010,23 @@ export default function ConciergeDashboard() {
                                                 <div className="flex justify-between">
                                                     <span className="text-dim">Check-in Pèlerin :</span>
                                                     <span className="font-bold text-main">{selectedPilgrim.checkin_done ? 'Prêt' : 'Non validé'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-dim">Chambre Souhaitée :</span>
+                                                    <span className="font-bold text-emerald-500 uppercase">
+                                                        {selectedPilgrim.requested_room_type === 'SINGLE' ? 'Single' :
+                                                         selectedPilgrim.requested_room_type === 'DOUBLE' ? 'Double' :
+                                                         selectedPilgrim.requested_room_type === 'TRIPLE' ? 'Triple' :
+                                                         selectedPilgrim.requested_room_type === 'QUADRUPLE' ? 'Quadruple' :
+                                                         selectedPilgrim.requested_room_type === 'QUINTUPLE' ? 'Quintuple' :
+                                                         selectedPilgrim.requested_room_type || 'Double'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-dim">Petit Déjeuner :</span>
+                                                    <span className={`font-bold uppercase ${selectedPilgrim.has_breakfast ? 'text-emerald-500' : 'text-dim/60'}`}>
+                                                        {selectedPilgrim.has_breakfast ? 'Oui' : 'Non'}
+                                                    </span>
                                                 </div>
                                                 {selectedPilgrim.visa_url && (
                                                     <div className="mt-3">
@@ -2017,6 +2042,32 @@ export default function ConciergeDashboard() {
                                     })}
                                 </select>
                             </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Type de Chambre Souhaité</label>
+                                <select 
+                                    value={addForm.requestedRoomType}
+                                    onChange={(e) => setAddForm({ ...addForm, requestedRoomType: e.target.value as 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE' })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
+                                >
+                                    <option value="SINGLE" className="bg-[#0b0e0c] text-main">Single (1 personne)</option>
+                                    <option value="DOUBLE" className="bg-[#0b0e0c] text-main">Double (2 personnes)</option>
+                                    <option value="TRIPLE" className="bg-[#0b0e0c] text-main">Triple (3 personnes)</option>
+                                    <option value="QUADRUPLE" className="bg-[#0b0e0c] text-main">Quadruple (4 personnes)</option>
+                                    <option value="QUINTUPLE" className="bg-[#0b0e0c] text-main">Quintuple (5 personnes)</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-3 pt-2">
+                                <input 
+                                    type="checkbox" 
+                                    id="addHasBreakfast"
+                                    checked={addForm.hasBreakfast}
+                                    onChange={(e) => setAddForm({ ...addForm, hasBreakfast: e.target.checked })}
+                                    className="w-4 h-4 rounded border-emerald-500/10 text-emerald-500 focus:ring-emerald-500 bg-[#0b0e0c] outline-none"
+                                />
+                                <label htmlFor="addHasBreakfast" className="text-xs text-main font-bold cursor-pointer select-none">
+                                    Inclure l'option Petit Déjeuner
+                                </label>
+                            </div>
                         </div>
 
                         <div className="flex gap-4">
@@ -2121,6 +2172,32 @@ export default function ConciergeDashboard() {
                                         );
                                     })}
                                 </select>
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Type de Chambre Souhaité</label>
+                                <select 
+                                    value={editForm.requestedRoomType}
+                                    onChange={(e) => setEditForm({ ...editForm, requestedRoomType: e.target.value as 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE' })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border border-emerald-500/5 outline-none text-sm text-main"
+                                >
+                                    <option value="SINGLE" className="bg-[#0b0e0c] text-main">Single (1 personne)</option>
+                                    <option value="DOUBLE" className="bg-[#0b0e0c] text-main">Double (2 personnes)</option>
+                                    <option value="TRIPLE" className="bg-[#0b0e0c] text-main">Triple (3 personnes)</option>
+                                    <option value="QUADRUPLE" className="bg-[#0b0e0c] text-main">Quadruple (4 personnes)</option>
+                                    <option value="QUINTUPLE" className="bg-[#0b0e0c] text-main">Quintuple (5 personnes)</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-3 pt-2">
+                                <input 
+                                    type="checkbox" 
+                                    id="editHasBreakfast"
+                                    checked={editForm.hasBreakfast}
+                                    onChange={(e) => setEditForm({ ...editForm, hasBreakfast: e.target.checked })}
+                                    className="w-4 h-4 rounded border-emerald-500/10 text-emerald-500 focus:ring-emerald-500 bg-[#0b0e0c] outline-none"
+                                />
+                                <label htmlFor="editHasBreakfast" className="text-xs text-main font-bold cursor-pointer select-none">
+                                    Option Petit Déjeuner souscrite
+                                </label>
                             </div>
                         </div>
 

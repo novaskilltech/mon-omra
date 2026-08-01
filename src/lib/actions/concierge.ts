@@ -24,6 +24,8 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
                 land_transfers,
                 package_price,
                 family_head_id,
+                requested_room_type,
+                has_breakfast,
                 groups(name, status)
             )
         `)
@@ -75,7 +77,9 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
             individual_hotel_info: pilgrimDetail?.individual_hotel_info || null,
             land_transfers: pilgrimDetail?.land_transfers || null,
             package_price: pilgrimDetail?.package_price !== null && pilgrimDetail?.package_price !== undefined ? Number(pilgrimDetail.package_price) : 2500,
-            family_head_id: pilgrimDetail?.family_head_id || null
+            family_head_id: pilgrimDetail?.family_head_id || null,
+            requested_room_type: pilgrimDetail?.requested_room_type || 'DOUBLE',
+            has_breakfast: !!pilgrimDetail?.has_breakfast
         };
     }));
 
@@ -89,6 +93,8 @@ export async function createPilgrim(data: {
     gender: 'M' | 'F';
     groupId?: string;
     flightId?: string;
+    requestedRoomType?: 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE';
+    hasBreakfast?: boolean;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -175,7 +181,9 @@ export async function createPilgrim(data: {
             .insert({
                 id: realUserId,
                 group_id: data.groupId || null,
-                individual_flight_info: individualFlightInfo
+                individual_flight_info: individualFlightInfo,
+                requested_room_type: data.requestedRoomType || 'DOUBLE',
+                has_breakfast: data.hasBreakfast || false
             });
 
         if (pilgrimError) throw pilgrimError;
@@ -195,6 +203,8 @@ export async function updatePilgrimAction(id: string, data: {
     gender: 'M' | 'F';
     groupId?: string;
     flightId?: string;
+    requestedRoomType?: 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE';
+    hasBreakfast?: boolean;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -249,6 +259,12 @@ export async function updatePilgrimAction(id: string, data: {
         };
         if (individualFlightInfo !== undefined) {
             updateData.individual_flight_info = individualFlightInfo;
+        }
+        if (data.requestedRoomType !== undefined) {
+            updateData.requested_room_type = data.requestedRoomType;
+        }
+        if (data.hasBreakfast !== undefined) {
+            updateData.has_breakfast = data.hasBreakfast;
         }
 
         // 2. Mettre à jour pilgrims

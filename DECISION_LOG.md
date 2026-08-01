@@ -252,4 +252,28 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `submitFeedbackAction`, `getPilgrimFeedback`, `getAllFeedbacks` et `checkFeedbackStatus` dans [feedback.ts](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/lib/actions/feedback.ts).
 *   **Version** : v1.15.2
 
+---
+
+## 25. Sélection et Affichage du Type de Chambre dans le Dossier Pèlerin
+*   **Décision** : Ajout du choix de type de chambre souhaitée (Single, Double, Triple, Quadruple, Quintuple) dans les formulaires d'ajout et de modification de pèlerins, et affichage dans la fiche détaillée du backoffice.
+*   **Justification** : Simplifie l'organisation logistique et le rooming pour l'agence de voyage en spécifiant le souhait d'hébergement au niveau du dossier pèlerin.
+*   **Impacts** :
+    *   Ajout de la colonne `requested_room_type` sur la table `pilgrims`.
+    *   Mise à jour des Server Actions `getPilgrimsList`, `createPilgrim`, et `updatePilgrimAction` dans `src/lib/actions/concierge.ts`.
+    *   Mise à jour de `src/app/backoffice/concierge/page.tsx` pour afficher les sélecteurs et l'information "Chambre Souhaitée".
+*   **Version** : v1.16.0
+
+---
+
+## 26. Option Petit Déjeuner dans le Dossier Pèlerin
+*   **Décision** : Ajout d'une case à cocher "Option Petit Déjeuner" dans les formulaires de création et de modification de pèlerin et affichage de l'état souscrit ("Oui / Non") dans sa fiche détaillée.
+*   **Justification** : Permet à l'agence d'enregistrer et de suivre l'option petit déjeuner de manière individuelle au niveau du dossier du client.
+*   **Impacts** :
+    *   Ajout de la colonne `has_breakfast` (booléen) à la table `pilgrims`.
+    *   Mise à jour des Server Actions `getPilgrimsList`, `createPilgrim` et `updatePilgrimAction` dans `src/lib/actions/concierge.ts`.
+    *   Mise à jour de `src/app/backoffice/concierge/page.tsx` pour afficher la case à cocher dans les formulaires et la valeur sur la fiche détaillée.
+*   **Version** : v1.16.1
+
+
+
 
