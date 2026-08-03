@@ -295,6 +295,17 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/app/backoffice/page.tsx` et `src/app/dashboard/page.tsx`.
 *   **Version** : v1.18.0
 
+---
+
+## 29. Résolution du Blocage RLS du Tableau de Bord Pèlerin
+*   **Décision** : Remplacement de `createClient()` par `createAdminClient()` pour les fonctions de lecture de données pèlerins sur le serveur (`getPilgrimDashboardData`, `resolvePilgrimIdByEmail`, et `getDepartureRequest`).
+*   **Justification** : Permet aux pèlerins connectés via un cookie personnalisé de session (`pilgrim_id`) de charger correctement leurs vols, hôtels, et visas sans être bloqués par les politiques RLS de Supabase.
+*   **Impacts** :
+    *   Mise à jour de `src/lib/actions/logistics.ts`.
+    *   Mise à jour du mock de test dans `src/lib/actions/__tests__/logistics.test.ts`.
+*   **Version** : v1.18.1
+
+
 
 
 
