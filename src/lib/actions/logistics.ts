@@ -341,7 +341,7 @@ export async function unassignPilgrimFromRoom(pilgrimId: string, roomId: string,
 }
 
 export async function getPilgrimDashboardData(pilgrimId: string, email?: string) {
-    const supabase = createClient();
+    const supabase = createAdminClient();
     try {
         const targetDate = new Date();
         targetDate.setDate(targetDate.getDate() + 12);
@@ -750,14 +750,16 @@ export async function submitDepartureRequest(data: {
             return { error: "Non autorisé" };
         }
 
-        const { data: existing } = await supabase
+        const adminSupabase = createAdminClient();
+
+        const { data: existing } = await adminSupabase
             .from('departure_requests')
             .select('id')
             .eq('pilgrim_id', resolvedId)
             .maybeSingle();
 
         if (existing) {
-            const { error } = await supabase
+            const { error } = await adminSupabase
                 .from('departure_requests')
                 .update({
                     month: data.month,
@@ -773,7 +775,7 @@ export async function submitDepartureRequest(data: {
             
             if (error) throw error;
         } else {
-            const { error } = await supabase
+            const { error } = await adminSupabase
                 .from('departure_requests')
                 .insert({
                     pilgrim_id: resolvedId,
@@ -798,7 +800,7 @@ export async function submitDepartureRequest(data: {
 }
 
 export async function getDepartureRequest(pilgrimId: string, email?: string) {
-    const supabase = createClient();
+    const supabase = createAdminClient();
     try {
         const resolvedId = await resolvePilgrimIdByEmail(pilgrimId, email);
         const { data, error } = await supabase
@@ -816,7 +818,7 @@ export async function getDepartureRequest(pilgrimId: string, email?: string) {
 }
 
 export async function resolvePilgrimIdByEmail(userId: string, email?: string): Promise<string> {
-    const supabase = createClient();
+    const supabase = createAdminClient();
     if (email) {
         const { data: profile } = await supabase
             .from('profiles')

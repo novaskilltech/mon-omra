@@ -21,6 +21,7 @@ vi.mock('@/utils/supabase/server', () => {
   };
   return {
     createClient: vi.fn(() => mockSupabase),
+    createAdminClient: vi.fn(() => mockSupabase),
   };
 });
 
