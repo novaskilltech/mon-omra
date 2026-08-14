@@ -1360,6 +1360,39 @@ export async function getPilgrimProgram(pilgrimId?: string | null, email?: strin
             }
         }
 
+        // Check for Transavia flight
+        let isTransavia = false;
+        let flightsListForCheck: any[] = [];
+        if (pilgrim && pilgrim.individual_flight_info) {
+            const indFlight = pilgrim.individual_flight_info as any;
+            if (indFlight.flights && Array.isArray(indFlight.flights)) {
+                flightsListForCheck = indFlight.flights;
+            } else if (indFlight.departure_airport) {
+                flightsListForCheck = [indFlight];
+            }
+        }
+        if (flightsListForCheck.length === 0 && groupId) {
+            const { data: groupLogistics } = await supabase
+                .from('group_logistics')
+                .select('flight_departure_id')
+                .eq('group_id', groupId)
+                .maybeSingle();
+            if (groupLogistics && groupLogistics.flight_departure_id) {
+                const { data: dep } = await supabase
+                    .from('flights')
+                    .select('*, flight_segments(*)')
+                    .eq('id', groupLogistics.flight_departure_id)
+                    .maybeSingle();
+                if (dep && dep.flight_segments) {
+                    flightsListForCheck = dep.flight_segments;
+                }
+            }
+        }
+        isTransavia = flightsListForCheck.some((f: any) =>
+            (f.airline && f.airline.toLowerCase().includes('transavia')) ||
+            (f.carrier && f.carrier.toLowerCase().includes('transavia'))
+        );
+
         // Build list of days
         const days = [];
         for (let d = 1; d <= duration; d++) {
@@ -1402,6 +1435,24 @@ export async function getPilgrimProgram(pilgrimId?: string | null, email?: strin
             // Core guided activities based on Custom Planning
             if (customPlanning && customPlanning[d.toString()] && Array.isArray(customPlanning[d.toString()])) {
                 guidedActivities = customPlanning[d.toString()];
+            } else if (d === 1 && isTransavia) {
+                guidedActivities = [
+                    {
+                        time: "Après-midi",
+                        title: "Accueil & Transfert",
+                        description: "Le chauffeur vous attend sur le parking. Veuillez suivre les instructions sur le groupe WhatsApp pour rejoindre le chauffeur. Direction La Mecque."
+                    },
+                    {
+                        time: "Installation",
+                        title: "Arrivée à l'hôtel",
+                        description: "Récupération des clés de chambre. Vous pouvez monter vos bagages dans votre chambre, vous reposer et attendre le signal du guide."
+                    },
+                    {
+                        time: "Rassemblement",
+                        title: "Préparation Omra",
+                        description: "Veuillez descendre à l'heure indiquée par le guide sur le groupe WhatsApp pour pouvoir effectuer la Omra."
+                    }
+                ];
             }
 
             days.push({
@@ -1624,6 +1675,8 @@ export async function getPilgrimJournalData(groupId: string, pilgrimId?: string)
         // Resolving pilgrim name
         let individualFlight = null;
         let individualHotel = null;
+        let hasBreakfast = false;
+        let requestedRoomType = 'DOUBLE';
 
         if (pilgrimId && pilgrimId !== 'demo-pilgrim-id') {
             const { data: profile } = await supabase
@@ -1637,12 +1690,14 @@ export async function getPilgrimJournalData(groupId: string, pilgrimId?: string)
 
             const { data: pilgrim } = await supabase
                 .from('pilgrims')
-                .select('individual_flight_info, individual_hotel_info')
+                .select('individual_flight_info, individual_hotel_info, has_breakfast, requested_room_type')
                 .eq('id', pilgrimId)
                 .maybeSingle();
             if (pilgrim) {
                 individualFlight = pilgrim.individual_flight_info as any;
                 individualHotel = pilgrim.individual_hotel_info as any;
+                hasBreakfast = !!pilgrim.has_breakfast;
+                requestedRoomType = pilgrim.requested_room_type || 'DOUBLE';
             }
         }
 
@@ -1837,6 +1892,11 @@ export async function getPilgrimJournalData(groupId: string, pilgrimId?: string)
             programList = [];
         }
 
+        let baggagePolicy = "";
+        if (individualFlight && individualFlight.baggage_policy) {
+            baggagePolicy = individualFlight.baggage_policy;
+        }
+
         return {
             success: true,
             data: {
@@ -1845,7 +1905,10 @@ export async function getPilgrimJournalData(groupId: string, pilgrimId?: string)
                 pilgrimName: resolvedPilgrimName,
                 flights: flightsList,
                 hotels: hotelsList,
-                program: programList
+                program: programList,
+                baggagePolicy,
+                hasBreakfast,
+                requestedRoomType
             }
         };
 

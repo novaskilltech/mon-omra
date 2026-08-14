@@ -156,66 +156,78 @@ export const TravelJournalDocument = ({ data }: { data: any }) => (
             </View>
 
             {/* Flights Section */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>1. VÉHICULES & VOLS</Text>
-                {data.flights.length === 0 ? (
-                    <Text style={{ fontSize: 9, color: '#6b7280', fontStyle: 'italic', padding: 5 }}>Aucun vol ou transfert planifié pour le moment.</Text>
-                ) : data.flights.map((flight: any, idx: number) => (
-                    <View key={idx} style={styles.card}>
-                        <Text style={{ fontSize: 9, fontWeight: 'bold', marginBottom: 5, color: '#10b981' }}>
-                            VOL {cleanText(flight.type)} - {cleanText(flight.carrier)}
-                        </Text>
-                        {flight.segments.map((seg: any, sIdx: number) => (
-                            <View key={sIdx} style={styles.row}>
-                                <Text style={styles.value}>{cleanText(seg.from)} ➔ {cleanText(seg.to)}</Text>
-                                <Text style={styles.value}>{cleanText(seg.flightNum)} | {cleanText(seg.date)} à {cleanText(seg.time)}</Text>
-                            </View>
-                        ))}
-                    </View>
-                ))}
-            </View>
+            {data.flights && data.flights.length > 0 ? (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>1. VÉHICULES & VOLS</Text>
+                    {data.flights.map((flight: any, idx: number) => (
+                        <View key={idx} style={styles.card}>
+                            <Text style={{ fontSize: 9, fontWeight: 'bold', marginBottom: 5, color: '#10b981' }}>
+                                VOL {cleanText(flight.type)} - {cleanText(flight.carrier)}
+                            </Text>
+                            {flight.segments.map((seg: any, sIdx: number) => (
+                                <View key={sIdx} style={styles.row}>
+                                    <Text style={styles.value}>{cleanText(seg.from)} ➔ {cleanText(seg.to)}</Text>
+                                    <Text style={styles.value}>{cleanText(seg.flightNum)} | {cleanText(seg.date)} à {cleanText(seg.time)}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    ))}
+                    {data.baggagePolicy ? (
+                        <View style={[styles.card, { backgroundColor: '#f0fdf4', borderColor: '#10b981' }]}>
+                            <Text style={{ fontSize: 9, fontWeight: 'bold', color: '#052e16', marginBottom: 2 }}>POLITIQUE DE BAGAGES</Text>
+                            <Text style={styles.value}>{cleanText(data.baggagePolicy)}</Text>
+                        </View>
+                    ) : null}
+                </View>
+            ) : null}
 
             {/* Hotels Section */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>2. HÉBERGEMENTS</Text>
-                {data.hotels.length === 0 ? (
-                    <Text style={{ fontSize: 9, color: '#6b7280', fontStyle: 'italic', padding: 5 }}>Aucun hébergement planifié pour le moment.</Text>
-                ) : data.hotels.map((hotel: any, idx: number) => (
-                    <View key={idx} style={styles.card}>
-                        <View style={styles.row}>
-                            <Text style={styles.value}>{cleanText(hotel.name)}</Text>
-                            <Text style={styles.value}>{cleanText(hotel.city)}</Text>
+            {data.hotels && data.hotels.length > 0 ? (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>2. HÉBERGEMENTS</Text>
+                    {data.hotels.map((hotel: any, idx: number) => (
+                        <View key={idx} style={styles.card}>
+                            <View style={styles.row}>
+                                <Text style={styles.value}>{cleanText(hotel.name)}</Text>
+                                <Text style={styles.value}>{cleanText(hotel.city)}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Check-in: {cleanText(hotel.checkIn)}</Text>
+                                <Text style={styles.label}>Check-out: {cleanText(hotel.checkOut)}</Text>
+                            </View>
+                            <View style={[styles.row, { marginTop: 4, paddingTop: 4, borderTop: '0.5pt solid #f3f4f6' }]}>
+                                {data.requestedRoomType ? (
+                                    <Text style={styles.label}>Chambre: {cleanText(data.requestedRoomType)}</Text>
+                                ) : null}
+                                <Text style={styles.label}>Option: {data.hasBreakfast ? 'Petit-déjeuner inclus' : 'Sans repas'}</Text>
+                            </View>
                         </View>
-                        <View style={styles.row}>
-                            <Text style={styles.label}>Check-in: {cleanText(hotel.checkIn)}</Text>
-                            <Text style={styles.label}>Check-out: {cleanText(hotel.checkOut)}</Text>
-                        </View>
-                    </View>
-                ))}
-            </View>
+                    ))}
+                </View>
+            ) : null}
 
             {/* Planning Summary */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>3. PROGRAMME DES PREMIERS JOURS</Text>
-                {data.program.length === 0 ? (
-                    <Text style={{ fontSize: 9, color: '#6b7280', fontStyle: 'italic', padding: 5 }}>Aucune activité programmée pour le moment.</Text>
-                ) : data.program.slice(0, 3).map((day: any, idx: number) => (
-                    <View key={idx} style={{ marginBottom: 15 }}>
-                        <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#10b981', marginBottom: 8 }}>
-                            JOUR {day.day} - {cleanText(day.date)}
-                        </Text>
-                        {day.activities.map((act: any, aIdx: number) => (
-                            <View key={aIdx} style={styles.activityRow}>
-                                <Text style={styles.timeCol}>{cleanText(act.time)}</Text>
-                                <View style={styles.contentCol}>
-                                    <Text style={styles.activityTitle}>{cleanText(act.title)}</Text>
-                                    <Text style={styles.activityDesc}>{cleanText(act.description)}</Text>
+            {data.program && data.program.length > 0 ? (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>3. PROGRAMME DES PREMIERS JOURS</Text>
+                    {data.program.slice(0, 3).map((day: any, idx: number) => (
+                        <View key={idx} style={{ marginBottom: 15 }}>
+                            <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#10b981', marginBottom: 8 }}>
+                                JOUR {day.day} - {cleanText(day.date)}
+                            </Text>
+                            {day.activities.map((act: any, aIdx: number) => (
+                                <View key={aIdx} style={styles.activityRow}>
+                                    <Text style={styles.timeCol}>{cleanText(act.time)}</Text>
+                                    <View style={styles.contentCol}>
+                                        <Text style={styles.activityTitle}>{cleanText(act.title)}</Text>
+                                        <Text style={styles.activityDesc}>{cleanText(act.description)}</Text>
+                                    </View>
                                 </View>
-                            </View>
-                        ))}
-                    </View>
-                ))}
-            </View>
+                            ))}
+                        </View>
+                    ))}
+                </View>
+            ) : null}
 
             <Text style={styles.footer}>
                 Ce document est généré par Mon Omra pour {cleanText(data.pilgrimName)}.

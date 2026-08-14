@@ -43,6 +43,9 @@ export default function LoginPage() {
 
     // Active public groups list
     const [publicGroups, setPublicGroups] = useState<any[]>([]);
+    const [airports, setAirports] = useState<string[]>([]);
+    const [selectedAirport, setSelectedAirport] = useState('');
+    const [filteredGroups, setFilteredGroups] = useState<any[]>([]);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -56,7 +59,30 @@ export default function LoginPage() {
             try {
                 const res = await getPublicActiveGroups();
                 if (res.success && res.groups) {
-                    setPublicGroups(res.groups);
+                    const mapped = res.groups.map((g: any) => {
+                        let airport = "AUTRE";
+                        const lowerName = g.name.toLowerCase();
+                        if (lowerName.includes("paris") || lowerName.includes("cdg") || lowerName.includes("ory")) {
+                            airport = "PARIS";
+                        } else if (lowerName.includes("lyon") || lowerName.includes("lys")) {
+                            airport = "LYON";
+                        } else if (lowerName.includes("marseille") || lowerName.includes("mrs")) {
+                            airport = "MARSEILLE";
+                        } else if (lowerName.includes("bruxelles") || lowerName.includes("bru") || lowerName.includes("brussels")) {
+                            airport = "BRUXELLES";
+                        } else if (lowerName.includes("nice") || lowerName.includes("nce")) {
+                            airport = "NICE";
+                        } else if (lowerName.includes("toulouse") || lowerName.includes("tls")) {
+                            airport = "TOULOUSE";
+                        } else if (lowerName.includes("nantes") || lowerName.includes("nte")) {
+                            airport = "NANTES";
+                        }
+                        return { ...g, airport };
+                    });
+                    setPublicGroups(mapped);
+
+                    const uniqueAirports = Array.from(new Set(mapped.map((g: any) => g.airport))) as string[];
+                    setAirports(uniqueAirports.filter(Boolean).sort());
                 }
             } catch (err) {
                 console.error("Failed to load departures:", err);
@@ -64,6 +90,17 @@ export default function LoginPage() {
         };
         fetchGroups();
     }, []);
+
+    useEffect(() => {
+        if (selectedAirport) {
+            const filtered = publicGroups
+                .filter((g: any) => g.airport === selectedAirport)
+                .sort((a: any, b: any) => new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime());
+            setFilteredGroups(filtered);
+        } else {
+            setFilteredGroups([]);
+        }
+    }, [selectedAirport, publicGroups]);
 
     const handleDriverLoginSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -569,20 +606,40 @@ export default function LoginPage() {
                                     />
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-dim ml-4">Départ ciblé / Souhaité</label>
-                                    <select
-                                        value={regForm.desiredGroupId}
-                                        onChange={(e) => setRegForm({ ...regForm, desiredGroupId: e.target.value })}
-                                        className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
-                                    >
-                                        <option value="" className="bg-[#0a0e0c] text-dim">-- Sélectionner un départ (optionnel) --</option>
-                                        {publicGroups.map((grp) => (
-                                            <option key={grp.id} value={grp.id} className="bg-[#0a0e0c] text-main">
-                                                {grp.name} ({new Date(grp.departure_date).toLocaleDateString('fr-FR')}){grp.price ? ` - ${Number(grp.price).toLocaleString('fr-FR')} €` : ''}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-dim ml-4">Aéroport / Ville de départ</label>
+                                        <select
+                                            value={selectedAirport}
+                                            onChange={(e) => {
+                                                setSelectedAirport(e.target.value);
+                                                setRegForm({ ...regForm, desiredGroupId: '' });
+                                            }}
+                                            className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main"
+                                        >
+                                            <option value="" className="bg-[#0a0e0c] text-dim">-- Sélectionner une ville --</option>
+                                            {airports.map((ap) => (
+                                                <option key={ap} value={ap} className="bg-[#0a0e0c] text-main">{ap}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-dim ml-4">Date de départ (chronologique)</label>
+                                        <select
+                                            disabled={!selectedAirport}
+                                            value={regForm.desiredGroupId}
+                                            onChange={(e) => setRegForm({ ...regForm, desiredGroupId: e.target.value })}
+                                            className="w-full bg-[#0a0e0c] dark:bg-white/5 border border-emerald-500/10 p-4 rounded-xl text-xs focus:border-emerald-500/50 outline-none text-main disabled:opacity-50"
+                                        >
+                                            <option value="" className="bg-[#0a0e0c] text-dim">-- Sélectionner une date --</option>
+                                            {filteredGroups.map((grp) => (
+                                                <option key={grp.id} value={grp.id} className="bg-[#0a0e0c] text-main">
+                                                    {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} - {grp.name} {grp.price ? `(${Number(grp.price).toLocaleString('fr-FR')} €)` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-1">
