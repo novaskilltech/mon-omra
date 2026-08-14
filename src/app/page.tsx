@@ -5,6 +5,7 @@ import ThemeSelector from '@/components/ThemeSelector';
 import type { Metadata } from 'next';
 import PublicDeparturesCatalog from '@/components/PublicDeparturesCatalog';
 import PromoInquiryBanner from '@/components/PromoInquiryBanner';
+import HajjInquirySection from '@/components/HajjInquirySection';
 
 export const metadata: Metadata = {
   title: "OMRAYANAIR — Conciergerie Omra Autonome & Voyage Spirituel",
@@ -127,6 +128,9 @@ export default function Home() {
 
             {/* Catalog of Active departures and prices */}
             <PublicDeparturesCatalog />
+
+            {/* Rubrique & Formulaire HAJJ */}
+            <HajjInquirySection />
 
             {/* 3. Le Plan en 3 Étapes (Clarté) */}
             <section className="relative z-10 py-16 px-6 max-w-7xl mx-auto">

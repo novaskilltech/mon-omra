@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Users, Plane, Hotel, LayoutDashboard, Settings, Bell, LogOut, Menu, X, Star, Route } from 'lucide-react';
+import { Users, Plane, Hotel, LayoutDashboard, Settings, Bell, LogOut, Menu, X, Star, Route, Compass } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { logoutAdmin } from '@/lib/actions/auth';
@@ -29,6 +29,7 @@ export default function BackofficeLayout({
                 <nav className="space-y-2">
                     {[
                         { icon: LayoutDashboard, label: 'Dashboard', href: '/backoffice' },
+                        { icon: Compass, label: 'Demandes Hajj', href: '/backoffice/hajj' },
                         { icon: Users, label: 'Conciergerie', href: '/backoffice/concierge' },
                         { icon: Users, label: 'Groupes', href: '/backoffice/groups' },
                         { icon: Plane, label: 'Vols', href: '/backoffice/logistics/flights' },
@@ -73,6 +74,7 @@ export default function BackofficeLayout({
                             <nav className="space-y-2">
                                 {[
                                     { icon: LayoutDashboard, label: 'Dashboard', href: '/backoffice' },
+                                    { icon: Compass, label: 'Demandes Hajj', href: '/backoffice/hajj' },
                                     { icon: Users, label: 'Conciergerie', href: '/backoffice/concierge' },
                                     { icon: Users, label: 'Groupes', href: '/backoffice/groups' },
                                     { icon: Plane, label: 'Vols', href: '/backoffice/logistics/flights' },
