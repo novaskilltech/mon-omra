@@ -21,6 +21,8 @@ export default function BentoLandingHub() {
     const [airports, setAirports] = useState<string[]>([]);
     const [selectedAirport, setSelectedAirport] = useState('');
     const [filteredGroups, setFilteredGroups] = useState<any[]>([]);
+    const [wantsCustomDates, setWantsCustomDates] = useState(false);
+    const [customDatesInput, setCustomDatesInput] = useState('');
     const [omraForm, setOmraForm] = useState({
         firstName: '',
         familyName: '',
@@ -105,6 +107,8 @@ export default function BentoLandingHub() {
         setOmraSuccess(false);
         setOmraError(null);
         setSelectedAirport('');
+        setWantsCustomDates(false);
+        setCustomDatesInput('');
         setOmraForm({
             firstName: '',
             familyName: '',
@@ -125,16 +129,20 @@ export default function BentoLandingHub() {
         setOmraSubmitting(true);
 
         try {
+            const finalMessage = wantsCustomDates && customDatesInput
+                ? `[Dates & Aéroport souhaités : ${customDatesInput}] - ${omraForm.message}`
+                : omraForm.message;
+
             const res = await requestRegistration({
                 email: omraForm.email,
                 firstName: omraForm.firstName,
                 familyName: omraForm.familyName,
                 gender: omraForm.gender,
                 phone: omraForm.phone,
-                message: omraForm.message,
+                message: finalMessage,
                 isFormerClient: omraForm.isFormerClient,
                 wantsLoyaltyBenefits: omraForm.wantsLoyaltyBenefits,
-                desiredGroupId: omraForm.desiredGroupId || undefined
+                desiredGroupId: (!wantsCustomDates && omraForm.desiredGroupId) ? omraForm.desiredGroupId : undefined
             });
 
             if (res.error) {
@@ -365,7 +373,7 @@ export default function BentoLandingHub() {
 
                 {/* Bento 5: Boutique & Services sur place */}
                 <Link 
-                    href="/login"
+                    href="/boutique-excursions"
                     className="glass p-8 rounded-[2.5rem] border border-amber-500/20 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent hover:border-amber-500/50 transition-all duration-300 group relative overflow-hidden flex flex-col justify-between min-h-[240px] shadow-lg hover:shadow-[0_0_40px_rgba(216,170,77,0.15)]"
                 >
                     <div>
@@ -395,7 +403,7 @@ export default function BentoLandingHub() {
 
                 {/* Bento 6: Espace Pèlerin & Guide Rituels */}
                 <Link 
-                    href="/login"
+                    href="/demo-pelerin"
                     className="glass p-8 rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent hover:border-emerald-500/50 transition-all duration-300 group relative overflow-hidden flex flex-col justify-between min-h-[240px] shadow-lg hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]"
                 >
                     <div>
@@ -477,40 +485,54 @@ export default function BentoLandingHub() {
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] font-black uppercase tracking-wider text-dim ml-1">Aéroport / Ville de départ</label>
-                                        <select
-                                            required
-                                            value={selectedAirport}
-                                            onChange={(e) => {
-                                                setSelectedAirport(e.target.value);
-                                                setOmraForm({ ...omraForm, desiredGroupId: '' });
-                                            }}
-                                            className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs focus:border-emerald-500/40 outline-none text-main"
-                                        >
-                                            <option value="" className="bg-[#0c120f] text-dim">-- Choisir un aéroport --</option>
-                                            {airports.map((ap) => (
-                                                <option key={ap} value={ap} className="bg-[#0c120f] text-main">{ap}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                <div className="space-y-4">
+                                    {!wantsCustomDates ? (
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-wider text-dim ml-1">Choisir un départ disponible</label>
+                                            <select
+                                                required={!wantsCustomDates}
+                                                value={omraForm.desiredGroupId}
+                                                onChange={(e) => setOmraForm({ ...omraForm, desiredGroupId: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs focus:border-emerald-500/40 outline-none text-main"
+                                            >
+                                                <option value="" className="bg-[#0c120f] text-dim">-- Sélectionner une date de voyage --</option>
+                                                {[...groups].sort((a: any, b: any) => new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime()).map((grp) => (
+                                                    <option key={grp.id} value={grp.id} className="bg-[#0c120f] text-main">
+                                                        {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} — Départ {grp.airport || 'Même Ville'} ({grp.name}) {grp.price ? `— ${Number(grp.price).toLocaleString('fr-FR')} €` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-300">
+                                            <label className="text-[9px] font-black uppercase tracking-wider text-[#D8AA4D] ml-1">Vos souhaits de dates & aéroport de départ</label>
+                                            <input
+                                                required={wantsCustomDates}
+                                                type="text"
+                                                value={customDatesInput}
+                                                onChange={(e) => setCustomDatesInput(e.target.value)}
+                                                placeholder="Ex: départ fin octobre 2026 depuis Nice pour 10 jours"
+                                                className="w-full bg-white/5 border border-amber-500/20 p-4 rounded-xl text-xs focus:border-[#D8AA4D]/50 outline-none text-main"
+                                            />
+                                        </div>
+                                    )}
 
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] font-black uppercase tracking-wider text-dim ml-1">Dates disponibles (chronologique)</label>
-                                        <select
-                                            disabled={!selectedAirport}
-                                            value={omraForm.desiredGroupId}
-                                            onChange={(e) => setOmraForm({ ...omraForm, desiredGroupId: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs focus:border-emerald-500/40 outline-none text-main disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <option value="" className="bg-[#0c120f] text-dim">-- Choisir une date --</option>
-                                            {filteredGroups.map((grp) => (
-                                                <option key={grp.id} value={grp.id} className="bg-[#0c120f] text-main">
-                                                    {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} - {grp.name} {grp.price ? `(${Number(grp.price).toLocaleString('fr-FR')} €)` : ''}
-                                                </option>
-                                            ))}
-                                        </select>
+                                    <div className="flex items-center gap-3 bg-white/[0.02] border border-white/5 p-4 rounded-2xl">
+                                        <input
+                                            type="checkbox"
+                                            id="wantsCustomDates"
+                                            checked={wantsCustomDates}
+                                            onChange={(e) => {
+                                                setWantsCustomDates(e.target.checked);
+                                                if (e.target.checked) {
+                                                    setOmraForm({ ...omraForm, desiredGroupId: '' });
+                                                }
+                                            }}
+                                            className="w-4 h-4 rounded border-white/10 accent-emerald-500 cursor-pointer"
+                                        />
+                                        <label htmlFor="wantsCustomDates" className="text-[10px] font-bold uppercase tracking-wider text-dim cursor-pointer select-none">
+                                            Je ne trouve pas mes dates / Souhait de dates personnalisées
+                                        </label>
                                     </div>
                                 </div>
 
