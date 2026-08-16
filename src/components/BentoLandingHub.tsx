@@ -235,7 +235,7 @@ export default function BentoLandingHub() {
                 </div>
                 
                 <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tighter leading-[0.95] uppercase">
-                    TOUTE VOTRE EXPÉRIENCE <span className="text-emerald-500">SPIRITUELLE</span> EN UN SUL LIEU.
+                    TOUTE VOTRE EXPÉRIENCE <span className="text-emerald-500">SPIRITUELLE</span> EN UN SEUL LIEU.
                 </h1>
 
                 <p className="text-xs sm:text-sm text-sub font-medium max-w-2xl mx-auto opacity-80 leading-relaxed">
@@ -247,9 +247,9 @@ export default function BentoLandingHub() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 
                 {/* Bento 1: Omra & Départs Prochains */}
-                <div 
-                    onClick={handleOpenOmraModal}
-                    className="glass p-8 rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent hover:border-emerald-500/50 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-lg hover:shadow-[0_0_40px_rgba(16,185,129,0.2)]"
+                <Link 
+                    href="/depart"
+                    className="glass p-8 rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent hover:border-emerald-500/50 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-lg hover:shadow-[0_0_40px_rgba(16,185,129,0.2)] text-left"
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
                     <div>
@@ -265,17 +265,17 @@ export default function BentoLandingHub() {
                             Séjours OMRA
                         </h2>
                         <p className="text-xs text-dim font-medium mt-2 leading-relaxed">
-                            Formules tout-compris, vols directs & hôtels 5★ au pied du Haram. Cliquez pour faire une demande de renseignement.
+                            Formules tout-compris, vols directs & hôtels 5★ au pied du Haram. Cliquez pour choisir votre aéroport.
                         </p>
                     </div>
 
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Demander des tarifs par aéroport</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Choisir mon aéroport de départ</span>
                         <div className="p-2.5 bg-emerald-500 text-white rounded-xl group-hover:translate-x-1 transition-transform">
                             <ArrowRight className="w-4 h-4" />
                         </div>
                     </div>
-                </div>
+                </Link>
 
                 {/* Bento 2: Grand Pèlerinage HAJJ 2027+ */}
                 <div 
