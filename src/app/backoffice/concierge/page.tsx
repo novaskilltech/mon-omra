@@ -484,14 +484,13 @@ export default function ConciergeDashboard() {
     };
 
     const handleRejectRequest = async (requestId: string) => {
-        if (!confirm("Voulez-vous vraiment rejeter cette demande d'inscription ?")) return;
         setLoading(true);
         try {
             const res = await rejectRegistrationRequest(requestId);
             if (res.success) {
                 await loadData();
             } else {
-                alert(res.error || "Erreur lors du rejet");
+                alert(res.error || "Erreur lors du traitement");
             }
         } catch (err) {
             console.error(err);
@@ -1761,7 +1760,7 @@ export default function ConciergeDashboard() {
                                                         {req.wants_loyalty_benefits ? 'Oui' : 'Non'}
                                                     </span>
                                                 </td>
-                                                <td className="py-4 max-w-xs truncate" title={req.message}>
+                                                <td className="py-4 max-w-[280px] whitespace-pre-wrap break-words text-[11px] leading-relaxed text-dim/80" title={req.message}>
                                                     {req.message || <span className="text-dim/40 italic">Aucun message</span>}
                                                 </td>
                                                 <td className="py-4 text-right flex justify-end gap-1.5">
@@ -1794,11 +1793,11 @@ export default function ConciergeDashboard() {
                                                     </a>
                                                     <button
                                                         onClick={() => {
-                                                            if (confirm("Marquer cette demande de renseignement comme traitée ?")) {
+                                                            if (confirm("Marquer cette demande comme traitée ? (Ses données seront conservées et archivées dans votre base de données)")) {
                                                                 handleRejectRequest(req.id);
                                                             }
                                                         }}
-                                                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-dim hover:text-main rounded-xl text-[9px] font-black uppercase tracking-wider transition-all"
+                                                        className="px-3 py-1.5 bg-white/5 hover:bg-emerald-500/20 hover:text-emerald-400 text-dim rounded-xl text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
                                                         title="Marquer comme traité"
                                                     >
                                                         Traité
