@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plane, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plane, Sparkles, Loader2 } from 'lucide-react';
 import ThemeSelector from '@/components/ThemeSelector';
+import { getPublicActiveGroups } from '@/lib/actions/concierge';
 
 interface Airport {
     name: string;
@@ -110,6 +112,80 @@ const COUNTRIES_AIRPORTS: CountryGroup[] = [
 ];
 
 export default function DepartPage() {
+    const [sejoursCount, setSejoursCount] = useState<Record<string, number>>({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchCounts() {
+            try {
+                const res = await getPublicActiveGroups();
+                if (res.success && res.groups) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const counts: Record<string, number> = {};
+                    
+                    res.groups.forEach((g: any) => {
+                        let airport = "PARIS";
+                        const lowerName = g.name.toLowerCase();
+                        if (lowerName.includes("lyon") || lowerName.includes("lys")) {
+                            airport = "LYON";
+                        } else if (lowerName.includes("marseille") || lowerName.includes("mrs")) {
+                            airport = "MARSEILLE";
+                        } else if (lowerName.includes("bruxelles") || lowerName.includes("bru") || lowerName.includes("brussels")) {
+                            airport = "BRUXELLES";
+                        } else if (lowerName.includes("charleroi") || lowerName.includes("crl")) {
+                            airport = "CHARLEROI";
+                        } else if (lowerName.includes("barcelone") || lowerName.includes("bcn") || lowerName.includes("barcelona")) {
+                            airport = "BARCELONE";
+                        } else if (lowerName.includes("madrid") || lowerName.includes("mad")) {
+                            airport = "MADRID";
+                        } else if (lowerName.includes("milan") || lowerName.includes("mxp")) {
+                            airport = "MILAN";
+                        } else if (lowerName.includes("rome") || lowerName.includes("fco")) {
+                            airport = "ROME";
+                        } else if (lowerName.includes("cologne") || lowerName.includes("cgn")) {
+                            airport = "COLOGNE";
+                        } else if (lowerName.includes("malaga") || lowerName.includes("agp")) {
+                            airport = "MALAGA";
+                        } else if (lowerName.includes("nice") || lowerName.includes("nce")) {
+                            airport = "NICE";
+                        } else if (lowerName.includes("casablanca") || lowerName.includes("cmn")) {
+                            airport = "CASABLANCA";
+                        } else if (lowerName.includes("tunis") || lowerName.includes("tun")) {
+                            airport = "TUNIS";
+                        } else if (lowerName.includes("alger") || lowerName.includes("alg")) {
+                            airport = "ALGER";
+                        } else if (lowerName.includes("caire") || lowerName.includes("cai") || lowerName.includes("cairo")) {
+                            airport = "LE CAIRE";
+                        } else if (lowerName.includes("zurich") || lowerName.includes("zrh")) {
+                            airport = "ZURICH";
+                        } else if (lowerName.includes("genève") || lowerName.includes("geneve") || lowerName.includes("gva")) {
+                            airport = "GENEVE";
+                        } else if (lowerName.includes("mulhouse") || lowerName.includes("mlh") || lowerName.includes("bsl") || lowerName.includes("eap")) {
+                            airport = "MULHOUSE";
+                        } else if (lowerName.includes("toulouse") || lowerName.includes("tls")) {
+                            airport = "TOULOUSE";
+                        } else if (lowerName.includes("cdg") || lowerName.includes("ory") || lowerName.includes("bva") || lowerName.includes("paris")) {
+                            airport = "PARIS";
+                        }
+
+                        // Filter by date
+                        const depDate = g.departure_date || g.date;
+                        const depDateStr = depDate ? depDate.split('T')[0] : '';
+                        if (!depDate || depDateStr >= todayStr) {
+                            counts[airport] = (counts[airport] || 0) + 1;
+                        }
+                    });
+                    setSejoursCount(counts);
+                }
+            } catch (err) {
+                console.error("Error loading groups for counts:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchCounts();
+    }, []);
+
     return (
         <main className="min-h-screen text-main selection:bg-emerald-500/30 font-inter relative overflow-x-hidden pb-20">
             {/* Background Glows */}
@@ -168,30 +244,44 @@ export default function DepartPage() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {group.airports.map((airport) => (
-                                    <Link
-                                        key={airport.code}
-                                        href={`/depart/${airport.code.toLowerCase()}`}
-                                        className="glass p-6 rounded-3xl border border-white/10 hover:border-emerald-500/30 bg-gradient-to-br from-white/[0.02] to-transparent flex justify-between items-center group hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] transition-all duration-300"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                                                <Plane className="w-5 h-5 rotate-45" />
+                                {group.airports.map((airport) => {
+                                    const count = sejoursCount[airport.code] || 0;
+                                    return (
+                                        <Link
+                                            key={airport.code}
+                                            href={`/depart/${airport.code.toLowerCase()}`}
+                                            className="glass p-6 rounded-3xl border border-white/10 hover:border-emerald-500/30 bg-gradient-to-br from-white/[0.02] to-transparent flex justify-between items-center group hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] transition-all duration-300 animate-in fade-in"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                                                    <Plane className="w-5 h-5 rotate-45" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <h3 className="text-base font-black uppercase tracking-tight text-main">
+                                                            {airport.name}
+                                                        </h3>
+                                                        {!loading && (
+                                                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
+                                                                count > 0 
+                                                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                                                                    : "bg-white/5 text-dim border border-white/5"
+                                                            }`}>
+                                                                {count} {count > 1 ? "séjours" : "séjour"}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[10px] text-dim font-medium uppercase tracking-wider mt-0.5">
+                                                        {airport.description}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="text-left">
-                                                <h3 className="text-base font-black uppercase tracking-tight text-main">
-                                                    {airport.name}
-                                                </h3>
-                                                <p className="text-[10px] text-dim font-medium uppercase tracking-wider mt-0.5">
-                                                    {airport.description}
-                                                </p>
+                                            <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-dim group-hover:text-emerald-400 group-hover:border-emerald-500/30 transition-all">
+                                                <ArrowLeft className="w-4 h-4 rotate-180" />
                                             </div>
-                                        </div>
-                                        <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-dim group-hover:text-emerald-400 group-hover:border-emerald-500/30 transition-all">
-                                            <ArrowLeft className="w-4 h-4 rotate-180" />
-                                        </div>
-                                    </Link>
-                                ))}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         </section>
                     ))}

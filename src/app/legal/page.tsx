@@ -16,9 +16,7 @@ export default function LegalPage() {
                         <p className="opacity-80">
                             Le site OMRAYANAIR est édité par la société <strong className="font-black text-main">OMRAYANAIR LLC</strong>.<br />
                             Forme juridique : LLC (Limited Liability Company).<br />
-                            Siège social : Albuquerque, New Mexico, USA.<br />
-                            Immatriculation : En cours d'enregistrement (New Mexico, USA).<br />
-                            Directeur de la publication : Sarah Ben Ali.
+                            Siège social : Albuquerque, New Mexico, USA.
                         </p>
                     </section>
 
