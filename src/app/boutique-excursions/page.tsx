@@ -13,26 +13,71 @@ export default function BoutiqueExcursionsPage() {
             desc: "Le miel le plus précieux du monde. Récolté de manière traditionnelle dans les montagnes du Yémen (Hadramawt), Peshawar et Cachemire. Reconnu pour ses propriétés thérapeutiques exceptionnelles.",
             badge: "Best Seller",
             price: "Mode Démo",
-            image: "/features-docs.png", // Fallback images or nice visual blocks
+            image: "/features-docs.png",
             meta: "100% Brut & Analysé en laboratoire"
         },
         {
+            category: "PRODUITS NATURELS RARES",
+            title: "Miel de Sidr du Pakistan (Jujubier)",
+            desc: "Miel sauvage d'une pureté exceptionnelle issu de trois régions de prestige : le Pendjab (notes douces et fruitées), le Cachemire (texture onctueuse et goût de caramel) et Peshawar (arômes sauvages et boisés). Un antibactérien naturel d'exception.",
+            badge: "3 Variétés Rares",
+            price: "Mode Démo",
+            image: "/features-docs.png",
+            meta: " पंजाब / Cachemire / Peshawar"
+        },
+        {
             category: "SUPER-ALIMENTS TERRE SAINTE",
-            title: "Dattes Ajwa de Médine Premium",
-            desc: "Dattes noires charnues à la texture fondante, récoltées exclusivement dans les palmeraies bénies de Médine. Triées à la main pour garantir un calibre d'exception.",
-            badge: "Béni & Authentique",
+            title: "Dattes Ajwa d'Al-Aliya (Médine)",
+            desc: "Issues de la région historique d'Al-Aliya dans les hauteurs de Médine, ces dattes Ajwa d'exception sont celles mentionnées spécifiquement dans les hadiths prophétiques pour leurs vertus protectrices et curatives uniques. Une texture moelleuse et un goût délicatement caramélisé.",
+            badge: "Hadith Prophétique",
             price: "Mode Démo",
             image: "/features-assistance.png",
-            meta: "Source d'énergie & Tradition Prophétique"
+            meta: "Protection & Énergie Prophétique"
         },
         {
             category: "BIEN-ÊTRE TRADITIONNEL",
-            title: "Huile de Nigelle Habachia Pure",
-            desc: "Huile de cumin noir d'Éthiopie de qualité supérieure (Grade A), fraîchement pressée à froid sans aucun traitement chimique pour préserver sa puissance aromatique.",
-            badge: "Pressée à froid",
+            title: "Menthe séchée de Médine",
+            desc: "Célèbre pour son arôme mentholé intense et rafraîchissant unique, la menthe fraîche de Médine (Na'na' Al-Madinah) est traditionnellement utilisée pour infuser le thé ou soulager les digestions difficiles. Nos feuilles sont séchées délicatement à l'abri du soleil pour préserver toutes leurs huiles essentielles.",
+            badge: "Parfumé & Apaisant",
             price: "Mode Démo",
             image: "/features-logistics.png",
-            meta: "Renforce les défenses naturelles"
+            meta: "100% Naturel & Récolté à Médine"
+        },
+        {
+            category: "PARFUMERIE & SOINS",
+            title: "Roses de Taëf (Fraîches & Séchées)",
+            desc: "La célèbre rose de Taïf, cultivée dans les montagnes fraîches de la région. Disponible en boutons séchés pour vos infusions et bains parfumés, ou sous forme d'eau de rose fraîche distillée de manière artisanale dans les coopératives locales.",
+            badge: "Prestigieux",
+            price: "Mode Démo",
+            image: "/features-assistance.png",
+            meta: "Distillation artisanale dans les hauteurs de Taïf"
+        },
+        {
+            category: "SOINS TRADITIONNELS",
+            title: "Henné naturel de Médine",
+            desc: "Poudre de henné d'une finesse incomparable, obtenue à partir de feuilles de henné cultivées dans la région bénie de Médine. Idéal pour les soins capillaires fortifiants et les tatouages éphémères traditionnels d'une couleur riche et durable.",
+            badge: "Pur & Traditionnel",
+            price: "Mode Démo",
+            image: "/features-logistics.png",
+            meta: "Sans additif chimique ni colorant"
+        },
+        {
+            category: "VITALITÉ & FERTILITÉ",
+            title: "Pollen de Palmier Datier",
+            desc: "Complément alimentaire naturel ancestral et puissant, récolté au cœur des fleurs de palmier mâle. Extrêmement riche en phytoestrogènes, minéraux et vitamines, il est réputé pour stimuler la vitalité globale et favoriser la fertilité masculine et féminine.",
+            badge: "Énergie & Fertilité",
+            price: "Mode Démo",
+            image: "/features-docs.png",
+            meta: "Poudre pure récoltée à la main"
+        },
+        {
+            category: "BIEN-ÊTRE TRADITIONNEL",
+            title: "Graines de Nigelle Habachia",
+            desc: "Graines de cumin noir d'Éthiopie (Habachia) de qualité supérieure. Consommées quotidiennement pour renforcer le système immunitaire, elles peuvent être moulues ou infusées pour bénéficier de leurs vertus curatives légendaires.",
+            badge: "Immunité",
+            price: "Mode Démo",
+            image: "/features-logistics.png",
+            meta: "Qualité Grade A importée pure"
         }
     ];
 
@@ -53,8 +98,8 @@ export default function BoutiqueExcursionsPage() {
         },
         {
             type: "DÉCOUVERTE & SHOPPING",
-            title: "Souk Al Balad historique à Djeddah",
-            desc: "Explorez les ruelles classées à l'UNESCO, admirez l'architecture en bois corallien, et profitez d'une session shopping accompagnée pour vos souvenirs traditionnels.",
+            title: "Journée shopping à Djeddah dans le souq historique Al Balad",
+            desc: "Explorez les ruelles classées à l'UNESCO, admirez l'architecture en bois corallien, et profitez d'une journée de shopping guidée pour vos souvenirs traditionnels au cœur de Djeddah.",
             price: "Mode Démo",
             icon: "🕌"
         }
