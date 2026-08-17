@@ -433,14 +433,49 @@ export default function BentoLandingHub() {
 
             </div>
 
-            {/* Footer compact */}
-            <footer className="mt-16 pt-8 border-t border-white/5 text-center text-xs text-dim font-medium space-y-2">
-                <p>© 2026 OMRAYANAIR — La plateforme souveraine de voyage spirituel et conciergerie autonome.</p>
-                <div className="flex justify-center gap-6 text-[10px] font-black uppercase tracking-widest text-dim pt-2">
+            {/* Section Professionnels / Agences */}
+            <div className="mt-20 max-w-4xl mx-auto glass p-8 sm:p-10 rounded-[2.5rem] border border-white/5 bg-white/[0.01] text-left space-y-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl rounded-full pointer-events-none" />
+                <div className="space-y-2">
+                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-emerald-400">Espace Professionnels</span>
+                    <h4 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-main leading-tight">Vous êtes un professionnel du voyage ou une agence d'Omra ?</h4>
+                    <p className="text-xs text-dim leading-relaxed max-w-2xl font-medium">
+                        Notre application de conciergerie et de gestion autonome vous intéresse ? Découvrez comment vous pouvez utiliser cette plateforme sous licence SaaS pour moderniser l'accompagnement de vos groupes de pèlerins sur place, centraliser vos informations et offrir une expérience VIP numérique de pointe.
+                    </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                    <a
+                        href="https://wa.me/33612345678?text=Bonjour,%20je%20suis%20un%20professionnel%20et%20je%20souhaite%20obtenir%20une%20demonstration%20de%20la%20plateforme%20OMRAYANAIR."
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 justify-center shadow-lg shadow-emerald-500/10 cursor-pointer"
+                    >
+                        <span>Discuter sur WhatsApp</span>
+                    </a>
+                    <Link
+                        href="/contact?subject=Agency"
+                        className="bg-white/5 hover:bg-white/10 text-main border border-white/10 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center cursor-pointer"
+                    >
+                        Demander une démo (Formulaire)
+                    </Link>
+                </div>
+            </div>
+
+            {/* Footer complet */}
+            <footer className="mt-20 pt-10 border-t border-white/5 text-center text-xs text-dim font-medium space-y-4">
+                <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[9px] font-black uppercase tracking-widest text-dim">
+                    <Link href="/qui-sommes-nous" className="hover:text-emerald-400 transition-colors">Qui sommes-nous</Link>
+                    <Link href="/contact" className="hover:text-emerald-400 transition-colors">Contact</Link>
+                    <Link href="/privacy" className="hover:text-emerald-400 transition-colors">RGPD & Confidentialité</Link>
+                    <Link href="/cgv" className="hover:text-emerald-400 transition-colors">Conditions Générales de Vente</Link>
+                    <Link href="/legal" className="hover:text-emerald-400 transition-colors">Mentions Légales</Link>
+                </div>
+                <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[9px] font-black uppercase tracking-widest text-dim/60 pt-2 border-t border-white/[0.02] max-w-xl mx-auto">
                     <Link href="/la-methode" className="hover:text-emerald-400 transition-colors">Formation Conciergerie</Link>
                     <a href="/la-voix-du-pelerin/" target="_blank" rel="noreferrer" className="hover:text-purple-400 transition-colors">La Voix du Pèlerin</a>
                     <Link href="/login" className="hover:text-amber-400 transition-colors">Accès Client</Link>
                 </div>
+                <p className="pt-4 text-[10px] text-dim/80">© 2026 OMRAYANAIR — La plateforme souveraine de voyage spirituel et conciergerie autonome.</p>
             </footer>
 
             {/* MODAL OMRA INQUIRY */}
