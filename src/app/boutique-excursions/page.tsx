@@ -12,7 +12,7 @@ export default function BoutiqueExcursionsPage() {
             title: "Miel de Sidr Sauvage (Jujubier)",
             desc: "Le miel le plus précieux du monde. Récolté de manière traditionnelle dans les montagnes du Yémen (Hadramawt), Peshawar et Cachemire. Reconnu pour ses propriétés thérapeutiques exceptionnelles.",
             badge: "Best Seller",
-            price: "À partir de 39€",
+            price: "Mode Démo",
             image: "/features-docs.png", // Fallback images or nice visual blocks
             meta: "100% Brut & Analysé en laboratoire"
         },
@@ -21,7 +21,7 @@ export default function BoutiqueExcursionsPage() {
             title: "Dattes Ajwa de Médine Premium",
             desc: "Dattes noires charnues à la texture fondante, récoltées exclusivement dans les palmeraies bénies de Médine. Triées à la main pour garantir un calibre d'exception.",
             badge: "Béni & Authentique",
-            price: "À partir de 18€ / kg",
+            price: "Mode Démo",
             image: "/features-assistance.png",
             meta: "Source d'énergie & Tradition Prophétique"
         },
@@ -30,7 +30,7 @@ export default function BoutiqueExcursionsPage() {
             title: "Huile de Nigelle Habachia Pure",
             desc: "Huile de cumin noir d'Éthiopie de qualité supérieure (Grade A), fraîchement pressée à froid sans aucun traitement chimique pour préserver sa puissance aromatique.",
             badge: "Pressée à froid",
-            price: "15€ (100ml)",
+            price: "Mode Démo",
             image: "/features-logistics.png",
             meta: "Renforce les défenses naturelles"
         }
@@ -41,21 +41,21 @@ export default function BoutiqueExcursionsPage() {
             type: "LOCATION PRIVÉE",
             title: "Chalets Familiaux avec Piscine à Médine",
             desc: "Profitez d'une journée de détente en famille dans nos chalets privatifs sécurisés avec grand jardin, piscine sans vis-à-vis et coin barbecue à seulement 15 minutes du Haram.",
-            price: "À partir de 150€ / jour",
+            price: "Mode Démo",
             icon: "🏡"
         },
         {
             type: "EXCURSION HISTORIQUE",
             title: "Visite Guidée des Vergers de Taïf",
             desc: "Prenez de la hauteur dans la fraîcheur des montagnes de Taïf. Visitez les distilleries d'eau de rose, découvrez les marchés de fruits locaux et dégustez un thé à la menthe traditionnel.",
-            price: "À partir de 65€ / pers.",
+            price: "Mode Démo",
             icon: "🏔️"
         },
         {
             type: "DÉCOUVERTE & SHOPPING",
             title: "Souk Al Balad historique à Djeddah",
             desc: "Explorez les ruelles classées à l'UNESCO, admirez l'architecture en bois corallien, et profitez d'une session shopping accompagnée pour vos souvenirs traditionnels.",
-            price: "À partir de 45€ / pers.",
+            price: "Mode Démo",
             icon: "🕌"
         }
     ];
@@ -130,15 +130,13 @@ export default function BoutiqueExcursionsPage() {
                                         ✨ {p.meta}
                                     </span>
                                     
-                                    <a
-                                        href={`https://wa.me/33612345678?text=Bonjour,%20je%20souhaite%20commander%20le%20produit%20:${encodeURIComponent(p.title)}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="w-full bg-[#D8AA4D] hover:bg-[#F2CE79] text-[#050605] py-3 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                    <button
+                                        onClick={() => alert("Boutique en mode Démo : La commande de ce produit est désactivée sur cette version de démonstration.")}
+                                        className="w-full bg-[#D8AA4D]/10 hover:bg-[#D8AA4D]/20 text-[#D8AA4D] border border-[#D8AA4D]/30 py-3 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         <MessageSquare className="w-3.5 h-3.5" />
-                                        <span>Commander via WhatsApp</span>
-                                    </a>
+                                        <span>Commander (Mode Démo)</span>
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -174,15 +172,13 @@ export default function BoutiqueExcursionsPage() {
                                         <span className="text-[#D8AA4D] font-black">{s.price}</span>
                                     </div>
                                     
-                                    <a
-                                        href={`https://wa.me/33612345678?text=Bonjour,%20je%20souhaite%20reserver%20l%27activite%20:${encodeURIComponent(s.title)}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="w-full bg-emerald-500 hover:bg-emerald-400 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                    <button
+                                        onClick={() => alert("Boutique en mode Démo : La réservation de cette activité est désactivée sur cette version de démonstration.")}
+                                        className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 py-3 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         <MessageSquare className="w-3.5 h-3.5" />
-                                        <span>Réserver via WhatsApp</span>
-                                    </a>
+                                        <span>Réserver (Mode Démo)</span>
+                                    </button>
                                 </div>
                             </div>
                         ))}
