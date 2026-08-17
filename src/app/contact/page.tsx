@@ -87,7 +87,7 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h4 className="font-black text-main text-xs uppercase tracking-wider">Téléphone</h4>
-                                    <p className="text-sm font-black text-main mt-1">+33 1 84 60 41 48</p>
+                                    <p className="text-sm font-black text-main mt-1">+33 7 52 28 08 90</p>
                                     <p className="text-[10px] text-dim mt-0.5">Lun-Ven, 9h à 18h (Paris)</p>
                                 </div>
                             </div>

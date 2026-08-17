@@ -445,7 +445,7 @@ export default function BentoLandingHub() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 pt-2">
                     <a
-                        href="https://wa.me/33612345678?text=Bonjour,%20je%20suis%20un%20professionnel%20et%20je%20souhaite%20obtenir%20une%20demonstration%20de%20la%20plateforme%20OMRAYANAIR."
+                        href="https://wa.me/33752280890?text=Bonjour,%20je%20suis%20un%20professionnel%20et%20je%20souhaite%20obtenir%20une%20demonstration%20de%20la%20plateforme%20OMRAYANAIR."
                         target="_blank"
                         rel="noreferrer"
                         className="bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 justify-center shadow-lg shadow-emerald-500/10 cursor-pointer"
