@@ -218,11 +218,8 @@ export default function BentoLandingHub() {
                         <GraduationCap className="w-3.5 h-3.5" />
                         Formation Conciergerie
                     </Link>
-                    <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-dim hover:text-emerald-500 transition-colors hidden sm:block">
-                        Connexion
-                    </Link>
                     <Link href="/login" className="bg-emerald-500 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                        S'enregistrer
+                        Connexion
                     </Link>
                 </div>
             </nav>
