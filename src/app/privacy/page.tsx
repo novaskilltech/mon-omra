@@ -46,7 +46,7 @@ export default function PrivacyPage() {
                         <p className="opacity-80">
                             Vous disposez d'un droit d'accès, de rectification, de suppression (droit à l'oubli) et de portage de vos données.
                             Vous pouvez exercer ces droits directement depuis votre Dashboard dans l'onglet "Confidentialité" ou en contactant
-                            notre DPO à <strong className="text-emerald-600 dark:text-emerald-500">dpo@omrayanair.com</strong>.
+                            notre DPO à <strong className="text-emerald-600 dark:text-emerald-500">novaskilltech@gmail.com</strong>.
                         </p>
                     </section>
 

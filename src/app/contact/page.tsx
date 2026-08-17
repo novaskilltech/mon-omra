@@ -98,7 +98,7 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h4 className="font-black text-main text-xs uppercase tracking-wider">Adresse e-mail</h4>
-                                    <p className="text-sm font-black text-main mt-1">contact@omrayanair.com</p>
+                                    <p className="text-sm font-black text-main mt-1">novaskilltech@gmail.com</p>
                                     <p className="text-[10px] text-dim mt-0.5">Pour toute demande de renseignements</p>
                                 </div>
                             </div>

@@ -76,7 +76,7 @@ export default function PrivacySettings() {
             <div className="bg-emerald-500/5 dark:bg-white/5 p-6 rounded-[2rem] border border-emerald-500/10 dark:border-white/5 flex gap-4 items-start shadow-inner">
                 <Info className="w-5 h-5 text-emerald-500 dark:text-white/40 shrink-0 mt-1" />
                 <p className="text-[10px] text-sub leading-relaxed uppercase tracking-widest font-black opacity-80">
-                    Conformément au RGPD, vos données sont stockées de manière sécurisée en UE. Pour toute question, contactez notre DPO à <span className="text-emerald-600 dark:text-emerald-500 font-black">privacy@omrayanair.com</span>.
+                    Conformément au RGPD, vos données sont stockées de manière sécurisée en UE. Pour toute question, contactez notre DPO à <span className="text-emerald-600 dark:text-emerald-500 font-black">novaskilltech@gmail.com</span>.
                 </p>
             </div>
         </div>
