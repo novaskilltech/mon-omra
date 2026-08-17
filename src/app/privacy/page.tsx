@@ -53,7 +53,7 @@ export default function PrivacyPage() {
                     <section>
                         <h2 className="text-xl font-black text-main mb-4 uppercase tracking-widest">5. Conservation</h2>
                         <p className="opacity-80">
-                            Les données opérationnelles sont supprimées 12 mois après votre retour, sauf obligations légales (données comptables conservées 5 ans).
+                            Les données opérationnelles sont supprimées 36 mois après votre retour, sauf obligations légales (données comptables conservées 5 ans).
                         </p>
                     </section>
                 </div>
