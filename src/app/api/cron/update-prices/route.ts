@@ -92,7 +92,10 @@ export async function GET(request: Request) {
             // Update the group price in database
             const { error: updateError } = await supabase
                 .from('groups')
-                .update({ price: adjustment.adjustedPrice })
+                .update({ 
+                    price: adjustment.adjustedPrice,
+                    is_api_success: adjustment.isApiSuccess
+                })
                 .eq('id', group.id);
 
             if (updateError) {

@@ -755,6 +755,7 @@ export async function getGroupsDetailed() {
             price,
             flight_type,
             formula_type,
+            is_featured,
             pilgrims (id)
         `)
         .order('departure_date', { ascending: true });
@@ -834,7 +835,8 @@ export async function getGroupsDetailed() {
             flyerPath: g.flyer_path || '',
             price: g.price || null,
             flightType: g.flight_type || 'DIRECT',
-            formulaType: g.formula_type || 'CLASSIQUE'
+            formulaType: g.formula_type || 'CLASSIQUE',
+            isFeatured: g.is_featured || false
         };
     });
 }
@@ -883,6 +885,7 @@ export async function createGroupAction(data: {
     price?: number;
     flightType?: 'DIRECT' | 'LAYOVER';
     formulaType?: 'ECO' | 'CLASSIQUE';
+    isFeatured?: boolean;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -907,7 +910,8 @@ export async function createGroupAction(data: {
             flyer_path: data.flyerPath || null,
             price: data.price || null,
             flight_type: data.flightType || 'DIRECT',
-            formula_type: data.formulaType || 'CLASSIQUE'
+            formula_type: data.formulaType || 'CLASSIQUE',
+            is_featured: data.isFeatured || false
         })
         .select()
         .single();
@@ -968,6 +972,7 @@ export async function updateGroupAction(id: string, data: {
     price?: number;
     flightType?: 'DIRECT' | 'LAYOVER';
     formulaType?: 'ECO' | 'CLASSIQUE';
+    isFeatured?: boolean;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -989,6 +994,9 @@ export async function updateGroupAction(id: string, data: {
     }
     if (data.formulaType !== undefined) {
         updatePayload.formula_type = data.formulaType;
+    }
+    if (data.isFeatured !== undefined) {
+        updatePayload.is_featured = data.isFeatured;
     }
 
     const { error } = await supabase
@@ -2641,7 +2649,7 @@ export async function getPublicActiveGroups() {
     try {
         const { data, error } = await supabase
             .from('groups')
-            .select('id, name, departure_date, price, status')
+            .select('id, name, departure_date, price, status, flyer_path, is_featured')
             .in('status', ['En préparation', 'Complet'])
             .order('departure_date', { ascending: true });
 

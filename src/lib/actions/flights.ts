@@ -19,6 +19,7 @@ interface PriceAdjustmentResult {
     durationDays: number;
     appliedFormula: string;
     isAdjusted: boolean;
+    isApiSuccess: boolean;
 }
 
 /**
@@ -48,7 +49,7 @@ function getDurationDays(groupName: string): number {
 /**
  * Fetches real-time flight ticket price from SerpApi or falls back to live estimation.
  */
-async function fetchFlightPrice(params: FlightSearchParameters): Promise<number> {
+async function fetchFlightPrice(params: FlightSearchParameters): Promise<{ price: number; isSuccess: boolean }> {
     const apiKey = process.env.SERPAPI_KEY || 'b077c878470758906378e01001c15d9f96c2d384dface81e8a9d9d73c2796df4';
     const departure = params.departureAirport.toUpperCase();
     const date = params.departureDate;
@@ -72,6 +73,7 @@ async function fetchFlightPrice(params: FlightSearchParameters): Promise<number>
         }
     }
 
+    let isSuccess = false;
     try {
         let queryUrl = `https://serpapi.com/search.json?engine=google_flights&departure_id=${depCode}&arrival_id=JED&outbound_date=${date}&currency=EUR&hl=fr&gl=fr&api_key=${apiKey}`;
         if (returnDate) {
@@ -89,7 +91,8 @@ async function fetchFlightPrice(params: FlightSearchParameters): Promise<number>
         if (data.best_flights && data.best_flights.length > 0) {
             const bestFlight = data.best_flights[0];
             if (bestFlight.price) {
-                return Number(bestFlight.price);
+                isSuccess = true;
+                return { price: Number(bestFlight.price), isSuccess };
             }
         }
         
@@ -97,7 +100,8 @@ async function fetchFlightPrice(params: FlightSearchParameters): Promise<number>
         if (data.other_flights && data.other_flights.length > 0) {
             const flight = data.other_flights[0];
             if (flight.price) {
-                return Number(flight.price);
+                isSuccess = true;
+                return { price: Number(flight.price), isSuccess };
             }
         }
     } catch (e) {
@@ -117,7 +121,7 @@ async function fetchFlightPrice(params: FlightSearchParameters): Promise<number>
         }
     }
 
-    return baseTicketPrice;
+    return { price: baseTicketPrice, isSuccess: false };
 }
 
 export async function calculateAdjustedGroupPrice(
@@ -128,7 +132,7 @@ export async function calculateAdjustedGroupPrice(
 ): Promise<PriceAdjustmentResult> {
     try {
         const durationDays = getDurationDays(groupName);
-        const ticketPrice = await fetchFlightPrice({
+        const { price: ticketPrice, isSuccess: isApiSuccess } = await fetchFlightPrice({
             departureAirport,
             departureDate: departureDate ? departureDate.split('T')[0] : new Date().toISOString().split('T')[0],
             durationDays
@@ -166,7 +170,8 @@ export async function calculateAdjustedGroupPrice(
             ticketPrice,
             durationDays,
             appliedFormula,
-            isAdjusted: finalPrice !== limitThreshold
+            isAdjusted: finalPrice !== limitThreshold,
+            isApiSuccess
         };
     } catch (error) {
         console.error("Error adjusting group price:", error);
@@ -176,7 +181,8 @@ export async function calculateAdjustedGroupPrice(
             ticketPrice: 0,
             durationDays: 14,
             appliedFormula: "Error Fallback",
-            isAdjusted: false
+            isAdjusted: false,
+            isApiSuccess: false
         };
     }
 }

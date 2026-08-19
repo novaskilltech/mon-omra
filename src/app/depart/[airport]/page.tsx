@@ -6,7 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { 
     Calendar, Plane, Star, MapPin, ExternalLink, Check, ChevronUp, ChevronDown, 
-    ArrowLeft, Loader2, ShieldCheck, X, CheckCircle, AlertCircle, Sparkles, GraduationCap, ArrowRight
+    ArrowLeft, Loader2, ShieldCheck, X, CheckCircle, AlertCircle, Sparkles, GraduationCap, ArrowRight,
+    FileText
 } from 'lucide-react';
 import { getPublicActiveGroups, requestRegistration } from '@/lib/actions/concierge';
 import { calculateAdjustedGroupPrice } from '@/lib/actions/flights';
@@ -62,6 +63,7 @@ export default function DepartAirportPage() {
     const [groups, setGroups] = useState<any[]>([]);
     const [selectedGroupId, setSelectedGroupId] = useState<string>('');
     const [activeTab, setActiveTab] = useState<'rates' | 'hotels' | 'inclusions'>('rates');
+    const [flyerModalUrl, setFlyerModalUrl] = useState<string | null>(null);
 
     // Registration Modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -190,9 +192,20 @@ export default function DepartAirportPage() {
                             durationDays,
                             ticketPrice: 0,
                             appliedFormula: `${durationDays} Nuits (Tarif synchronisé)`,
-                            isPriceAdjusted: true
+                            isPriceAdjusted: true,
+                            isFeatured: g.is_featured || false,
+                            flyerPath: g.flyer_path || '',
+                            isApiSuccess: g.is_api_success !== false
                         };
                     });
+
+                    // Sort: Featured (preferred) groups first
+                    withAdjustedPrices.sort((a: any, b: any) => {
+                        const featuredA = a.isFeatured ? 1 : 0;
+                        const featuredB = b.isFeatured ? 1 : 0;
+                        return featuredB - featuredA;
+                    });
+
                     setGroups(withAdjustedPrices);
                 }
             } catch (err) {
@@ -475,9 +488,16 @@ export default function DepartAirportPage() {
                                                                 <Calendar className="w-5 h-5" />
                                                             </div>
                                                             <div>
-                                                                <h3 className="font-black uppercase tracking-tight text-sm text-main">
-                                                                    {group.name}
-                                                                </h3>
+                                                                <div className="flex items-center gap-2">
+                                                                    <h3 className="font-black uppercase tracking-tight text-sm text-main">
+                                                                        {group.name}
+                                                                    </h3>
+                                                                    {group.isFeatured && (
+                                                                        <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider animate-pulse flex items-center gap-0.5 shrink-0">
+                                                                            🔥 Date conseillée
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                                 <p className="text-[10px] text-dim font-bold uppercase tracking-wider mt-1">
                                                                     Départ : {group.departure_date ? new Date(group.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Date à confirmer'}
                                                                 </p>
@@ -486,7 +506,14 @@ export default function DepartAirportPage() {
                                                         <div className="flex items-center gap-3">
                                                             <div className="text-right hidden sm:block">
                                                                 <p className="text-[9px] font-black text-dim uppercase tracking-wider">{isWiser ? "Tarif" : "À partir de"}</p>
-                                                                <p className="text-base font-black text-emerald-400">{isWiser ? "Sur demande" : `${priceNum.toLocaleString('fr-FR')} €`}</p>
+                                                                <p className="text-base font-black text-emerald-400">
+                                                                    {isWiser 
+                                                                        ? "Sur demande" 
+                                                                        : !group.isApiSuccess 
+                                                                            ? "Nous consulter" 
+                                                                            : `${priceNum.toLocaleString('fr-FR')} €`
+                                                                    }
+                                                                </p>
                                                             </div>
                                                             {isExpanded ? <ChevronUp className="w-5 h-5 text-dim" /> : <ChevronDown className="w-5 h-5 text-dim" />}
                                                         </div>
@@ -524,6 +551,19 @@ export default function DepartAirportPage() {
                                                                                   <p className="text-xs text-dim leading-relaxed">
                                                                                       Cette formule "Wiser" est proposée sur mesure. Les tarifs de ce séjour sont disponibles sur demande.
                                                                                       Veuillez cliquer sur <strong>"Demander un devis"</strong> ci-dessous pour obtenir une offre personnalisée selon vos dates et vos préférences.
+                                                                                  </p>
+                                                                              </div>
+                                                                          );
+                                                                      }
+                                                                      if (!group.isApiSuccess) {
+                                                                          return (
+                                                                              <div className="p-8 text-center bg-amber-500/5 border border-amber-500/10 rounded-2xl w-full space-y-3">
+                                                                                  <p className="text-xs text-amber-400 font-bold uppercase tracking-wider">
+                                                                                      ⚠️ Tarifs de vols en cours d'actualisation
+                                                                                  </p>
+                                                                                  <p className="text-xs text-dim leading-relaxed max-w-md mx-auto">
+                                                                                      Les tarifs en temps réel ne peuvent pas être calculés automatiquement pour le moment. 
+                                                                                      Veuillez nous consulter directement pour obtenir le meilleur prix du jour.
                                                                                   </p>
                                                                               </div>
                                                                           );
@@ -701,30 +741,50 @@ export default function DepartAirportPage() {
                                                             </div>
 
                                                             <div className="p-6 border-t border-white/5 bg-[#050a08]/30 flex flex-col sm:flex-row justify-between items-center gap-4">
-                                                                 <div className="text-left space-y-1">
-                                                                     <p className="text-[10px] font-black uppercase tracking-wider text-dim flex items-center gap-1.5">
-                                                                         <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                                                                         Réservation réglementée & Voyage conforme
-                                                                     </p>
-                                                                     {!isWiser && group.isPriceAdjusted && (
-                                                                         <p className="text-[9px] text-amber-400 font-bold uppercase tracking-wider">
-                                                                             ⚠ Tarif ajusté en temps réel selon les vols disponibles
-                                                                         </p>
+                                                                  <div className="text-left space-y-1">
+                                                                      <p className="text-[10px] font-black uppercase tracking-wider text-dim flex items-center gap-1.5">
+                                                                          <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                                                          Réservation réglementée & Voyage conforme
+                                                                      </p>
+                                                                      {!isWiser && group.isPriceAdjusted && group.isApiSuccess && (
+                                                                          <p className="text-[9px] text-amber-400 font-bold uppercase tracking-wider">
+                                                                              ⚠ Tarif ajusté en temps réel selon les vols disponibles
+                                                                          </p>
+                                                                      )}
+                                                                      <p className="text-[9px] text-dim italic">
+                                                                          {isWiser 
+                                                                              ? "* Cette formule nécessite une étude tarifaire personnalisée selon les dates choisies."
+                                                                              : !group.isApiSuccess
+                                                                                  ? "* Les tarifs des vols sont indisponibles pour le moment. Veuillez nous consulter."
+                                                                                  : "* Les tarifs des vols fluctuant quotidiennement, le prix final du séjour est à vérifier auprès de nos services au moment de la réservation."
+                                                                          }
+                                                                      </p>
+                                                                  </div>
+                                                                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                                                                     {group.flyerPath && (
+                                                                         <button
+                                                                             onClick={async () => {
+                                                                                 const { getGroupFlyerUrlAction } = await import('@/lib/actions/concierge');
+                                                                                 const res = await getGroupFlyerUrlAction(group.flyerPath);
+                                                                                 if (res.success && res.url) {
+                                                                                     setFlyerModalUrl(res.url);
+                                                                                 } else {
+                                                                                     alert(res.error || "Impossible d'accéder au flyer");
+                                                                                 }
+                                                                             }}
+                                                                             className="bg-white/5 hover:bg-white/10 text-main border border-white/10 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                                                         >
+                                                                             <FileText className="w-4 h-4 text-[#D8AA4D]" /> Voir le flyer
+                                                                         </button>
                                                                      )}
-                                                                     <p className="text-[9px] text-dim italic">
-                                                                         {isWiser 
-                                                                             ? "* Cette formule nécessite une étude tarifaire personnalisée selon les dates choisies."
-                                                                             : "* Les tarifs des vols fluctuant quotidiennement, le prix final du séjour est à vérifier auprès de nos services au moment de la réservation."
-                                                                         }
-                                                                     </p>
+                                                                     <button 
+                                                                         onClick={() => handleOpenModal(group)}
+                                                                         className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 w-full sm:w-auto justify-center cursor-pointer"
+                                                                     >
+                                                                         {isWiser || !group.isApiSuccess ? "Nous consulter" : "Réserver cette date"} <ArrowRight className="w-4 h-4" />
+                                                                     </button>
                                                                  </div>
-                                                                <button 
-                                                                    onClick={() => handleOpenModal(group)}
-                                                                    className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 w-full sm:w-auto justify-center cursor-pointer"
-                                                                >
-                                                                    {isWiser ? "Demander un devis" : "Réserver cette date"} <ArrowRight className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
+                                                             </div>
                                                         </div>
                                                     )}
 
@@ -849,6 +909,32 @@ export default function DepartAirportPage() {
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Flyer Preview Modal */}
+            {flyerModalUrl && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 animate-in fade-in duration-200">
+                    <div className="relative max-w-4xl w-full h-[85vh] bg-[#050605] border border-white/10 rounded-[2rem] overflow-hidden flex flex-col">
+                        <div className="flex justify-between items-center px-6 py-4 border-b border-white/5 bg-[#050605]">
+                            <h4 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2">
+                                🌟 Flyer de l'Offre
+                            </h4>
+                            <button 
+                                onClick={() => setFlyerModalUrl(null)}
+                                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-main transition-colors cursor-pointer"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="flex-1 bg-[#050605] flex items-center justify-center p-4 overflow-auto">
+                            {flyerModalUrl.toLowerCase().includes('.pdf') ? (
+                                <iframe src={flyerModalUrl} className="w-full h-full border-none rounded-xl" />
+                            ) : (
+                                <img src={flyerModalUrl} alt="Flyer" className="max-w-full max-h-full object-contain rounded-xl" />
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

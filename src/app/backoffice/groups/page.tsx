@@ -18,6 +18,7 @@ interface Group {
     price?: number;
     flightType?: 'DIRECT' | 'LAYOVER';
     formulaType?: 'ECO' | 'CLASSIQUE';
+    isFeatured?: boolean;
 }
 
 export default function GroupsPage() {
@@ -40,6 +41,7 @@ export default function GroupsPage() {
     const [selectedCity, setSelectedCity] = useState<string | null>(null);
     const [flightType, setFlightType] = useState<'DIRECT' | 'LAYOVER'>('DIRECT');
     const [formulaType, setFormulaType] = useState<'ECO' | 'CLASSIQUE'>('CLASSIQUE');
+    const [isFeatured, setIsFeatured] = useState(false);
 
     // Available options
     const [availableFlights, setAvailableFlights] = useState<any[]>([]);
@@ -93,6 +95,7 @@ export default function GroupsPage() {
         setPrice('');
         setFlightType('DIRECT');
         setFormulaType('CLASSIQUE');
+        setIsFeatured(false);
         setIsModalOpen(true);
     };
 
@@ -110,6 +113,7 @@ export default function GroupsPage() {
         setPrice(group.price ? group.price.toString() : '');
         setFlightType(group.flightType || 'DIRECT');
         setFormulaType(group.formulaType || 'CLASSIQUE');
+        setIsFeatured(group.isFeatured || false);
         
         const hIds: string[] = [];
         if (group.makkahHotelId) hIds.push(group.makkahHotelId);
@@ -153,7 +157,8 @@ export default function GroupsPage() {
                     flyerPath: currentFlyerPath || undefined,
                     price: numericPrice,
                     flightType,
-                    formulaType
+                    formulaType,
+                    isFeatured
                 });
                 if (res.error) alert(res.error);
             } else if (modalMode === 'edit' && selectedGroup) {
@@ -167,7 +172,8 @@ export default function GroupsPage() {
                     flyerPath: currentFlyerPath,
                     price: numericPrice,
                     flightType,
-                    formulaType
+                    formulaType,
+                    isFeatured
                 });
                 if (res.error) alert(res.error);
             }
@@ -368,6 +374,14 @@ export default function GroupsPage() {
                                                         }`}>
                                                             {g.formulaType || 'CLASSIQUE'}
                                                         </span>
+                                                        {g.isFeatured && (
+                                                            <>
+                                                                <span className="flex items-center gap-1.5 text-sub opacity-20">|</span>
+                                                                <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded text-[8px] font-black uppercase flex items-center gap-1">
+                                                                    🌟 Conseillé
+                                                                </span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                     {g.flyerPath && (
                                                         <button
@@ -592,6 +606,23 @@ export default function GroupsPage() {
                                         className="w-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-xs font-medium text-main outline-none focus:border-emerald-500/40 focus:bg-white/10 transition-all"
                                     />
                                 )}
+                            </div>
+
+                            {/* preferential date checkbox */}
+                            <div className="flex items-center gap-3 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
+                                <input 
+                                    type="checkbox"
+                                    id="isFeatured"
+                                    checked={isFeatured}
+                                    onChange={(e) => setIsFeatured(e.target.checked)}
+                                    className="w-4 h-4 rounded border-amber-500/40 text-amber-500 focus:ring-amber-500 bg-[#0b0f0d] cursor-pointer"
+                                />
+                                <label htmlFor="isFeatured" className="text-xs font-bold text-main cursor-pointer select-none">
+                                    🌟 Mettre en avant ce groupe (Date Conseillée)
+                                    <span className="block text-[9px] text-dim font-medium mt-0.5 uppercase tracking-wide">
+                                        S'affichera en tête de liste avec un badge "🔥 Date conseillée"
+                                    </span>
+                                </label>
                             </div>
 
 
