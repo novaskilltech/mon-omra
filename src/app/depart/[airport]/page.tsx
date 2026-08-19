@@ -571,53 +571,117 @@ export default function DepartAirportPage() {
                                                                   })()}
 
                                                                 {activeTab === 'hotels' && (
-                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3">
-                                                                            <div className="relative h-28 w-full rounded-xl overflow-hidden bg-white/10">
-                                                                                <Image src={details.makkahHotel.image} alt={details.makkahHotel.name} fill className="object-cover" />
-                                                                                <span className="absolute top-2 left-2 bg-[#020302]/70 text-amber-400 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5">
-                                                                                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> Makkah
-                                                                                </span>
+                                                                    <div className="space-y-8">
+                                                                        {/* Section Makkah */}
+                                                                        <div className="space-y-4">
+                                                                            <h4 className="text-left text-xs font-black uppercase tracking-widest text-[#D8AA4D] border-b border-white/5 pb-2">
+                                                                                🕋 Hôtels Partenaires à Makkah (5★)
+                                                                            </h4>
+                                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                                                {[
+                                                                                    {
+                                                                                        name: "Makkah Hotel (Millennium)",
+                                                                                        stars: 5,
+                                                                                        distance: "Devant l'esplanade du Haram (0m)",
+                                                                                        mapsUrl: "https://maps.app.goo.gl/uXmHn1nQ8nJzWJLy7",
+                                                                                        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80"
+                                                                                    },
+                                                                                    {
+                                                                                        name: "Elaf Kinda Hotel",
+                                                                                        stars: 5,
+                                                                                        distance: "Face à la cour du Haram (très proche)",
+                                                                                        mapsUrl: "https://maps.app.goo.gl/YV5qE4X7C2W1w8fJA",
+                                                                                        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"
+                                                                                    },
+                                                                                    {
+                                                                                        name: "Voco Makkah (IHG)",
+                                                                                        stars: 5,
+                                                                                        distance: "Zone Kudai - Navette VIP 24h/24 directe Haram",
+                                                                                        mapsUrl: "https://maps.app.goo.gl/LzY22CgTNVxV1N3T7",
+                                                                                        image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=600&q=80"
+                                                                                    }
+                                                                                ].map((h, idx) => (
+                                                                                    <div key={idx} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3 text-left">
+                                                                                        <div className="relative h-28 w-full rounded-xl overflow-hidden bg-white/10">
+                                                                                            <Image src={h.image} alt={h.name} fill className="object-cover" />
+                                                                                            <span className="absolute top-2 left-2 bg-[#020302]/70 text-amber-400 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5">
+                                                                                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {h.stars}★
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <h5 className="font-black uppercase tracking-tight text-[11px] text-main truncate">{h.name}</h5>
+                                                                                            <p className="text-[9px] text-dim flex items-center gap-1 mt-1 font-medium">
+                                                                                                <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
+                                                                                                <span className="truncate">{h.distance}</span>
+                                                                                            </p>
+                                                                                        </div>
+                                                                                        <a 
+                                                                                            href={h.mapsUrl} 
+                                                                                            target="_blank" 
+                                                                                            rel="noopener noreferrer" 
+                                                                                            className="inline-flex items-center gap-1 bg-white/5 hover:bg-white/10 text-main border border-white/10 rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-wider transition-all w-full justify-center"
+                                                                                        >
+                                                                                            Localiser sur Maps <ExternalLink className="w-3 h-3" />
+                                                                                        </a>
+                                                                                    </div>
+                                                                                ))}
                                                                             </div>
-                                                                            <div>
-                                                                                <h4 className="font-black uppercase tracking-tight text-xs text-main truncate">{details.makkahHotel.name}</h4>
-                                                                                <p className="text-[10px] text-dim flex items-center gap-1 mt-1">
-                                                                                    <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                                                                    <span className="truncate">{details.makkahHotel.distance}</span>
-                                                                                </p>
-                                                                            </div>
-                                                                            <a 
-                                                                                href={details.makkahHotel.mapsUrl} 
-                                                                                target="_blank" 
-                                                                                rel="noopener noreferrer" 
-                                                                                className="inline-flex items-center gap-1 bg-white/5 hover:bg-white/10 text-main border border-white/10 rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-wider transition-all w-full justify-center"
-                                                                            >
-                                                                                Localiser sur Maps <ExternalLink className="w-3 h-3" />
-                                                                            </a>
                                                                         </div>
 
-                                                                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3">
-                                                                            <div className="relative h-28 w-full rounded-xl overflow-hidden bg-white/10">
-                                                                                <Image src={details.madinahHotel.image} alt={details.madinahHotel.name} fill className="object-cover" />
-                                                                                <span className="absolute top-2 left-2 bg-[#020302]/70 text-amber-400 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5">
-                                                                                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> Madinah
-                                                                                </span>
+                                                                        {/* Section Madinah */}
+                                                                        <div className="space-y-4">
+                                                                            <h4 className="text-left text-xs font-black uppercase tracking-widest text-[#D8AA4D] border-b border-white/5 pb-2">
+                                                                                🕌 Hôtels Partenaires à Madinah (4★)
+                                                                            </h4>
+                                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                                                {[
+                                                                                    {
+                                                                                        name: "Zahra Taiba / Al Rawda",
+                                                                                        stars: 4,
+                                                                                        distance: "Zone Centrale - 150m de la cour du Haram",
+                                                                                        mapsUrl: "https://maps.app.goo.gl/Qe2V61iYwV7aB9Kz9",
+                                                                                        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"
+                                                                                    },
+                                                                                    {
+                                                                                        name: "Zaha Al Madina",
+                                                                                        stars: 4,
+                                                                                        distance: "Zone Centrale Nord - Proximité immédiate Haram",
+                                                                                        mapsUrl: "https://maps.app.goo.gl/kX7pD69W16A6y4yM6",
+                                                                                        image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=600&q=80"
+                                                                                    },
+                                                                                    {
+                                                                                        name: "Zaha Al Munawara",
+                                                                                        stars: 4,
+                                                                                        distance: "Zone Centrale - Accès rapide Haram",
+                                                                                        mapsUrl: "https://maps.app.goo.gl/kX7pD69W16A6y4yM6",
+                                                                                        image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80"
+                                                                                    }
+                                                                                ].map((h, idx) => (
+                                                                                    <div key={idx} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3 text-left">
+                                                                                        <div className="relative h-28 w-full rounded-xl overflow-hidden bg-white/10">
+                                                                                            <Image src={h.image} alt={h.name} fill className="object-cover" />
+                                                                                            <span className="absolute top-2 left-2 bg-[#020302]/70 text-amber-400 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5">
+                                                                                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {h.stars}★
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <h5 className="font-black uppercase tracking-tight text-[11px] text-main truncate">{h.name}</h5>
+                                                                                            <p className="text-[9px] text-dim flex items-center gap-1 mt-1 font-medium">
+                                                                                                <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
+                                                                                                <span className="truncate">{h.distance}</span>
+                                                                                            </p>
+                                                                                        </div>
+                                                                                        <a 
+                                                                                            href={h.mapsUrl} 
+                                                                                            target="_blank" 
+                                                                                            rel="noopener noreferrer" 
+                                                                                            className="inline-flex items-center gap-1 bg-white/5 hover:bg-white/10 text-main border border-white/10 rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-wider transition-all w-full justify-center"
+                                                                                        >
+                                                                                            Localiser sur Maps <ExternalLink className="w-3 h-3" />
+                                                                                        </a>
+                                                                                    </div>
+                                                                                ))}
                                                                             </div>
-                                                                            <div>
-                                                                                <h4 className="font-black uppercase tracking-tight text-xs text-main truncate">{details.madinahHotel.name}</h4>
-                                                                                <p className="text-[10px] text-dim flex items-center gap-1 mt-1">
-                                                                                    <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                                                                    <span className="truncate">{details.madinahHotel.distance}</span>
-                                                                                </p>
-                                                                            </div>
-                                                                            <a 
-                                                                                href={details.madinahHotel.mapsUrl} 
-                                                                                target="_blank" 
-                                                                                rel="noopener noreferrer" 
-                                                                                className="inline-flex items-center gap-1 bg-white/5 hover:bg-white/10 text-main border border-white/10 rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-wider transition-all w-full justify-center"
-                                                                            >
-                                                                                Localiser sur Maps <ExternalLink className="w-3 h-3" />
-                                                                            </a>
                                                                         </div>
                                                                     </div>
                                                                 )}
