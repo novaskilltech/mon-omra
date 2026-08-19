@@ -1,0 +1,50 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Runs at 03:00 UTC every day
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL Client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Perform Database Dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pg_dump --version
+          
+          # Generate filename with date and timestamp
+          BACKUP_NAME="backup_$(date +%Y-%m-%d_%H-%M-%S).sql.gz"
+          echo "Generating database backup: $BACKUP_NAME"
+          
+          # Stream dump directly into gzip
+          pg_dump "$DATABASE_URL" | gzip > "$BACKUP_NAME"
+          
+          # Save filename to env for next steps
+          echo "BACKUP_FILE=$BACKUP_NAME" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload backup file to AWS S3
+        env:
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+        run: |
+          echo "Uploading backup file to S3..."
+          aws s3 cp "${{ env.BACKUP_FILE }}" "s3://$AWS_BUCKET_NAME/backups/${{ env.BACKUP_FILE }}"
+          echo "Backup uploaded successfully!"
