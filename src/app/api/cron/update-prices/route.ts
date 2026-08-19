@@ -29,6 +29,14 @@ function getAirportFromGroupName(name: string): string {
 }
 
 export async function GET(request: Request) {
+    // SerpApi pricing update is suspended by user request
+    const isSuspended = true;
+    if (isSuspended) {
+        return NextResponse.json({ 
+            message: 'La vérification automatique des tarifs SerpApi est temporairement suspendue.' 
+        }, { status: 200 });
+    }
+
     // 1. Safety check / Authentication via authorization header or query param
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
