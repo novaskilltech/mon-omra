@@ -14,9 +14,12 @@ export default function LegalPage() {
                     <section>
                         <h2 className="text-xl font-black text-main mb-4 uppercase tracking-widest">1. Éditeur du Site</h2>
                         <p className="opacity-80">
-                            Le site OMRAYANAIR est édité par la société <strong className="font-black text-main">OMRAYANAIR LLC</strong>.<br />
-                            Forme juridique : LLC (Limited Liability Company).<br />
-                            Siège social : Albuquerque, New Mexico, USA.
+                            Le site OMRAYANAIR est édité par la société <strong className="font-black text-main">La Conciergerie SASU</strong> (commercialement désignée LA CONCIERGERIE Omrayanair).<br />
+                            Forme juridique : SASU (Société par Actions Simplifiée à Associé Unique).<br />
+                            Siège social : 98 Avenue Claude Péroche, 60180 Nogent-sur-Oise, France.<br />
+                            RCS : Compiègne.<br />
+                            SIREN : 980 508 238.<br />
+                            Capital social : 500 €.
                         </p>
                     </section>
 
@@ -32,7 +35,7 @@ export default function LegalPage() {
                     <section>
                         <h2 className="text-xl font-black text-main mb-4 uppercase tracking-widest">3. Propriété Intellectuelle</h2>
                         <p className="opacity-80">
-                            L'intégralité du site (textes, graphismes, logos, icônes, animations) est la propriété exclusive de OMRAYANAIR LLC.
+                            L'intégralité du site (textes, graphismes, logos, icônes, animations) est la propriété exclusive de La Conciergerie SASU.
                             Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site,
                             quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable.
                         </p>
@@ -41,7 +44,7 @@ export default function LegalPage() {
                     <section>
                         <h2 className="text-xl font-black text-main mb-4 uppercase tracking-widest">4. Responsabilité</h2>
                         <p className="opacity-80">
-                            OMRAYANAIR LLC s'efforce de fournir sur le site des informations aussi précises que possible. Toutefois, elle ne pourra
+                            La Conciergerie SASU s'efforce de fournir sur le site des informations aussi précises que possible. Toutefois, elle ne pourra
                             être tenue responsable des omissions, des inexactitudes et des carences dans la mise à jour, qu'elles soient de son fait
                             ou du fait des tiers partenaires qui lui fournissent ces informations.
                         </p>

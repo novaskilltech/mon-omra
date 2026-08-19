@@ -109,8 +109,8 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h4 className="font-black text-main text-xs uppercase tracking-wider">Siège Social</h4>
-                                    <p className="text-sm font-black text-main mt-1">OMRAYANAIR LLC</p>
-                                    <p className="text-[10px] text-dim mt-0.5">Albuquerque, New Mexico, USA</p>
+                                    <p className="text-sm font-black text-main mt-1">LA CONCIERGERIE Omrayanair</p>
+                                    <p className="text-[10px] text-dim mt-0.5">98 Avenue Claude Péroche, 60180 Nogent-sur-Oise, France</p>
                                 </div>
                             </div>
                         </div>

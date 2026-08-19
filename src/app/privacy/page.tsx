@@ -14,7 +14,7 @@ export default function PrivacyPage() {
                     <section>
                         <h2 className="text-xl font-black text-main mb-4 uppercase tracking-widest">1. Introduction</h2>
                         <p className="opacity-80">
-                            Chez OMRAYANAIR (édité par OMRAYANAIR LLC), nous accordons une importance capitale à la protection de vos données personnelles.
+                            Chez OMRAYANAIR (édité par La Conciergerie SASU), nous accordons une importance capitale à la protection de vos données personnelles.
                             Cette politique de confidentialité vous informe sur la manière dont nous collectons, utilisons et protégeons vos informations
                             conformément au Règlement Général sur la Protection des Données (RGPD).
                         </p>
