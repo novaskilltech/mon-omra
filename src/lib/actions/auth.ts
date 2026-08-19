@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 
 export async function checkEmailRegistration(email: string) {
     const supabase = createClient();
@@ -67,6 +67,22 @@ export async function sendOtpToPilgrim(email: string) {
         
     if (profileError || !profile) {
         return { error: "Pèlerin introuvable en base." };
+    }
+
+    // Auto-provisioning dans auth.users si l'utilisateur y est manquant
+    try {
+        const supabaseAdmin = createAdminClient();
+        const { error: createError } = await supabaseAdmin.auth.admin.createUser({
+            email: email,
+            email_confirm: true
+        });
+        if (createError) {
+            if (!createError.message.includes("already registered") && createError.status !== 422) {
+                console.error("Auto-provisioning Supabase Auth error:", createError);
+            }
+        }
+    } catch (e) {
+        console.error("Admin client creation error during OTP send:", e);
     }
 
     // 2. Envoyer le vrai code OTP via Supabase Auth
