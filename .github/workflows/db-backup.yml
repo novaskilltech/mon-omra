@@ -34,17 +34,10 @@ jobs:
           # Save filename to env for next steps
           echo "BACKUP_FILE=$BACKUP_NAME" >> $GITHUB_ENV
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Upload backup file to Google Drive
+        uses: adityassh/google-drive-upload-git-action@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Upload backup file to AWS S3
-        env:
-          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-        run: |
-          echo "Uploading backup file to S3..."
-          aws s3 cp "${{ env.BACKUP_FILE }}" "s3://$AWS_BUCKET_NAME/backups/${{ env.BACKUP_FILE }}"
-          echo "Backup uploaded successfully!"
+          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+          filename: ${{ env.BACKUP_FILE }}
+          folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+          overwrite: "false"
