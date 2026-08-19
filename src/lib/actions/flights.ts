@@ -9,6 +9,7 @@
 interface FlightSearchParameters {
     departureAirport: string;
     departureDate: string; // YYYY-MM-DD
+    durationDays?: number;
 }
 
 interface PriceAdjustmentResult {
@@ -60,8 +61,25 @@ async function fetchFlightPrice(params: FlightSearchParameters): Promise<number>
     else if (departure.includes('NICE') || departure === 'NCE') depCode = 'NCE';
     else if (departure.includes('TOULOUSE') || departure === 'TLS') depCode = 'TLS';
 
+    let returnDate = '';
+    if (params.durationDays && date) {
+        try {
+            const depDate = new Date(date);
+            depDate.setDate(depDate.getDate() + params.durationDays);
+            returnDate = depDate.toISOString().split('T')[0];
+        } catch (e) {
+            console.error("Error calculating return date:", e);
+        }
+    }
+
     try {
-        const queryUrl = `https://serpapi.com/search.json?engine=google_flights&departure_id=${depCode}&arrival_id=JED&outbound_date=${date}&currency=EUR&hl=fr&gl=fr&api_key=${apiKey}`;
+        let queryUrl = `https://serpapi.com/search.json?engine=google_flights&departure_id=${depCode}&arrival_id=JED&outbound_date=${date}&currency=EUR&hl=fr&gl=fr&api_key=${apiKey}`;
+        if (returnDate) {
+            queryUrl += `&return_date=${returnDate}`;
+        } else {
+            queryUrl += `&type=2`; // Fallback to One-way (type=2) to avoid 400 Bad Request if no return date
+        }
+        
         const response = await fetch(queryUrl, { next: { revalidate: 3600 } }); // Cache results for 1 hour
         if (!response.ok) throw new Error("API response error");
         
@@ -109,12 +127,13 @@ export async function calculateAdjustedGroupPrice(
     fallbackPrice: number
 ): Promise<PriceAdjustmentResult> {
     try {
+        const durationDays = getDurationDays(groupName);
         const ticketPrice = await fetchFlightPrice({
             departureAirport,
-            departureDate: departureDate ? departureDate.split('T')[0] : new Date().toISOString().split('T')[0]
+            departureDate: departureDate ? departureDate.split('T')[0] : new Date().toISOString().split('T')[0],
+            durationDays
         });
 
-        const durationDays = getDurationDays(groupName);
         let baseNoFlightPrice = 650;
         let limitThreshold = 990;
         let appliedFormula = "9-11 Nuits (Base 650 €, Seuil 990 €)";
