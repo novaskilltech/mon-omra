@@ -598,27 +598,6 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
             }
         }
 
-        // Fallback for demo/testing purposes
-        if (todayActivities.length === 0 && pilgrim?.group_id) {
-            todayActivities = [
-                { time: "08:30", title: "Rassemblement Hall Hôtel", location: "Hôtel Médine", type: "TRANSPORT", description: "Départ en bus privé climatisé pour les visites historiques de la ville de Médine." },
-                { time: "09:30", title: "Visite de la Mosquée de Quba", location: "Mosquée de Quba", type: "ZIYARAT", description: "Première mosquée de l'Islam. Pensez à faire vos ablutions à l'hôtel pour bénéficier de la récompense d'une Omra." },
-                { time: "11:30", title: "Mont Uhud & Cimetière des Martyrs", location: "Mont Uhud", type: "ZIYARAT", description: "Explications historiques par nos guides sur la bataille d'Uhud et moment de recueillement." },
-                { time: "13:30", title: "Déjeuner de Groupe (Couscous)", location: "Restaurant Traditionnel Uhud", type: "REPAS", description: "Repas convivial offert par l'agence au pied du Mont Uhud." },
-                { time: "21:00", title: "Cercle Spirituel & Rappel", location: "Salle de conférence de l'Hôtel", type: "RITUEL", description: "Assise spirituelle animée par nos guides pour préparer les étapes de la Omra." }
-            ];
-        }
-
-        if (!meetingPoint && pilgrim?.group_id) {
-            meetingPoint = {
-                name: "Porte 339 (Mosquée du Prophète - Médine)",
-                description: "Rassemblement près des grands parasols blancs pour le départ des bus de visites.",
-                latitude: 24.4672,
-                longitude: 39.6111,
-                maps_url: "https://maps.google.com/?q=24.4672,39.6111"
-            };
-        }
-
         return {
             pilgrimName: `${profile.full_name || ''}`.trim() || "Salah Lamkhannet",
             visaUrl: visaUrl,
@@ -1413,46 +1392,30 @@ export async function getPilgrimProgram(pilgrimId?: string | null, email?: strin
             }
 
             let guidedActivities: any[] = [];
-            const spiritualActivities: any[] = [];
-
-            // Add standard spiritual activities based on the city
-            if (activeCity === 'MAKKAH') {
-                spiritualActivities.push(
-                    { title: "Tawaf surérogatoire", desc: "Effectuer un Tawaf facultatif autour de la Kaaba (recommandé après l'Asr ou tard le soir)." },
-                    { title: "Tahajjud au Haram", desc: "Se rendre à Masjid Al-Haram dans le dernier tiers de la nuit pour effectuer des prières nocturnes et douas." },
-                    { title: "Fajr et évocation (Shuruq)", desc: "Prier le Fajr en congrégation et rester dans la mosquée à lire le Coran et faire des évocations jusqu'au lever du soleil, puis effectuer la prière de Duha." },
-                    { title: "Douas au Multazam", desc: "S'approcher du Multazam (partie située entre la porte de la Kaaba et la Pierre Noire) et y faire des douas ferventes." }
-                );
-            } else {
-                spiritualActivities.push(
-                    { title: "Prière dans la Rawdah", desc: "Profiter de son créneau de réservation pour prier dans le jardin du Paradis (Rawdah ash-Sharifah)." },
-                    { title: "Salutations au Messager (ﷺ)", desc: "Se présenter respectueusement devant le tombeau du Prophète (ﷺ) et de ses compagnons Abu Bakr et Umar pour leur adresser le Salam." },
-                    { title: "Invocation à Al-Baqi", desc: "Visiter le cimetière historique d'Al-Baqi jouxtant la Mosquée du Prophète et faire des invocations pour les compagnons et les défunts." },
-                    { title: "Assister aux cercles de science", desc: "Rejoindre l'une des assemblées d'enseignement ou d'explication religieuse tenues quotidiennement au sein de la mosquée." }
-                );
-            }
+            let spiritualActivities: any[] = [];
 
             // Core guided activities based on Custom Planning
             if (customPlanning && customPlanning[d.toString()] && Array.isArray(customPlanning[d.toString()])) {
                 guidedActivities = customPlanning[d.toString()];
-            } else if (d === 1 && isTransavia) {
-                guidedActivities = [
-                    {
-                        time: "Après-midi",
-                        title: "Accueil & Transfert",
-                        description: "Le chauffeur vous attend sur le parking. Veuillez suivre les instructions sur le groupe WhatsApp pour rejoindre le chauffeur. Direction La Mecque."
-                    },
-                    {
-                        time: "Installation",
-                        title: "Arrivée à l'hôtel",
-                        description: "Récupération des clés de chambre. Vous pouvez monter vos bagages dans votre chambre, vous reposer et attendre le signal du guide."
-                    },
-                    {
-                        time: "Rassemblement",
-                        title: "Préparation Omra",
-                        description: "Veuillez descendre à l'heure indiquée par le guide sur le groupe WhatsApp pour pouvoir effectuer la Omra."
-                    }
-                ];
+            }
+            
+            if (customPlanning && customPlanning[d.toString()]) {
+                // Add standard spiritual activities based on the city
+                if (activeCity === 'MAKKAH') {
+                    spiritualActivities.push(
+                        { title: "Tawaf surérogatoire", desc: "Effectuer un Tawaf facultatif autour de la Kaaba (recommandé après l'Asr ou tard le soir)." },
+                        { title: "Tahajjud au Haram", desc: "Se rendre à Masjid Al-Haram dans le dernier tiers de la nuit pour effectuer des prières nocturnes et douas." },
+                        { title: "Fajr et évocation (Shuruq)", desc: "Prier le Fajr en congrégation et rester dans la mosquée à lire le Coran et faire des évocations jusqu'au lever du soleil, puis effectuer la prière de Duha." },
+                        { title: "Douas au Multazam", desc: "S'approcher du Multazam (partie située entre la porte de la Kaaba et la Pierre Noire) et y faire des douas ferventes." }
+                    );
+                } else {
+                    spiritualActivities.push(
+                        { title: "Prière dans la Rawdah", desc: "Profiter de son créneau de réservation pour prier dans le jardin du Paradis (Rawdah ash-Sharifah)." },
+                        { title: "Salutations au Messager (ﷺ)", desc: "Se présenter respectueusement devant le tombeau du Prophète (ﷺ) et de ses compagnons Abu Bakr et Umar pour leur adresser le Salam." },
+                        { title: "Invocation à Al-Baqi", desc: "Visiter le cimetière historique d'Al-Baqi jouxtant la Mosquée du Prophète et faire des invocations pour les compagnons et les défunts." },
+                        { title: "Assister aux cercles de science", desc: "Rejoindre l'une des assemblées d'enseignement ou d'explication religieuse tenues quotidiennement au sein de la mosquée." }
+                    );
+                }
             }
 
             days.push({
