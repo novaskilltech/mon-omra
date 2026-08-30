@@ -19,6 +19,7 @@ import {
 } from '@/lib/actions/concierge';
 import { getPilgrimDocuments, deleteDocumentAction } from '@/lib/actions/documents';
 import { getAssistanceRequestsAction, resolveAssistanceRequestAction } from '@/lib/actions/logistics';
+import { getWhatsAppUrl, formatDisplayPhone } from '@/lib/utils/phone';
 
 export default function ConciergeDashboard() {
     const [pilgrims, setPilgrims] = useState<any[]>([]);
@@ -1739,13 +1740,14 @@ export default function ConciergeDashboard() {
                                 </thead>
                                 <tbody>
                                     {requests.map((req) => {
-                                        const cleanPhone = req.phone ? req.phone.replace(/[^0-9]/g, '') : '';
+                                        const displayPhone = formatDisplayPhone(req.phone);
+                                        const whatsappUrl = getWhatsAppUrl(req.phone, `Salam alaykoum ${req.first_name}, c'est l'équipe conciergerie OMRAYANAIR concernant votre demande.`);
                                         return (
                                             <tr key={req.id} className="border-b border-emerald-500/5 text-main hover:bg-emerald-500/[0.02] transition-colors">
                                                 <td className="py-4">{new Date(req.created_at).toLocaleDateString('fr-FR')}</td>
                                                 <td className="py-4 font-bold uppercase">{req.family_name} {req.first_name}</td>
                                                 <td className="py-4 font-mono text-dim">{req.email}</td>
-                                                <td className="py-4">{req.phone || '-'}</td>
+                                                <td className="py-4 font-medium">{displayPhone || req.phone || '-'}</td>
                                                 <td className="py-4">{req.gender === 'M' ? 'Homme' : 'Femme'}</td>
                                                 <td className="py-4 text-emerald-500 font-bold">
                                                     {req.groups?.name || <span className="text-dim/40 italic">Tous départs</span>}
@@ -1766,15 +1768,17 @@ export default function ConciergeDashboard() {
                                                 <td className="py-4 text-right flex justify-end gap-1.5">
                                                     {req.phone && (
                                                         <>
-                                                            <a
-                                                                href={`https://wa.me/${cleanPhone}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all"
-                                                                title="Contacter sur WhatsApp"
-                                                            >
-                                                                <MessageCircle className="w-3.5 h-3.5" />
-                                                            </a>
+                                                            {whatsappUrl && (
+                                                                <a
+                                                                    href={whatsappUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all"
+                                                                    title={`Contacter ${displayPhone} sur WhatsApp`}
+                                                                >
+                                                                    <MessageCircle className="w-3.5 h-3.5" />
+                                                                </a>
+                                                            )}
                                                             <a
                                                                 href={`tel:${req.phone}`}
                                                                 className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl transition-all"

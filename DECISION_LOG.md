@@ -352,6 +352,19 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Validation DNS Vercel `omrayanair.novaskill.tech` avec certificat SSL actif.
 *   **Version** : v1.20.1
 
+---
+
+## 34. Normalisation Téléphonique Internationale E.164 & Résolution Redirection WhatsApp
+*   **Décision** : 
+    1. Création de l'utilitaire `src/lib/utils/phone.ts` pour convertir automatiquement les numéros nationaux français/internationaux (ex: `0755...` -> `33755...`, `06...` -> `336...`, indicatifs Maghreb et Europe) en format universel E.164.
+    2. Utilisation de l'API standard `api.whatsapp.com/send` et `web.whatsapp.com/send` avec le numéro international propre pour garantir l'ouverture instantanée de la discussion ciblée dans WhatsApp Desktop et WhatsApp Web.
+    3. Ajout de boutons directs ("Ouvrir WhatsApp Bureau/App" et "Ouvrir WhatsApp Web") dans le tableau de bord Hajj et Conciergerie.
+*   **Justification** : Résout le blocage où WhatsApp Desktop s'ouvrait sur son écran d'accueil sans ouvrir la conversation avec le client en raison de l'absence du code pays (+33).
+*   **Impacts** :
+    *   Création de `src/lib/utils/phone.ts` et tests unitaires `src/lib/utils/__tests__/phone.test.ts`.
+    *   Mise à jour de `src/app/backoffice/hajj/page.tsx` et `src/app/backoffice/concierge/page.tsx`.
+*   **Version** : v1.20.2
+
 
 
 

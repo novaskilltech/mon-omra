@@ -13,6 +13,12 @@ import {
     updateHajjAuditAction, 
     deleteHajjRequestAction 
 } from '@/lib/actions/hajj';
+import { 
+    formatPhoneForWhatsApp, 
+    getWhatsAppUrl, 
+    getWhatsAppWebUrl, 
+    formatDisplayPhone 
+} from '@/lib/utils/phone';
 
 export default function BackofficeHajjPage() {
     const [requests, setRequests] = useState<any[]>([]);
@@ -390,9 +396,10 @@ contact@omrayanair.com`;
                     {filteredRequests.map((req) => {
                         const statusObj = getStatusBadge(req.status);
                         const StatusIcon = statusObj.icon;
-                        const cleanPhone = req.phone ? req.phone.replace(/[^0-9+]/g, '') : '';
-                        const whatsAppMessage = encodeURIComponent(generateWhatsAppText(req));
-                        const whatsappUrl = cleanPhone ? `https://wa.me/${cleanPhone.replace('+', '')}?text=${whatsAppMessage}` : null;
+                        const displayPhone = formatDisplayPhone(req.phone, req.nationality);
+                        const whatsAppText = generateWhatsAppText(req);
+                        const whatsappAppUrl = getWhatsAppUrl(req.phone, whatsAppText, req.nationality);
+                        const whatsappWebUrl = getWhatsAppWebUrl(req.phone, whatsAppText, req.nationality);
                         
                         const emailSubject = encodeURIComponent(generateEmailSubject(req));
                         const emailBody = encodeURIComponent(generateEmailBody(req));
@@ -520,7 +527,7 @@ contact@omrayanair.com`;
                                         <p className="text-[9px] font-black uppercase tracking-wider text-dim">Téléphone</p>
                                         <a href={`tel:${req.phone}`} className="text-main hover:text-[#D8AA4D] font-bold flex items-center gap-1.5">
                                             <Phone className="w-3.5 h-3.5 text-dim shrink-0" />
-                                            <span>{req.phone}</span>
+                                            <span>{displayPhone || req.phone}</span>
                                         </a>
                                     </div>
 
@@ -541,13 +548,13 @@ contact@omrayanair.com`;
 
                                     <div className="flex items-center gap-2.5 flex-wrap">
                                         {/* Bouton 1-clic Répondre par WhatsApp */}
-                                        {whatsappUrl && (
+                                        {whatsappAppUrl && (
                                             <a
-                                                href={whatsappUrl}
+                                                href={whatsappAppUrl}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-black text-[10px] uppercase tracking-wider transition-all shadow-md shadow-emerald-500/10 cursor-pointer"
-                                                title="Ouvrir WhatsApp avec message d'audit pré-rédigé"
+                                                title={`Ouvrir WhatsApp sur ${displayPhone} avec message d'audit`}
                                             >
                                                 <MessageSquare className="w-3.5 h-3.5" />
                                                 <span>Répondre par WhatsApp</span>
@@ -607,7 +614,7 @@ contact@omrayanair.com`;
                                     {selectedRequest.first_name} {selectedRequest.family_name}
                                 </h3>
                                 <p className="text-xs text-dim font-medium">
-                                    Hajj {selectedRequest.hajj_year} • {selectedRequest.people_count} personne(s) • {selectedRequest.phone}
+                                    Hajj {selectedRequest.hajj_year} • {selectedRequest.people_count} personne(s) • <span className="text-[#D8AA4D] font-bold">{formatDisplayPhone(selectedRequest.phone, selectedRequest.nationality)}</span>
                                 </p>
                             </div>
                             <button 
@@ -730,15 +737,27 @@ contact@omrayanair.com`;
                                     {generateWhatsAppText(selectedRequest)}
                                 </pre>
 
-                                <div className="flex gap-3 pt-1">
+                                <div className="flex flex-wrap gap-3 pt-1">
                                     <a
-                                        href={`https://wa.me/${selectedRequest.phone?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(generateWhatsAppText(selectedRequest))}`}
+                                        href={getWhatsAppUrl(selectedRequest.phone, generateWhatsAppText(selectedRequest), selectedRequest.nationality)}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-emerald-500/20"
+                                        title="Ouvrir dans l'application WhatsApp Desktop ou Mobile"
                                     >
                                         <ExternalLink className="w-3.5 h-3.5" />
-                                        <span>Envoyer directement sur WhatsApp</span>
+                                        <span>Ouvrir WhatsApp (Bureau / App)</span>
+                                    </a>
+
+                                    <a
+                                        href={getWhatsAppWebUrl(selectedRequest.phone, generateWhatsAppText(selectedRequest), selectedRequest.nationality)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-emerald-300 border border-emerald-500/30 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        title="Ouvrir directement dans un nouvel onglet WhatsApp Web"
+                                    >
+                                        <Globe className="w-3.5 h-3.5" />
+                                        <span>Ouvrir WhatsApp Web</span>
                                     </a>
                                 </div>
                             </div>
