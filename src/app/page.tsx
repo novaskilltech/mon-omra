@@ -20,9 +20,9 @@ export default function Home() {
                         "@type": "TravelAgency",
                         "name": "OMRAYANAIR",
                         "description": "Plateforme Premium d'accompagnement et de voyage spirituel pour l'Omra et le Hajj.",
-                        "url": "https://omrayanair.vercel.app",
-                        "logo": "https://omrayanair.vercel.app/logo.png",
-                        "image": "https://omrayanair.vercel.app/og-image.png",
+                        "url": "https://omrayanair.novaskill.tech",
+                        "logo": "https://omrayanair.novaskill.tech/logo.png",
+                        "image": "https://omrayanair.novaskill.tech/og-image.png",
                         "address": {
                             "@type": "PostalAddress",
                             "addressCountry": "FR"

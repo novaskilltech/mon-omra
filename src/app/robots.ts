@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: ['/', '/guides', '/legal', '/privacy', '/login'],
       disallow: ['/backoffice', '/dashboard', '/api'],
     },
-    sitemap: 'https://omrayanair.vercel.app/sitemap.xml',
+    sitemap: 'https://omrayanair.novaskill.tech/sitemap.xml',
   };
 }

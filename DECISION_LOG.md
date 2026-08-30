@@ -342,6 +342,16 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/components/BentoLandingHub.tsx` et `src/app/backoffice/hajj/page.tsx`.
 *   **Version** : v1.20.0
 
+---
+
+## 33. Configuration du Nom de Domaine Canonique et SSL Gratuit
+*   **Décision** : Liaison officielle du sous-domaine `omrayanair.novaskill.tech` au projet Vercel `omrayanair` avec génération automatique du certificat SSL / TLS (HTTPS) gratuit Let's Encrypt, et mise à jour de l'URL canonique dans les métadonnées (`layout.tsx`, `page.tsx`, `robots.ts`, `sitemap.ts`).
+*   **Justification** : Permet d'offrir une adresse web personnalisée, professionnelle et 100% sécurisée sous l'infrastructure `novaskill.tech`.
+*   **Impacts** :
+    *   Mise à jour des métadonnées SEO, OpenGraph, JSON-LD, sitemap et robots.
+    *   Validation DNS Vercel `omrayanair.novaskill.tech` avec certificat SSL actif.
+*   **Version** : v1.20.1
+
 
 
 
