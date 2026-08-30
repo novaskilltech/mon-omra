@@ -4,6 +4,8 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
     const response = NextResponse.next();
 
+    const isDev = process.env.NODE_ENV === 'development';
+
     // 1. CONTENT SECURITY POLICY (CSP)
     // Permet de restreindre d'où les scripts, styles et images peuvent être chargés.
     const cspHeader = `
@@ -12,14 +14,13 @@ export function middleware(request: NextRequest) {
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https://*.supabase.co https://vercel.live https://*.vercel.live;
     font-src 'self' https://fonts.gstatic.com https://vercel.live https://*.vercel.live;
-    connect-src 'self' data: https://*.supabase.co https://*.vercel.live wss://*.vercel.live wss://*.pusher.com wss://ws-us3.pusher.com;
+    connect-src 'self' data: ws: wss: http://localhost:* ws://localhost:* https://*.supabase.co https://*.vercel.live wss://*.vercel.live wss://*.pusher.com wss://ws-us3.pusher.com;
     frame-src 'self' https://vercel.live https://*.vercel.live;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    block-all-mixed-content;
-    upgrade-insecure-requests;
+    ${isDev ? '' : 'block-all-mixed-content; upgrade-insecure-requests;'}
   `.replace(/\s{2,}/g, ' ').trim();
 
     response.headers.set('Content-Security-Policy', cspHeader);
@@ -63,7 +64,8 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
+         * - .well-known (browser / devtools requests)
          */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|.well-known).*)',
     ],
 };

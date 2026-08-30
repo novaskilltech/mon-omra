@@ -181,6 +181,46 @@ body {
     transform: translateY(1px) scale(0.98);
     box-shadow: 0 2px 5px rgba(16, 185, 129, 0.1);
   }
+
+  /* Bouton 3D Alerte Hajj & Inscriptions avec Ombrage Prononcé */
+  .btn-3d-gold {
+    background: linear-gradient(180deg, #FDE68A 0%, #F59E0B 45%, #D97706 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.9);
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
+    border-right: 1px solid rgba(180, 83, 9, 0.6);
+    border-bottom: 3.5px solid #78350F;
+    box-shadow: 
+      0 10px 20px -3px rgba(217, 119, 6, 0.45),
+      0 6px 12px -2px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  .btn-3d-gold:hover {
+    filter: brightness(1.1);
+    box-shadow: 
+      0 14px 25px -2px rgba(217, 119, 6, 0.6),
+      0 8px 16px -2px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+  .btn-3d-gold:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Animation de lévitation et pointage haut/bas 3D */
+@keyframes bob3DPointer {
+  0%, 100% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -10px) scale(1.04);
+  }
+}
+
+.animate-3d-bob {
+  animation: bob3DPointer 2.2s infinite ease-in-out;
 }
 
 .hero-gradient {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createHajjRequestAction, getHajjRequestsAction, updateHajjRequestStatusAction, deleteHajjRequestAction } from '../hajj';
+import { createHajjRequestAction, getHajjRequestsAction, updateHajjRequestStatusAction, updateHajjAuditAction, deleteHajjRequestAction } from '../hajj';
 import { createClient } from '@/utils/supabase/server';
 
 vi.mock('@/utils/supabase/server', () => {
@@ -35,7 +35,11 @@ describe('Hajj Server Actions', () => {
             email: 'youssef@example.com',
             address: '10 Rue de Paris, 75001 Paris',
             peopleCount: 2,
-            hajjYear: 2027
+            hajjYear: 2027,
+            hasNusukAccount: 'OUI',
+            nusukAccountYear: '2026_2027',
+            nusukAccountStatus: 'VERIFIE',
+            availabilitySlots: 'Soirée (18h-21h)'
         });
 
         expect(result).toEqual({ success: true });
@@ -65,6 +69,15 @@ describe('Hajj Server Actions', () => {
 
     it('should update hajj request status', async () => {
         const result = await updateHajjRequestStatusAction('hajj-1', 'CONTACTED');
+        expect(result).toEqual({ success: true });
+    });
+
+    it('should update hajj audit information', async () => {
+        const result = await updateHajjAuditAction('hajj-1', {
+            hasNusukAccount: 'OUI',
+            nusukAccountStatus: 'VERIFIE',
+            adminNotes: 'Passeport valide et compte vérifié'
+        });
         expect(result).toEqual({ success: true });
     });
 

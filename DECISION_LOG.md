@@ -305,6 +305,43 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour du mock de test dans `src/lib/actions/__tests__/logistics.test.ts`.
 *   **Version** : v1.18.1
 
+---
+
+## 30. Signal d'Alerte 3D et Pointeur Index Animé pour les Inscriptions Hajj
+*   **Décision** : Ajout d'un badge d'alerte flottant 3D en or biseauté (`.btn-3d-gold`), avec un voyant LED d'urgence clignotant rouge et une main à doigt index (`👇`) animée en lévitation verticale continue (`@keyframes bob3DPointer` / `.animate-3d-bob`) pointant directement vers la tuile Bento Grand Hajj.
+*   **Justification** : Maximise le taux de conversion et attire immédiatement le regard du visiteur vers les pré-inscriptions prioritaires au Grand Hajj 2027/2028+.
+*   **Impacts** :
+    *   Mise à jour des animations et des styles 3D dans [globals.css](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/globals.css).
+    *   Intégration du composant d'alerte et enrichissement de la tuile Hajj dans [BentoLandingHub.tsx](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/components/BentoLandingHub.tsx).
+*   **Version** : v1.19.0
+
+---
+
+## 31. Optimisation CSP pour DevTools et Environnement Local
+*   **Décision** :
+    1. Conditionnement de la directive CSP `upgrade-insecure-requests` à l'environnement de production (`NODE_ENV === 'production'`) pour empêcher le forçage HTTPS sur `http://localhost`.
+    2. Ajout explicite des protocoles et origines locales (`ws:`, `wss:`, `http://localhost:*`, `ws://localhost:*`) dans `connect-src`.
+    3. Création du gestionnaire de route standard `/.well-known/appspecific/com.chrome.devtools.json` renvoyant un statut 200 OK.
+*   **Justification** : Supprime les avertissements de violation CSP et les erreurs 404 émises par Chrome DevTools lors de l'inspection de l'application en développement local.
+*   **Impacts** :
+    *   Mise à jour de `src/middleware.ts`.
+    *   Création de `src/app/.well-known/appspecific/com.chrome.devtools.json/route.ts`.
+*   **Version** : v1.19.1
+
+---
+
+## 32. Système d'Audit Nusuk Hajj et Réponses 1-Clic WhatsApp & E-mail
+*   **Décision** : 
+    1. Ajout de questions de qualification Nusuk Hajj dans le formulaire de pré-inscription (compte créé OUI/NON/EN_COURS, année d'ouverture 2026-2027 vs 2025+, statut de vérification des pièces, créneau d'appel WhatsApp souhaité).
+    2. Ajout de boutons de réponse immédiate en 1 clic ("Répondre par WhatsApp", "Répondre par E-mail") générant des messages d'audit pré-rédigés personnalisés.
+    3. Ajout d'un modal d'audit complet dans `/backoffice/hajj` permettant la mise à jour des statuts de validation Nusuk et la prise de notes d'audit internes agence.
+*   **Justification** : Permet à l'agence de qualifier instantanément les candidats au Hajj, de planifier les sessions d'appel de vérification WhatsApp et de sécuriser l'accès aux quotas officiels Nusuk sans perte de temps.
+*   **Impacts** :
+    *   Migration Supabase `docs/supabase/20260830_add_nusuk_audit_to_hajj_requests.sql`.
+    *   Mise à jour des Server Actions `src/lib/actions/hajj.ts` et tests `src/lib/actions/__tests__/hajj.test.ts`.
+    *   Mise à jour de `src/components/BentoLandingHub.tsx` et `src/app/backoffice/hajj/page.tsx`.
+*   **Version** : v1.20.0
+
 
 
 

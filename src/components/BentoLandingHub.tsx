@@ -47,7 +47,11 @@ export default function BentoLandingHub() {
         email: '',
         address: '',
         peopleCount: 1,
-        hajjYear: 2027
+        hajjYear: 2027,
+        hasNusukAccount: 'NON',
+        nusukAccountYear: '2026_2027',
+        nusukAccountStatus: 'NON_VERIFIE',
+        availabilitySlots: 'Soirée (18h - 21h)'
     });
     const [hajjSubmitting, setHajjSubmitting] = useState(false);
     const [hajjSuccess, setHajjSuccess] = useState(false);
@@ -168,7 +172,11 @@ export default function BentoLandingHub() {
             email: '',
             address: '',
             peopleCount: 1,
-            hajjYear: 2027
+            hajjYear: 2027,
+            hasNusukAccount: 'NON',
+            nusukAccountYear: '2026_2027',
+            nusukAccountStatus: 'NON_VERIFIE',
+            availabilitySlots: 'Soirée (18h - 21h)'
         });
         setIsHajjModalOpen(true);
     };
@@ -187,7 +195,11 @@ export default function BentoLandingHub() {
                 email: hajjForm.email,
                 address: hajjForm.address,
                 peopleCount: Number(hajjForm.peopleCount),
-                hajjYear: Number(hajjForm.hajjYear)
+                hajjYear: Number(hajjForm.hajjYear),
+                hasNusukAccount: hajjForm.hasNusukAccount,
+                nusukAccountYear: hajjForm.hasNusukAccount === 'OUI' ? hajjForm.nusukAccountYear : 'NON_APPLICABLE',
+                nusukAccountStatus: hajjForm.hasNusukAccount === 'OUI' ? hajjForm.nusukAccountStatus : 'NON_VERIFIE',
+                availabilitySlots: hajjForm.availabilitySlots
             });
 
             if (res.error) {
@@ -274,33 +286,73 @@ export default function BentoLandingHub() {
                     </div>
                 </Link>
 
-                {/* Bento 2: Grand Pèlerinage HAJJ 2027+ */}
-                <div 
-                    onClick={handleOpenHajjModal}
-                    className="glass p-8 rounded-[2.5rem] border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent hover:border-amber-500/50 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-lg hover:shadow-[0_0_40px_rgba(216,170,77,0.2)]"
-                >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all" />
-                    <div>
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-[#D8AA4D] group-hover:scale-110 transition-transform">
-                                <Compass className="w-6 h-6" />
-                            </div>
-                            <span className="bg-amber-500/20 text-[#F2CE79] border border-amber-500/30 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider">
-                                Hajj 2027 / 2028+
+                {/* Bento 2: Grand Pèlerinage HAJJ 2027+ avec Signal d'Alerte & Pointeur 3D */}
+                <div className="relative flex flex-col group/hajj pt-4">
+                    {/* Signal d'Alerte & Bouton 3D Flottant avec Main Index Pointeur animé Haut/Bas */}
+                    <div 
+                        onClick={handleOpenHajjModal}
+                        className="animate-3d-bob absolute -top-2.5 left-1/2 z-30 cursor-pointer select-none"
+                    >
+                        <div className="btn-3d-gold px-3.5 sm:px-4 py-2 rounded-2xl flex items-center gap-2.5 shadow-2xl backdrop-blur-md border border-amber-200/70">
+                            {/* Point LED d'Alerte Pulsant */}
+                            <span className="relative flex h-3 w-3 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-90"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600 ring-2 ring-white/60 shadow-sm"></span>
                             </span>
+
+                            <div className="flex flex-col text-left">
+                                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-950 flex items-center gap-1 leading-none">
+                                    🚨 SIGNAL D&apos;ALERTE : HAJJ 2027+
+                                </span>
+                                <span className="text-[8.5px] font-extrabold text-amber-900/90 tracking-wide uppercase mt-0.5">
+                                    Inscriptions Ouvertes — Cliquez ici
+                                </span>
+                            </div>
+
+                            {/* Main avec Doigt Index Dirigé vers le Bas (Vers la Case Bento) */}
+                            <div className="flex items-center justify-center bg-stone-950/20 rounded-xl p-1 border border-amber-950/20 shadow-inner">
+                                <span className="text-base leading-none select-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] transform hover:scale-110 transition-transform">
+                                    👇
+                                </span>
+                            </div>
                         </div>
-                        <h2 className="text-2xl font-black uppercase tracking-tight text-main group-hover:text-[#D8AA4D] transition-colors">
-                            Grand HAJJ
-                        </h2>
-                        <p className="text-xs text-dim font-medium mt-2 leading-relaxed">
-                            Pré-inscrivez-vous en priorité pour les prochaines sessions officielles du Hajj (dès 2027).
-                        </p>
                     </div>
 
-                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#D8AA4D]">Formulaire de pré-inscription</span>
-                        <div className="p-2.5 bg-[#D8AA4D] text-[#050605] rounded-xl group-hover:translate-x-1 transition-transform">
-                            <ArrowRight className="w-4 h-4" />
+                    {/* Bento 2 Card */}
+                    <div 
+                        onClick={handleOpenHajjModal}
+                        className="glass p-8 pt-9 rounded-[2.5rem] border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent hover:border-amber-400 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-[0_0_35px_rgba(216,170,77,0.2)] hover:shadow-[0_0_55px_rgba(216,170,77,0.35)] flex-1"
+                    >
+                        <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/15 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/25 transition-all" />
+                        <div>
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-[#D8AA4D] group-hover:scale-110 transition-transform shadow-[0_4px_12px_rgba(216,170,77,0.2)]">
+                                    <Compass className="w-6 h-6" />
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="bg-amber-500/20 text-[#F2CE79] border border-amber-500/40 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider shadow-sm flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                                        Hajj 2027 / 2028+
+                                    </span>
+                                </div>
+                            </div>
+                            <h2 className="text-2xl font-black uppercase tracking-tight text-main group-hover:text-[#D8AA4D] transition-colors">
+                                Grand HAJJ
+                            </h2>
+                            <p className="text-xs text-dim font-medium mt-2 leading-relaxed">
+                                Pré-inscrivez-vous en priorité pour les prochaines sessions officielles du Hajj (dès 2027). Places contingentées.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-amber-500/20">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[#D8AA4D] group-hover:text-amber-300 transition-colors">
+                                    Formulaire de pré-inscription
+                                </span>
+                            </div>
+                            <div className="p-2.5 bg-gradient-to-br from-[#F2CE79] to-[#D8AA4D] text-[#050605] rounded-xl group-hover:translate-x-1 transition-transform shadow-[0_4px_10px_rgba(216,170,77,0.3)]">
+                                <ArrowRight className="w-4 h-4" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -778,6 +830,82 @@ export default function BentoLandingHub() {
                                             placeholder="12 Avenue des Champs-Élysées, Paris"
                                             className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs focus:border-[#D8AA4D]/50 outline-none text-main"
                                         />
+                                    </div>
+                                </div>
+
+                                {/* SECTION AUDIT NUSUK HAJJ & DISPONIBILITÉS WHATSAPP */}
+                                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-3.5">
+                                    <div className="flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4 text-[#D8AA4D]" />
+                                        <span className="text-[10px] font-black uppercase tracking-wider text-[#D8AA4D]">
+                                            Audit Plateforme Officielle Nusuk Hajj
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black uppercase tracking-wider text-dim ml-1">
+                                            Avez-vous déjà créé un compte sur la plateforme officielle Nusuk Hajj ?
+                                        </label>
+                                        <select
+                                            value={hajjForm.hasNusukAccount}
+                                            onChange={(e) => setHajjForm({ ...hajjForm, hasNusukAccount: e.target.value })}
+                                            className="w-full bg-[#0c120f] border border-white/10 p-3 rounded-xl text-xs focus:border-[#D8AA4D]/50 outline-none text-main"
+                                        >
+                                            <option value="NON">Non, pas encore de compte Nusuk</option>
+                                            <option value="OUI">Oui, j&apos;ai déjà un compte créé sur Nusuk Hajj</option>
+                                            <option value="EN_COURS">En cours de création / Bloqué</option>
+                                        </select>
+                                    </div>
+
+                                    {hajjForm.hasNusukAccount === 'OUI' && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 animate-in fade-in">
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-black uppercase tracking-wider text-dim ml-1">
+                                                    Année d&apos;ouverture du compte
+                                                </label>
+                                                <select
+                                                    value={hajjForm.nusukAccountYear}
+                                                    onChange={(e) => setHajjForm({ ...hajjForm, nusukAccountYear: e.target.value })}
+                                                    className="w-full bg-[#0c120f] border border-white/10 p-3 rounded-xl text-xs focus:border-[#D8AA4D]/50 outline-none text-main"
+                                                >
+                                                    <option value="2026_2027">Cette année (2026 / 2027)</option>
+                                                    <option value="2025_ANTERIEUR">L&apos;année dernière (2025 ou antérieur)</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-black uppercase tracking-wider text-dim ml-1">
+                                                    État de vérification du compte
+                                                </label>
+                                                <select
+                                                    value={hajjForm.nusukAccountStatus}
+                                                    onChange={(e) => setHajjForm({ ...hajjForm, nusukAccountStatus: e.target.value })}
+                                                    className="w-full bg-[#0c120f] border border-white/10 p-3 rounded-xl text-xs focus:border-[#D8AA4D]/50 outline-none text-main"
+                                                >
+                                                    <option value="VERIFIE">Compte vérifié & validé</option>
+                                                    <option value="EN_ATTENTE">En attente de vérification</option>
+                                                    <option value="DOCUMENTS_MANQUANTS">Documents manquants / Non validé</option>
+                                                    <option value="NON_VERIFIE">Je ne sais pas</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-1 pt-1">
+                                        <label className="text-[9px] font-black uppercase tracking-wider text-dim ml-1">
+                                            Disponibilité pour un court appel WhatsApp de vérification / audit
+                                        </label>
+                                        <select
+                                            value={hajjForm.availabilitySlots}
+                                            onChange={(e) => setHajjForm({ ...hajjForm, availabilitySlots: e.target.value })}
+                                            className="w-full bg-[#0c120f] border border-white/10 p-3 rounded-xl text-xs focus:border-[#D8AA4D]/50 outline-none text-main"
+                                        >
+                                            <option value="Soirée (18h - 21h)">Soirée (18h - 21h)</option>
+                                            <option value="Matin (9h - 12h)">Matin (9h - 12h)</option>
+                                            <option value="Après-midi (14h - 18h)">Après-midi (14h - 18h)</option>
+                                            <option value="Week-end (Samedi / Dimanche)">Week-end (Samedi / Dimanche)</option>
+                                            <option value="Disponible à tout moment">Disponible à tout moment</option>
+                                        </select>
                                     </div>
                                 </div>
 
