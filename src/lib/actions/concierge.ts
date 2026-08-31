@@ -2649,7 +2649,7 @@ export async function getPublicActiveGroups() {
     try {
         const { data, error } = await supabase
             .from('groups')
-            .select('id, name, departure_date, price, status, flyer_path, is_featured')
+            .select('id, name, departure_date, price, status, flyer_path, flight_type, formula_type, is_featured')
             .in('status', ['En préparation', 'Complet'])
             .order('departure_date', { ascending: true });
 
@@ -2658,5 +2658,75 @@ export async function getPublicActiveGroups() {
     } catch (e: any) {
         console.error("Error fetching public active groups:", e);
         return { error: "Erreur lors du chargement des groupes" };
+    }
+}
+
+/**
+ * Bascule le statut mis en avant d'un groupe pour la landing page (Action 1-clic)
+ */
+export async function toggleGroupFeaturedAction(groupId: string, isFeatured: boolean) {
+    try {
+        const isAdmin = await isAdminAuthenticated();
+        if (!isAdmin) {
+            return { error: "Non autorisé" };
+        }
+
+        const supabase = createAdminClient();
+
+        if (isFeatured) {
+            // Unset previous featured groups so there is one clear spotlight group
+            await supabase
+                .from('groups')
+                .update({ is_featured: false })
+                .neq('id', groupId);
+
+            // Set current group as featured
+            const { error } = await supabase
+                .from('groups')
+                .update({ is_featured: true })
+                .eq('id', groupId);
+
+            if (error) throw error;
+        } else {
+            // Unset featured status
+            const { error } = await supabase
+                .from('groups')
+                .update({ is_featured: false })
+                .eq('id', groupId);
+
+            if (error) throw error;
+        }
+
+        revalidatePath('/');
+        revalidatePath('/backoffice/groups');
+        revalidatePath('/depart');
+
+        return { success: true, isFeatured };
+    } catch (e: any) {
+        console.error("Error toggling group featured status:", e);
+        return { error: e.message || "Erreur lors de la mise en avant du groupe" };
+    }
+}
+
+/**
+ * Récupère le groupe actuellement en vedette pour la landing page
+ */
+export async function getFeaturedGroupAction() {
+    const supabase = createClient();
+    try {
+        const { data, error } = await supabase
+            .from('groups')
+            .select('id, name, departure_date, price, status, flyer_path, flight_type, formula_type, is_featured')
+            .eq('is_featured', true)
+            .in('status', ['En préparation', 'Complet'])
+            .order('departure_date', { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+        if (error) throw error;
+        return { success: true, group: data || null };
+    } catch (e: any) {
+        console.error("Error fetching featured group:", e);
+        return { error: "Erreur lors de la récupération du groupe vedette", group: null };
     }
 }

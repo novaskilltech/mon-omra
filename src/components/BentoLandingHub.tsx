@@ -8,13 +8,16 @@ import {
     MessageSquare, Heart, Sparkles, ShoppingBag, ShieldAlert, Star, 
     Calendar, Users, Globe, X, CheckCircle, AlertCircle, Loader2, GraduationCap, Home
 } from 'lucide-react';
-import { getPublicActiveGroups, requestRegistration } from '@/lib/actions/concierge';
+import { getPublicActiveGroups, getFeaturedGroupAction, requestRegistration } from '@/lib/actions/concierge';
 import { createHajjRequestAction } from '@/lib/actions/hajj';
 
 export default function BentoLandingHub() {
     // Modal states
     const [isOmraModalOpen, setIsOmraModalOpen] = useState(false);
     const [isHajjModalOpen, setIsHajjModalOpen] = useState(false);
+
+    // Featured Group Spotlight state
+    const [featuredGroup, setFeaturedGroup] = useState<any | null>(null);
 
     // Omra Form Data
     const [groups, setGroups] = useState<any[]>([]);
@@ -57,7 +60,22 @@ export default function BentoLandingHub() {
     const [hajjSuccess, setHajjSuccess] = useState(false);
     const [hajjError, setHajjError] = useState<string | null>(null);
 
-    // Load active Omra groups
+    const formatDateDisplay = (dateStr: string) => {
+        if (!dateStr) return '';
+        try {
+            const dateObj = new Date(dateStr);
+            if (isNaN(dateObj.getTime())) return dateStr;
+            return dateObj.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return dateStr;
+        }
+    };
+
+    // Load active Omra groups and featured spotlight group
     useEffect(() => {
         async function loadGroups() {
             try {
@@ -74,6 +92,8 @@ export default function BentoLandingHub() {
                             airport = "MARSEILLE";
                         } else if (lowerName.includes("bruxelles") || lowerName.includes("bru") || lowerName.includes("brussels")) {
                             airport = "BRUXELLES";
+                        } else if (lowerName.includes("charleroi") || lowerName.includes("crl")) {
+                            airport = "CHARLEROI";
                         } else if (lowerName.includes("nice") || lowerName.includes("nce")) {
                             airport = "NICE";
                         } else if (lowerName.includes("toulouse") || lowerName.includes("tls")) {
@@ -87,6 +107,10 @@ export default function BentoLandingHub() {
 
                     const uniqueAirports = Array.from(new Set(mapped.map((g: any) => g.airport))) as string[];
                     setAirports(uniqueAirports.filter(Boolean).sort());
+
+                    // Check for featured spotlight group
+                    const featured = mapped.find((g: any) => g.is_featured);
+                    setFeaturedGroup(featured || null);
                 }
             } catch (err) {
                 console.error("Error loading groups:", err);
@@ -106,6 +130,26 @@ export default function BentoLandingHub() {
             setFilteredGroups([]);
         }
     }, [selectedAirport, groups]);
+
+    const handleOpenFeaturedOmraModal = (group: any) => {
+        setOmraSuccess(false);
+        setOmraError(null);
+        setSelectedAirport(group.airport || '');
+        setWantsCustomDates(false);
+        setCustomDatesInput('');
+        setOmraForm({
+            firstName: '',
+            familyName: '',
+            gender: 'M',
+            email: '',
+            phone: '',
+            message: `Je souhaite réserver la formule sélectionnée : ${group.name} (Départ du ${formatDateDisplay(group.departure_date)}).`,
+            isFormerClient: false,
+            wantsLoyaltyBenefits: false,
+            desiredGroupId: group.id
+        });
+        setIsOmraModalOpen(true);
+    };
 
     const handleOpenOmraModal = () => {
         setOmraSuccess(false);
@@ -251,6 +295,95 @@ export default function BentoLandingHub() {
                     Sélectionnez votre univers ci-dessous pour réserver votre Omra, vous pré-inscrire au Hajj 2027+, vous former ou accéder à votre espace personnalisé.
                 </p>
             </header>
+
+            {/* SECTION BENTO 3D PYRAMIDAL : FORMULE VEDETTE DU MOMENT */}
+            {featuredGroup && (
+                <div className="mb-10 w-full max-w-5xl mx-auto" style={{ perspective: '1200px' }}>
+                    <div 
+                        onClick={() => handleOpenFeaturedOmraModal(featuredGroup)}
+                        className="bento-featured-3d animate-3d-push-pull glass p-8 sm:p-10 rounded-[3rem] border-2 border-amber-500/50 bg-gradient-to-br from-amber-500/20 via-emerald-500/10 to-transparent cursor-pointer group relative overflow-hidden shadow-[0_25px_60px_-15px_rgba(216,170,77,0.35)] hover:border-amber-400 transition-all text-left select-none"
+                    >
+                        {/* Ambient background glows */}
+                        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/20 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/30 transition-all" />
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none" />
+
+                        {/* Top Badges & Signal */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 relative z-10">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/25 to-amber-500/10 border border-amber-400/50 text-[#F2CE79] text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-amber-500/10">
+                                <Star className="w-4 h-4 fill-amber-400 text-amber-400 animate-spin" style={{ animationDuration: '6s' }} />
+                                <span>🌟 FORMULE VEDETTE — SÉLECTION PRIVILÈGE DU MOMENT</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider shadow-sm flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                    Places Disponibles Immédiates
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Main Content Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
+                            {/* Left / Info */}
+                            <div className="lg:col-span-8 space-y-4">
+                                <div className="flex items-center gap-3 text-xs font-black uppercase tracking-wider text-[#D8AA4D]">
+                                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30">
+                                        <Plane className="w-3.5 h-3.5" />
+                                        Départ : {featuredGroup.airport || 'France / Europe'}
+                                    </span>
+                                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        {formatDateDisplay(featuredGroup.departure_date)}
+                                    </span>
+                                </div>
+
+                                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-tight text-main group-hover:text-[#F2CE79] transition-colors leading-tight">
+                                    {featuredGroup.name}
+                                </h2>
+
+                                <p className="text-xs sm:text-sm text-dim font-medium leading-relaxed max-w-2xl">
+                                    Vols sélectionnés {featuredGroup.flight_type === 'DIRECT' ? 'directs sans escale ⚡' : 'avec escales courtes'}, hébergements 5★ confirmés à Médine et La Mecque avec transferts inclus et accompagnement religieux dédié.
+                                </p>
+
+                                {/* Features Chips */}
+                                <div className="flex flex-wrap gap-2.5 pt-1">
+                                    <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5">
+                                        <Hotel className="w-3.5 h-3.5 text-[#D8AA4D]" />
+                                        {featuredGroup.formula_type === 'ECO' ? 'Formule Économique Accessible' : 'Hôtels 5★ Pieds dans le Haram'}
+                                    </span>
+                                    <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5">
+                                        <Plane className="w-3.5 h-3.5 text-emerald-400" />
+                                        {featuredGroup.flight_type === 'DIRECT' ? 'Vol Direct Garanti' : 'Vol Confort avec Escale'}
+                                    </span>
+                                    <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5">
+                                        <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+                                        Visa & Assistance 24/7
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Right / Price & CTA Button */}
+                            <div className="lg:col-span-4 flex flex-col items-start lg:items-end justify-center lg:text-right pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-amber-500/20 lg:pl-6 space-y-4">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-dim">Tarif Tout Inclus</p>
+                                    <p className="text-3xl sm:text-4xl font-black text-[#D8AA4D] tracking-tight">
+                                        {featuredGroup.price ? `${Number(featuredGroup.price).toLocaleString('fr-FR')} €` : 'Sur Demande'}
+                                        <span className="text-xs font-bold text-dim tracking-normal ml-1">/ pers</span>
+                                    </p>
+                                </div>
+
+                                <button 
+                                    type="button"
+                                    className="btn-3d-gold w-full sm:w-auto px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-wider text-amber-950 shadow-2xl group-hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                >
+                                    <span>Réserver cette Offre</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* BENTO GRID (Tout visible d'un coup de d'œil) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

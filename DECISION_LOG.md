@@ -365,6 +365,21 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/app/backoffice/hajj/page.tsx` et `src/app/backoffice/concierge/page.tsx`.
 *   **Version** : v1.20.2
 
+---
+
+## 35. Formule Vedette Omra & Bento 3D Pyramidal Animé (Landing Page ↔ Backoffice)
+*   **Décision** : 
+    1. Ajout d'une action serveur sécurisée `toggleGroupFeaturedAction` et `getFeaturedGroupAction` dans `src/lib/actions/concierge.ts` pour définir le départ prioritaire en 1 clic.
+    2. Ajout du bouton 1-clic ⭐ "Mettre en Vedette (Landing Page)" / "🌟 En Vedette" sur chaque carte de groupe dans `/backoffice/groups` avec bannière de contrôle supérieure.
+    3. Création des animations CSS 3D d'avance/recul continu (`@keyframes bento3DPushPull` / `.bento-featured-3d` / `.animate-3d-push-pull`) dans `src/app/globals.css`.
+    4. Intégration du composant Bento 3D Pyramidal au sommet de la Landing Page (`BentoLandingHub.tsx`), affichant la formule star et ouvrant directement le formulaire de réservation pré-rempli au clic.
+*   **Justification** : Maximise le taux de conversion en captant immédiatement l'attention du visiteur sur une offre coup de cœur tout en offrant à l'agence un contrôle total et instantané depuis son tableau de bord.
+*   **Impacts** :
+    *   Mise à jour de `src/lib/actions/concierge.ts` et tests `src/lib/actions/__tests__/concierge.test.ts`.
+    *   Mise à jour de `src/app/globals.css`.
+    *   Mise à jour de `src/app/backoffice/groups/page.tsx` et `src/components/BentoLandingHub.tsx`.
+*   **Version** : v1.21.0
+
 
 
 

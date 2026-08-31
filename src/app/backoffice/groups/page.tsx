@@ -1,8 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Users, Calendar, ArrowRight, Hotel, Bell, Edit, Trash2, X, Loader2, FileText } from 'lucide-react';
+import { Plus, Users, Calendar, ArrowRight, Hotel, Bell, Edit, Trash2, X, Loader2, FileText, Star, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { getGroupsDetailed, createGroupAction, updateGroupAction, deleteGroupAction, getAvailableFlightsAndHotels, uploadGroupFlyerAction, getGroupFlyerUrlAction } from '@/lib/actions/concierge';
+import { 
+    getGroupsDetailed, 
+    createGroupAction, 
+    updateGroupAction, 
+    deleteGroupAction, 
+    getAvailableFlightsAndHotels, 
+    uploadGroupFlyerAction, 
+    getGroupFlyerUrlAction,
+    toggleGroupFeaturedAction
+} from '@/lib/actions/concierge';
 
 interface Group {
     id: string;
@@ -47,10 +56,36 @@ export default function GroupsPage() {
     const [availableFlights, setAvailableFlights] = useState<any[]>([]);
     const [availableHotels, setAvailableHotels] = useState<any[]>([]);
 
-    // Selected options for logistics
     const [flightDepartureId, setFlightDepartureId] = useState('');
     const [flightReturnId, setFlightReturnId] = useState('');
     const [selectedHotels, setSelectedHotels] = useState<string[]>([]);
+    const [togglingFeaturedId, setTogglingFeaturedId] = useState<string | null>(null);
+
+    const handleToggleFeatured = async (group: Group) => {
+        const newStatus = !group.isFeatured;
+        setTogglingFeaturedId(group.id);
+        
+        // Optimistic state update
+        setGroups(prev => prev.map(g => {
+            if (g.id === group.id) {
+                return { ...g, isFeatured: newStatus };
+            }
+            return newStatus ? { ...g, isFeatured: false } : g;
+        }));
+
+        try {
+            const res = await toggleGroupFeaturedAction(group.id, newStatus);
+            if (!res.success) {
+                alert(res.error || "Erreur lors de la mise en avant");
+                await loadGroups();
+            }
+        } catch (err) {
+            console.error("Error toggling featured group:", err);
+            await loadGroups();
+        } finally {
+            setTogglingFeaturedId(null);
+        }
+    };
 
     useEffect(() => {
         loadGroups();
@@ -259,12 +294,14 @@ export default function GroupsPage() {
         };
     });
 
+    const featuredGroup = groups.find(g => g.isFeatured);
+
     return (
-        <div className="space-y-8 p-6">
+        <div className="space-y-8 p-6 text-left">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-4xl font-black uppercase tracking-tighter text-main">Gestion des <span className="text-emerald-500">Groupes</span></h1>
-                    <p className="text-sub text-sm mt-1">Créez et gérez vos départs pour la saison 2026.</p>
+                    <p className="text-sub text-sm mt-1">Créez et gérez vos départs pour la saison 2026. Mettez en avant votre formule vedette sur la Landing Page.</p>
                 </div>
                 <button 
                     onClick={openAddModal}
@@ -273,6 +310,36 @@ export default function GroupsPage() {
                     <Plus className="w-5 h-5" /> Nouveau Groupe
                 </button>
             </header>
+
+            {/* Spotlight Banner Formule en Vedette */}
+            {featuredGroup && (
+                <div className="glass p-5 md:p-6 rounded-[2rem] border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-emerald-500/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg shadow-amber-500/5 animate-in fade-in duration-300">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                            <Star className="w-6 h-6 fill-amber-400 text-amber-400 animate-pulse" />
+                        </div>
+                        <div>
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-[#F2CE79] border border-amber-500/30 text-[9px] font-black uppercase tracking-widest mb-1">
+                                <Sparkles className="w-3 h-3" />
+                                Formule Actuellement en Vedette sur la Landing Page (Bento 3D)
+                            </div>
+                            <h4 className="text-base font-black uppercase tracking-tight text-main">
+                                {featuredGroup.name}
+                            </h4>
+                            <p className="text-xs text-dim font-medium mt-0.5">
+                                {formatDateDisplay(featuredGroup.date)} • {featuredGroup.price ? `${featuredGroup.price.toLocaleString('fr-FR')} €` : 'Prix sur demande'} • {featuredGroup.flightType === 'DIRECT' ? 'Vol Direct' : 'Avec Escale'}
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        disabled={togglingFeaturedId === featuredGroup.id}
+                        onClick={() => handleToggleFeatured(featuredGroup)}
+                        className="text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl bg-white/5 hover:bg-red-500/10 text-dim hover:text-red-400 border border-white/10 hover:border-red-500/30 transition-all shrink-0 cursor-pointer"
+                    >
+                        Retirer de la Vedette
+                    </button>
+                </div>
+            )}
 
             {loading && groups.length === 0 ? (
                 <div className="flex justify-center items-center py-12">
@@ -424,16 +491,31 @@ export default function GroupsPage() {
                                                 </span>
                                                 
                                                 <div className="flex items-center gap-1.5">
+                                                    {/* Bouton 1-clic Mettre en Vedette */}
+                                                    <button
+                                                        disabled={togglingFeaturedId === g.id}
+                                                        onClick={() => handleToggleFeatured(g)}
+                                                        className={`p-2.5 rounded-xl border transition-all flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider cursor-pointer ${
+                                                            g.isFeatured 
+                                                                ? 'bg-amber-500/20 border-amber-500/50 text-[#F2CE79] shadow-[0_0_15px_rgba(216,170,77,0.3)] hover:bg-amber-500/30' 
+                                                                : 'bg-white/5 border-white/10 text-dim hover:text-amber-400 hover:border-amber-500/30 hover:bg-white/10'
+                                                        }`}
+                                                        title={g.isFeatured ? "Formule en vedette sur la landing page (cliquez pour désactiver)" : "Mettre en vedette au sommet de la landing page (Bento 3D)"}
+                                                    >
+                                                        <Star className={`w-3.5 h-3.5 ${g.isFeatured ? 'fill-amber-400 text-amber-400' : 'text-dim'}`} />
+                                                        <span>{g.isFeatured ? 'En Vedette' : 'Mettre en Vedette'}</span>
+                                                    </button>
+
                                                     <button 
                                                         onClick={() => openEditModal(g)}
-                                                        className="p-2.5 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl border border-emerald-500/10 hover:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 transition-all"
+                                                        className="p-2.5 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl border border-emerald-500/10 hover:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer"
                                                         title="Modifier le groupe"
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button 
                                                         onClick={() => handleDelete(g.id)}
-                                                        className="p-2.5 bg-red-500/5 hover:bg-red-500/10 rounded-xl border border-red-500/10 hover:border-red-500/30 text-red-600 dark:text-red-500 transition-all"
+                                                        className="p-2.5 bg-red-500/5 hover:bg-red-500/10 rounded-xl border border-red-500/10 hover:border-red-500/30 text-red-600 dark:text-red-500 transition-all cursor-pointer"
                                                         title="Supprimer"
                                                     >
                                                         <Trash2 className="w-4 h-4" />

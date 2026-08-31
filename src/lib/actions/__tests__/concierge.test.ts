@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updatePilgrimAction } from '../concierge';
-import { createClient } from '@/utils/supabase/server';
+import { updatePilgrimAction, toggleGroupFeaturedAction, getFeaturedGroupAction } from '../concierge';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 
 // Mock Supabase Server Utils
@@ -8,10 +8,17 @@ vi.mock('@/utils/supabase/server', () => {
     const mockSupabase = {
         from: vi.fn().mockReturnThis(),
         update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     };
     return {
-        createClient: vi.fn(() => mockSupabase)
+        createClient: vi.fn(() => mockSupabase),
+        createAdminClient: vi.fn(() => mockSupabase),
     };
 });
 
@@ -75,5 +82,47 @@ describe('updatePilgrimAction', () => {
         expect(updateMock).toHaveBeenCalledWith(expect.objectContaining({
             email: null
         }));
+    });
+});
+
+describe('toggleGroupFeaturedAction & getFeaturedGroupAction', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('should set group as featured and unset other groups', async () => {
+        const mockSupabase = createAdminClient();
+        const updateMock = vi.fn().mockReturnThis();
+        const eqMock = vi.fn().mockResolvedValue({ error: null });
+        const neqMock = vi.fn().mockResolvedValue({ error: null });
+        
+        mockSupabase.from = vi.fn().mockReturnValue({
+            update: updateMock,
+            eq: eqMock,
+            neq: neqMock
+        });
+
+        const result = await toggleGroupFeaturedAction('group-123', true);
+
+        expect(result).toEqual({ success: true, isFeatured: true });
+        expect(mockSupabase.from).toHaveBeenCalledWith('groups');
+        expect(revalidatePath).toHaveBeenCalledWith('/');
+        expect(revalidatePath).toHaveBeenCalledWith('/backoffice/groups');
+    });
+
+    it('should unset featured status for a group', async () => {
+        const mockSupabase = createAdminClient();
+        const updateMock = vi.fn().mockReturnThis();
+        const eqMock = vi.fn().mockResolvedValue({ error: null });
+
+        mockSupabase.from = vi.fn().mockReturnValue({
+            update: updateMock,
+            eq: eqMock
+        });
+
+        const result = await toggleGroupFeaturedAction('group-123', false);
+
+        expect(result).toEqual({ success: true, isFeatured: false });
+        expect(mockSupabase.from).toHaveBeenCalledWith('groups');
     });
 });
