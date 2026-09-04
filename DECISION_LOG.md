@@ -380,6 +380,20 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/app/backoffice/groups/page.tsx` et `src/components/BentoLandingHub.tsx`.
 *   **Version** : v1.21.0
 
+---
+
+## 36. Dissimulation des Tarifs Non-Vedettes & Contact Direct WhatsApp (07 52 28 08 90)
+*   **Décision** : 
+    1. Dissimulation des tarifs fixes sur toutes les offres et départs Omra réguliers (`/depart/[airport]` et sélecteur modal landing page). Seule l'offre mise en avant (formule vedette) conserve son tarif affiché.
+    2. Ajout d'une constante `AGENCY_WHATSAPP_PHONE = '0752280890'` et de l'utilitaire `getGroupInquiryWhatsAppUrl` dans `src/lib/utils/phone.ts`.
+    3. Sur chaque formule non-vedette dans `/depart/[airport]`, remplacement de l'affichage des prix fixes par la mention *"Tarif personnalisé sur devis immédiat"* et intégration du bouton WhatsApp direct vers le `07 52 28 08 90` avec le message automatique intégrant le nom et les dates du séjour : *"Bonjour, je suis intéressé par cette formule : [Nom] (Départ du [Date]), pouvez-vous m'en dire plus ?"*.
+*   **Justification** : Les tarifs des billets d'avion et des hôtels étant trop fluctuants pour garantir un prix fixe sur le catalogue complet, cette approche protège la rentabilité de l'agence tout en convertissant immédiatement le pèlerin vers une discussion commerciale directe sur WhatsApp.
+*   **Impacts** :
+    *   Mise à jour de `src/lib/utils/phone.ts` et tests unitaires `src/lib/utils/__tests__/phone.test.ts` (28/28 tests réussis).
+    *   Mise à jour de `src/app/depart/[airport]/page.tsx` et `src/components/BentoLandingHub.tsx`.
+*   **Version** : v1.22.0
+
+
 
 
 

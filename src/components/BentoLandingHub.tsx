@@ -715,7 +715,7 @@ export default function BentoLandingHub() {
                                                 <option value="" className="bg-[#0c120f] text-dim">-- Sélectionner une date de voyage --</option>
                                                 {[...groups].sort((a: any, b: any) => new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime()).map((grp) => (
                                                     <option key={grp.id} value={grp.id} className="bg-[#0c120f] text-main">
-                                                        {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} — Départ {grp.airport || 'Même Ville'} ({grp.name}) {grp.price ? `— ${Number(grp.price).toLocaleString('fr-FR')} €` : ''}
+                                                        {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} — Départ {grp.airport || 'Même Ville'} ({grp.name}) {grp.is_featured && grp.price ? `— ${Number(grp.price).toLocaleString('fr-FR')} € (Offre Vedette)` : '— Sur devis'}
                                                     </option>
                                                 ))}
                                             </select>

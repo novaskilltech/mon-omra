@@ -7,10 +7,11 @@ import Link from 'next/link';
 import { 
     Calendar, Plane, Star, MapPin, ExternalLink, Check, ChevronUp, ChevronDown, 
     ArrowLeft, Loader2, ShieldCheck, X, CheckCircle, AlertCircle, Sparkles, GraduationCap, ArrowRight,
-    FileText
+    FileText, MessageCircle
 } from 'lucide-react';
 import { getPublicActiveGroups, requestRegistration } from '@/lib/actions/concierge';
 import { calculateAdjustedGroupPrice } from '@/lib/actions/flights';
+import { getGroupInquiryWhatsAppUrl } from '@/lib/utils/phone';
 
 // Mock details same as homepage
 const MOCK_PREMIUM_DETAILS = {
@@ -505,13 +506,17 @@ export default function DepartAirportPage() {
                                                         </div>
                                                         <div className="flex items-center gap-3">
                                                             <div className="text-right hidden sm:block">
-                                                                <p className="text-[9px] font-black text-dim uppercase tracking-wider">{isWiser ? "Tarif" : "À partir de"}</p>
-                                                                <p className="text-base font-black text-emerald-400">
-                                                                    {isWiser 
-                                                                        ? "Sur demande" 
-                                                                        : !group.isApiSuccess 
-                                                                            ? "Nous consulter" 
-                                                                            : `${priceNum.toLocaleString('fr-FR')} €`
+                                                                <p className="text-[9px] font-black text-dim uppercase tracking-wider">
+                                                                    {group.isFeatured ? (isWiser ? "Tarif" : "À partir de") : "Tarif"}
+                                                                </p>
+                                                                <p className={`text-base font-black ${group.isFeatured ? 'text-emerald-400' : 'text-[#F2CE79]'}`}>
+                                                                    {group.isFeatured 
+                                                                        ? (isWiser 
+                                                                            ? "Sur demande" 
+                                                                            : !group.isApiSuccess 
+                                                                                ? "Nous consulter" 
+                                                                                : `${priceNum.toLocaleString('fr-FR')} €`)
+                                                                        : "Sur devis WhatsApp"
                                                                     }
                                                                 </p>
                                                             </div>
@@ -545,70 +550,112 @@ export default function DepartAirportPage() {
 
                                                             <div className="p-6 sm:p-8">
                                                                  {activeTab === 'rates' && (() => {
-                                                                      if (isWiser) {
-                                                                          return (
-                                                                              <div className="p-8 text-center bg-white/[0.01] border border-white/5 rounded-2xl w-full">
-                                                                                  <p className="text-xs text-dim leading-relaxed">
-                                                                                      Cette formule "Wiser" est proposée sur mesure. Les tarifs de ce séjour sont disponibles sur demande.
-                                                                                      Veuillez cliquer sur <strong>"Demander un devis"</strong> ci-dessous pour obtenir une offre personnalisée selon vos dates et vos préférences.
-                                                                                  </p>
-                                                                              </div>
-                                                                          );
-                                                                      }
-                                                                      if (!group.isApiSuccess) {
-                                                                          return (
-                                                                              <div className="p-8 text-center bg-amber-500/5 border border-amber-500/10 rounded-2xl w-full space-y-3">
-                                                                                  <p className="text-xs text-amber-400 font-bold uppercase tracking-wider">
-                                                                                      ⚠️ Tarifs de vols en cours d'actualisation
-                                                                                  </p>
-                                                                                  <p className="text-xs text-dim leading-relaxed max-w-md mx-auto">
-                                                                                      Les tarifs en temps réel ne peuvent pas être calculés automatiquement pour le moment. 
-                                                                                      Veuillez nous consulter directement pour obtenir le meilleur prix du jour.
-                                                                                  </p>
-                                                                              </div>
-                                                                          );
-                                                                      }
-                                                                      const days = group.durationDays || 10;
-                                                                      const extraDays = Math.max(0, days - 10);
-                                                                      
-                                                                      const quadPrice = priceNum;
-                                                                      const triplePrice = quadPrice + 100 + (extraDays * 5);
-                                                                      const doublePrice = quadPrice + 200 + (extraDays * 10);
-                                                                      const singlePrice = quadPrice + 600 + (extraDays * 20);
+                                                                     // Pour les offres non-vedettes, on dissimule les tarifs fixes car ils sont trop variables
+                                                                     if (!group.isFeatured) {
+                                                                         const whatsappUrl = getGroupInquiryWhatsAppUrl({
+                                                                             name: group.name,
+                                                                             departure_date: group.departure_date,
+                                                                             airport: group.airport
+                                                                         });
 
-                                                                      return (
-                                                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                                              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
-                                                                                  <div>
-                                                                                      <p className="text-[9px] font-black uppercase text-dim tracking-wider">Chambre Quadruple</p>
-                                                                                      <p className="text-xs text-main font-bold">4 personnes</p>
-                                                                                  </div>
-                                                                                  <p className="text-base font-black text-main">{quadPrice.toLocaleString('fr-FR')} €</p>
-                                                                              </div>
-                                                                              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
-                                                                                  <div>
-                                                                                      <p className="text-[9px] font-black uppercase text-dim tracking-wider">Chambre Triple</p>
-                                                                                      <p className="text-xs text-main font-bold">3 personnes</p>
-                                                                                  </div>
-                                                                                  <p className="text-base font-black text-main">{triplePrice.toLocaleString('fr-FR')} €</p>
-                                                                              </div>
-                                                                              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
-                                                                                  <div>
-                                                                                      <p className="text-[9px] font-black uppercase text-dim tracking-wider">Chambre Double</p>
-                                                                                      <p className="text-xs text-main font-bold">2 personnes</p>
-                                                                                  </div>
-                                                                                  <p className="text-base font-black text-main">{doublePrice.toLocaleString('fr-FR')} €</p>
-                                                                              </div>
-                                                                              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
-                                                                                  <div>
-                                                                                      <p className="text-[9px] font-black uppercase text-dim tracking-wider">Chambre Single</p>
-                                                                                      <p className="text-xs text-main font-bold">1 personne</p>
-                                                                                  </div>
-                                                                                  <p className="text-base font-black text-main">{singlePrice.toLocaleString('fr-FR')} €</p>
-                                                                              </div>
-                                                                          </div>
-                                                                      );
-                                                                  })()}
+                                                                         return (
+                                                                             <div className="p-8 text-center bg-gradient-to-b from-white/[0.03] to-emerald-500/[0.03] border border-emerald-500/20 rounded-3xl w-full space-y-5">
+                                                                                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[#F2CE79] text-[10px] font-black uppercase tracking-wider">
+                                                                                     <span>⚡ Tarifs ajustés en direct selon disponibilités réelles</span>
+                                                                                 </div>
+                                                                                 <div className="max-w-xl mx-auto space-y-2">
+                                                                                     <h4 className="text-base sm:text-lg font-black uppercase tracking-tight text-main">
+                                                                                         Tarif personnalisé sur devis immédiat
+                                                                                     </h4>
+                                                                                     <p className="text-xs text-dim leading-relaxed">
+                                                                                         Les prix des vols et des hôtels évoluant quotidiennement selon la saison et le remplissage, nous calculons votre séjour au plus juste en direct pour vous garantir le meilleur tarif possible.
+                                                                                     </p>
+                                                                                 </div>
+                                                                                 <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center items-center">
+                                                                                     <a 
+                                                                                         href={whatsappUrl}
+                                                                                         target="_blank"
+                                                                                         rel="noopener noreferrer"
+                                                                                         className="bg-emerald-500 hover:bg-emerald-400 text-white px-7 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 shadow-lg shadow-emerald-500/25 hover:scale-105 active:scale-95"
+                                                                                     >
+                                                                                         <MessageCircle className="w-4 h-4 fill-white text-emerald-500" />
+                                                                                         <span>Demander le tarif par WhatsApp</span>
+                                                                                     </a>
+                                                                                     <button 
+                                                                                         onClick={() => handleOpenModal(group)}
+                                                                                         className="bg-white/5 hover:bg-white/10 text-dim hover:text-main border border-white/10 px-6 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all"
+                                                                                     >
+                                                                                         Demander par formulaire
+                                                                                     </button>
+                                                                                 </div>
+                                                                             </div>
+                                                                         );
+                                                                     }
+
+                                                                     if (isWiser) {
+                                                                         return (
+                                                                             <div className="p-8 text-center bg-white/[0.01] border border-white/5 rounded-2xl w-full">
+                                                                                 <p className="text-xs text-dim leading-relaxed">
+                                                                                     Cette formule "Wiser" est proposée sur mesure. Les tarifs de ce séjour sont disponibles sur demande.
+                                                                                     Veuillez cliquer sur <strong>"Demander un devis"</strong> ci-dessous pour obtenir une offre personnalisée selon vos dates et vos préférences.
+                                                                                 </p>
+                                                                             </div>
+                                                                         );
+                                                                     }
+                                                                     if (!group.isApiSuccess) {
+                                                                         return (
+                                                                             <div className="p-8 text-center bg-amber-500/5 border border-amber-500/10 rounded-2xl w-full space-y-3">
+                                                                                 <p className="text-xs text-amber-400 font-bold uppercase tracking-wider">
+                                                                                     ⚠️ Tarifs de vols en cours d'actualisation
+                                                                                 </p>
+                                                                                 <p className="text-xs text-dim leading-relaxed max-w-md mx-auto">
+                                                                                     Les tarifs en temps réel ne peuvent pas être calculés automatiquement pour le moment. 
+                                                                                     Veuillez nous consulter directement pour obtenir le meilleur prix du jour.
+                                                                                 </p>
+                                                                             </div>
+                                                                         );
+                                                                     }
+                                                                     const days = group.durationDays || 10;
+                                                                     const extraDays = Math.max(0, days - 10);
+                                                                     
+                                                                     const quadPrice = priceNum;
+                                                                     const triplePrice = quadPrice + 100 + (extraDays * 5);
+                                                                     const doublePrice = quadPrice + 200 + (extraDays * 10);
+                                                                     const singlePrice = quadPrice + 600 + (extraDays * 20);
+
+                                                                     return (
+                                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                             <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
+                                                                                 <div>
+                                                                                     <p className="text-[9px] font-black uppercase text-dim tracking-wider">Chambre Quadruple</p>
+                                                                                     <p className="text-xs text-main font-bold">4 personnes</p>
+                                                                                 </div>
+                                                                                 <p className="text-base font-black text-main">{quadPrice.toLocaleString('fr-FR')} €</p>
+                                                                             </div>
+                                                                             <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
+                                                                                 <div>
+                                                                                     <p className="text-[9px] font-black uppercase text-dim tracking-wider">Chambre Triple</p>
+                                                                                     <p className="text-xs text-main font-bold">3 personnes</p>
+                                                                                 </div>
+                                                                                 <p className="text-base font-black text-main">{triplePrice.toLocaleString('fr-FR')} €</p>
+                                                                             </div>
+                                                                             <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
+                                                                                 <div>
+                                                                                     <p className="text-[9px] font-black uppercase text-dim tracking-wider">Chambre Double</p>
+                                                                                     <p className="text-xs text-main font-bold">2 personnes</p>
+                                                                                 </div>
+                                                                                 <p className="text-base font-black text-main">{doublePrice.toLocaleString('fr-FR')} €</p>
+                                                                             </div>
+                                                                             <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
+                                                                                 <div>
+                                                                                     <p className="text-[9px] font-black uppercase text-dim tracking-wider">Chambre Single</p>
+                                                                                     <p className="text-xs text-main font-bold">1 personne</p>
+                                                                                 </div>
+                                                                                 <p className="text-base font-black text-main">{singlePrice.toLocaleString('fr-FR')} €</p>
+                                                                             </div>
+                                                                         </div>
+                                                                     );
+                                                                 })()}
 
                                                                 {activeTab === 'hotels' && (
                                                                     <div className="space-y-8">
@@ -761,6 +808,23 @@ export default function DepartAirportPage() {
                                                                       </p>
                                                                   </div>
                                                                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                                                                     {/* Pour les offres non-vedettes, proposer le bouton d'action direct WhatsApp vers l'agence */}
+                                                                     {!group.isFeatured && (
+                                                                         <a
+                                                                             href={getGroupInquiryWhatsAppUrl({
+                                                                                 name: group.name,
+                                                                                 departure_date: group.departure_date,
+                                                                                 airport: group.airport
+                                                                             })}
+                                                                             target="_blank"
+                                                                             rel="noopener noreferrer"
+                                                                             className="bg-emerald-500 hover:bg-emerald-400 text-white px-7 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 cursor-pointer"
+                                                                         >
+                                                                             <MessageCircle className="w-4 h-4 fill-white text-emerald-500" />
+                                                                             <span>Tarif WhatsApp</span>
+                                                                         </a>
+                                                                     )}
+
                                                                      {group.flyerPath && (
                                                                          <button
                                                                              onClick={async () => {
@@ -779,9 +843,9 @@ export default function DepartAirportPage() {
                                                                      )}
                                                                      <button 
                                                                          onClick={() => handleOpenModal(group)}
-                                                                         className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 w-full sm:w-auto justify-center cursor-pointer"
+                                                                         className={`${group.isFeatured ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg shadow-emerald-500/20' : 'bg-white/5 hover:bg-white/10 text-main border border-white/10'} px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 w-full sm:w-auto justify-center cursor-pointer`}
                                                                      >
-                                                                         {isWiser || !group.isApiSuccess ? "Nous consulter" : "Réserver cette date"} <ArrowRight className="w-4 h-4" />
+                                                                         {group.isFeatured ? (isWiser || !group.isApiSuccess ? "Nous consulter" : "Réserver cette date") : "Formulaire de contact"} <ArrowRight className="w-4 h-4" />
                                                                      </button>
                                                                  </div>
                                                              </div>

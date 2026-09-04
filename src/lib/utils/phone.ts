@@ -77,3 +77,22 @@ export function formatDisplayPhone(phone: string | null | undefined, nationality
     }
     return '+' + clean;
 }
+
+/**
+ * Numéro de contact WhatsApp officiel de l'agence pour les demandes de devis et tarifs
+ */
+export const AGENCY_WHATSAPP_PHONE = '0752280890';
+
+/**
+ * Génère le lien WhatsApp avec message pré-rempli contenant le nom et les dates du séjour
+ */
+export function getGroupInquiryWhatsAppUrl(group: { name: string; departure_date?: string | null; airport?: string }): string {
+    const dateFormatted = group.departure_date
+        ? new Date(group.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+        : 'Date à confirmer';
+
+    const msg = `Bonjour, je suis intéressé par cette formule : "${group.name}" (Départ du ${dateFormatted}${group.airport ? ` depuis ${group.airport}` : ''}), pouvez-vous m'en dire plus ?`;
+
+    return getWhatsAppUrl(AGENCY_WHATSAPP_PHONE, msg, 'france');
+}
+
