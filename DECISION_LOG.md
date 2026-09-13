@@ -400,3 +400,19 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
 
 
 
+
+---
+
+## 37. Résolution Violation RLS (Row-Level Security) lors de la Création de Groupes & Upload de Flyers
+*   **Décision** :
+    1. Bascule systématique des actions d'administration des groupes (`createGroupAction`, `updateGroupAction`, `deleteGroupAction`, `uploadGroupFlyerAction`, `getGroupFlyerUrlAction`, `uploadVisaDocument`) vers `createAdminClient()` (clé de service Supabase) dans `src/lib/actions/concierge.ts`.
+    2. Synchronisation de la mise en avant (`isFeatured`) lors de la création et modification de groupe pour garantir l'unicité du groupe vedette et la revalidation instantanée de la landing page (`/`).
+    3. Nettoyage en cascade sécurisé des tables de jointure `group_hotel_stays` et `group_logistics` lors de la suppression d'un groupe.
+*   **Justification** : 
+    *   L'authentification du backoffice administrateur repose sur une session de cookie d'administration (`isAdminAuthenticated()`) sans JWT utilisateur Supabase public.
+    *   L'utilisation de `createClient()` (clé publique anonyme) provoquait l'interdiction d'insertion PostgreSQL `new row violates row-level security policy` lors de l'upload d'un flyer dans le bucket privé `group-flyers` (protégé par RLS sur `storage.objects`).
+    *   Le passage au client d'administration Supabase sécurisé (`createAdminClient()`) garantit le bon déroulement des créations de groupes avec ou sans flyer, tout en maintenant l'étanchéité et la sécurité des données.
+*   **Impacts** :
+    *   Fichier `src/lib/actions/concierge.ts` corrigé et fiabilisé.
+    *   Tests de non-régression validés (28/28 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
+*   **Version** : v1.22.1

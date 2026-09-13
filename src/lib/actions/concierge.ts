@@ -890,7 +890,8 @@ export async function createGroupAction(data: {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
+    let agencyId = '3e319b07-d010-4478-8438-9cb3762efeb1';
     const { data: adminProfile } = await supabase
         .from('profiles')
         .select('id')
@@ -898,7 +899,9 @@ export async function createGroupAction(data: {
         .limit(1)
         .single();
     
-    const agencyId = adminProfile?.id || crypto.randomUUID();
+    if (adminProfile?.id) {
+        agencyId = adminProfile.id;
+    }
 
     const { data: group, error } = await supabase
         .from('groups')
@@ -919,6 +922,13 @@ export async function createGroupAction(data: {
     if (error) {
         console.error("Error creating group:", error);
         return { error: error.message || "Erreur de création de groupe" };
+    }
+
+    if (data.isFeatured) {
+        await supabase
+            .from('groups')
+            .update({ is_featured: false })
+            .neq('id', group.id);
     }
 
     if (data.flightDepartureId || data.flightReturnId) {
@@ -958,6 +968,7 @@ export async function createGroupAction(data: {
     }
 
     revalidatePath('/backoffice/groups');
+    revalidatePath('/');
     return { success: true, group };
 }
 
@@ -977,7 +988,7 @@ export async function updateGroupAction(id: string, data: {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
     const updatePayload: any = {
         name: data.name,
         departure_date: data.departureDate,
@@ -1007,6 +1018,13 @@ export async function updateGroupAction(id: string, data: {
     if (error) {
         console.error("Error updating group:", error);
         return { error: error.message || "Erreur de mise à jour du groupe" };
+    }
+
+    if (data.isFeatured) {
+        await supabase
+            .from('groups')
+            .update({ is_featured: false })
+            .neq('id', id);
     }
 
     const { data: existingLogistics } = await supabase
@@ -1065,6 +1083,7 @@ export async function updateGroupAction(id: string, data: {
     }
 
     revalidatePath('/backoffice/groups');
+    revalidatePath('/');
     return { success: true };
 }
 
@@ -1072,7 +1091,10 @@ export async function deleteGroupAction(id: string) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
+    await supabase.from('group_hotel_stays').delete().eq('group_id', id);
+    await supabase.from('group_logistics').delete().eq('group_id', id);
+
     const { error } = await supabase
         .from('groups')
         .delete()
@@ -1084,11 +1106,12 @@ export async function deleteGroupAction(id: string) {
     }
 
     revalidatePath('/backoffice/groups');
+    revalidatePath('/');
     return { success: true };
 }
 
 export async function getGroupFlyerUrlAction(filePath: string) {
-    const supabase = createClient();
+    const supabase = createAdminClient();
     try {
         const { data, error } = await supabase
             .storage
@@ -1120,7 +1143,7 @@ export async function uploadGroupFlyerAction(formData: FormData) {
         return { error: "Fichier trop volumineux. La taille maximale est de 5 Mo." };
     }
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
     try {
         const fileExt = file.name.split('.').pop();
         const filePath = `flyers/flyer_${Date.now()}.${fileExt}`;
@@ -2098,7 +2121,7 @@ export async function uploadVisaDocument(pilgrimId: string, formData: FormData) 
     const file = formData.get('file') as File;
     if (!file) return { error: "Aucun fichier fourni" };
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
     try {
         const fileExt = file.name.split('.').pop();
         const filePath = `visas/${pilgrimId}_visa_${Date.now()}.${fileExt}`;
