@@ -416,3 +416,17 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Fichier `src/lib/actions/concierge.ts` corrigé et fiabilisé.
     *   Tests de non-régression validés (28/28 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
 *   **Version** : v1.22.1
+
+---
+
+## 38. Affichage Dynamique des Hôtels Réels & Fin des Mentions Hardcodées "Pieds dans le Haram"
+*   **Décision** :
+    1. Récupération et jointure automatique des hôtels sélectionnés (`group_hotel_stays` ↔ `hotels`) dans `getPublicActiveGroups` et `getFeaturedGroupAction` dans `src/lib/actions/concierge.ts`.
+    2. Sur le Bento 3D de la page d'accueil (`BentoLandingHub.tsx`), remplacement du badge et du texte descriptif hardcodés ("Hôtels 5★ Pieds dans le Haram") par les **hôtels réels cochés par l'administrateur** lors de la création du groupe (ex: `🏨 Hôtels : M Makkah & Zaha Taiba`, description avec hôtels confirmés à La Mecque et Médine).
+    3. Retrait de la mention trompeuse "hôtels 5★ au pied du Haram" sur le bloc Omra général au profit d'une mention conforme : "Formules tout-compris, vols sélectionnés & hébergements certifiés".
+    4. Enrichissement du sélecteur de Formule dans le backoffice (`/backoffice/groups`) avec options explicites : `Classique (Hôtels Confort)`, `Confort (Navette 24h)`, `Économique (Hôtels Standard)`, et `Prestige (5★ Pieds dans le Haram)`, assorti d'un message informatif rappelant que les hôtels cochés s'affichent automatiquement en temps réel sur la landing page.
+*   **Justification** : Évite les descriptions mensongères ou inexactes pour les pèlerins lorsqu'un groupe utilise des hôtels de confort de type navette ou à distance du parvis (comme M Makkah by Millennium ou Zaha Taiba), et garantit la parfaite adéquation entre les sélections faites en backoffice et les informations affichées aux clients.
+*   **Impacts** :
+    *   Mise à jour de `src/lib/actions/concierge.ts`, `src/components/BentoLandingHub.tsx` et `src/app/backoffice/groups/page.tsx`.
+    *   Tests de non-régression validés (28/28 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
+*   **Version** : v1.22.2

@@ -884,7 +884,7 @@ export async function createGroupAction(data: {
     flyerPath?: string;
     price?: number;
     flightType?: 'DIRECT' | 'LAYOVER';
-    formulaType?: 'ECO' | 'CLASSIQUE';
+    formulaType?: string;
     isFeatured?: boolean;
 }) {
     const isAdmin = await isAdminAuthenticated();
@@ -982,7 +982,7 @@ export async function updateGroupAction(id: string, data: {
     flyerPath?: string;
     price?: number;
     flightType?: 'DIRECT' | 'LAYOVER';
-    formulaType?: 'ECO' | 'CLASSIQUE';
+    formulaType?: string;
     isFeatured?: boolean;
 }) {
     const isAdmin = await isAdminAuthenticated();
@@ -2670,14 +2670,68 @@ export async function getDriverDashboardData(token: string, enteredPasscode?: st
 export async function getPublicActiveGroups() {
     const supabase = createClient();
     try {
-        const { data, error } = await supabase
+        const { data: groups, error } = await supabase
             .from('groups')
             .select('id, name, departure_date, price, status, flyer_path, flight_type, formula_type, is_featured')
             .in('status', ['En préparation', 'Complet'])
             .order('departure_date', { ascending: true });
 
         if (error) throw error;
-        return { success: true, groups: data || [] };
+        if (!groups || groups.length === 0) return { success: true, groups: [] };
+
+        const groupIds = groups.map(g => g.id);
+
+        const { data: staysData } = await supabase
+            .from('group_hotel_stays')
+            .select('group_id, hotel_id, hotels (id, name, city, stars, distance_from_haram)')
+            .in('group_id', groupIds);
+
+        const staysByGroup = new Map<string, any[]>();
+        (staysData || []).forEach((s: any) => {
+            if (!staysByGroup.has(s.group_id)) {
+                staysByGroup.set(s.group_id, []);
+            }
+            staysByGroup.get(s.group_id)!.push(s);
+        });
+
+        const mappedGroups = groups.map((g: any) => {
+            const stays = staysByGroup.get(g.id) || [];
+            const makkahStay = stays.find((s: any) => {
+                const h: any = Array.isArray(s.hotels) ? s.hotels[0] : s.hotels;
+                return h?.city?.toUpperCase() === 'MAKKAH';
+            });
+            const madinahStay = stays.find((s: any) => {
+                const h: any = Array.isArray(s.hotels) ? s.hotels[0] : s.hotels;
+                return h?.city?.toUpperCase() === 'MADINAH';
+            });
+            const makkahH: any = Array.isArray(makkahStay?.hotels) ? makkahStay?.hotels[0] : makkahStay?.hotels;
+            const madinahH: any = Array.isArray(madinahStay?.hotels) ? madinahStay?.hotels[0] : madinahStay?.hotels;
+            const makkahHotel = makkahH?.name || null;
+            const madinahHotel = madinahH?.name || null;
+            const hotelNames = stays.map((s: any) => {
+                const h: any = Array.isArray(s.hotels) ? s.hotels[0] : s.hotels;
+                return h?.name;
+            }).filter(Boolean);
+
+            let hotelsLabel = '';
+            if (makkahHotel && madinahHotel) {
+                const shortMakkah = makkahHotel.replace(/ by Millennium/i, '').replace(/ Hotel/i, '');
+                const shortMadinah = madinahHotel.replace(/ Hotel/i, '');
+                hotelsLabel = `${shortMakkah} & ${shortMadinah}`;
+            } else if (hotelNames.length > 0) {
+                hotelsLabel = hotelNames.join(' & ');
+            }
+
+            return {
+                ...g,
+                makkah_hotel: makkahHotel,
+                madinah_hotel: madinahHotel,
+                hotels_label: hotelsLabel,
+                hotels: hotelNames
+            };
+        });
+
+        return { success: true, groups: mappedGroups };
     } catch (e: any) {
         console.error("Error fetching public active groups:", e);
         return { error: "Erreur lors du chargement des groupes" };
@@ -2732,12 +2786,12 @@ export async function toggleGroupFeaturedAction(groupId: string, isFeatured: boo
 }
 
 /**
- * Récupère le groupe actuellement en vedette pour la landing page
+ * Récupère le groupe actuellement en vedette pour la landing page avec ses hôtels associés
  */
 export async function getFeaturedGroupAction() {
     const supabase = createClient();
     try {
-        const { data, error } = await supabase
+        const { data: group, error } = await supabase
             .from('groups')
             .select('id, name, departure_date, price, status, flyer_path, flight_type, formula_type, is_featured')
             .eq('is_featured', true)
@@ -2747,7 +2801,50 @@ export async function getFeaturedGroupAction() {
             .maybeSingle();
 
         if (error) throw error;
-        return { success: true, group: data || null };
+        if (!group) return { success: true, group: null };
+
+        const { data: stays } = await supabase
+            .from('group_hotel_stays')
+            .select('hotel_id, hotels (id, name, city, stars, distance_from_haram)')
+            .eq('group_id', group.id);
+
+        const hotelStays: any[] = stays || [];
+        const makkahStay = hotelStays.find((s: any) => {
+            const h: any = Array.isArray(s.hotels) ? s.hotels[0] : s.hotels;
+            return h?.city?.toUpperCase() === 'MAKKAH';
+        });
+        const madinahStay = hotelStays.find((s: any) => {
+            const h: any = Array.isArray(s.hotels) ? s.hotels[0] : s.hotels;
+            return h?.city?.toUpperCase() === 'MADINAH';
+        });
+        const makkahH: any = Array.isArray(makkahStay?.hotels) ? makkahStay?.hotels[0] : makkahStay?.hotels;
+        const madinahH: any = Array.isArray(madinahStay?.hotels) ? madinahStay?.hotels[0] : madinahStay?.hotels;
+        const makkahHotel = makkahH?.name || null;
+        const madinahHotel = madinahH?.name || null;
+        const hotelNames = hotelStays.map((s: any) => {
+            const h: any = Array.isArray(s.hotels) ? s.hotels[0] : s.hotels;
+            return h?.name;
+        }).filter(Boolean);
+
+        let hotelsLabel = '';
+        if (makkahHotel && madinahHotel) {
+            const shortMakkah = makkahHotel.replace(/ by Millennium/i, '').replace(/ Hotel/i, '');
+            const shortMadinah = madinahHotel.replace(/ Hotel/i, '');
+            hotelsLabel = `${shortMakkah} & ${shortMadinah}`;
+        } else if (hotelNames.length > 0) {
+            hotelsLabel = hotelNames.join(' & ');
+        }
+
+        return { 
+            success: true, 
+            group: {
+                ...group,
+                makkah_hotel: makkahHotel,
+                madinah_hotel: madinahHotel,
+                hotels_label: hotelsLabel,
+                hotels: hotelNames
+            } 
+        };
     } catch (e: any) {
         console.error("Error fetching featured group:", e);
         return { error: "Erreur lors de la récupération du groupe vedette", group: null };

@@ -26,7 +26,7 @@ interface Group {
     flyerPath?: string;
     price?: number;
     flightType?: 'DIRECT' | 'LAYOVER';
-    formulaType?: 'ECO' | 'CLASSIQUE';
+    formulaType?: string;
     isFeatured?: boolean;
 }
 
@@ -49,7 +49,7 @@ export default function GroupsPage() {
     const [price, setPrice] = useState<string>('');
     const [selectedCity, setSelectedCity] = useState<string | null>(null);
     const [flightType, setFlightType] = useState<'DIRECT' | 'LAYOVER'>('DIRECT');
-    const [formulaType, setFormulaType] = useState<'ECO' | 'CLASSIQUE'>('CLASSIQUE');
+    const [formulaType, setFormulaType] = useState<string>('CLASSIQUE');
     const [isFeatured, setIsFeatured] = useState(false);
 
     // Available options
@@ -628,8 +628,10 @@ export default function GroupsPage() {
                                         onChange={(e: any) => setFormulaType(e.target.value)} 
                                         className="w-full bg-[#0b0f0d] dark:bg-[#0b0f0d] border border-white/10 dark:border-white/10 rounded-2xl px-5 py-4 text-sm font-medium text-main outline-none focus:border-emerald-500/40 transition-all"
                                     >
-                                        <option value="CLASSIQUE" className="bg-[#050605] text-main">Classique</option>
-                                        <option value="ECO" className="bg-[#050605] text-main">Eco</option>
+                                        <option value="CLASSIQUE" className="bg-[#050605] text-main">Classique (Hôtels Confort)</option>
+                                        <option value="CONFORT_NAVETTE" className="bg-[#050605] text-main">Confort (Navette 24h)</option>
+                                        <option value="ECO" className="bg-[#050605] text-main">Économique (Hôtels Standard)</option>
+                                        <option value="PIEDS_HARAM" className="bg-[#050605] text-main">Prestige (5★ Pieds dans le Haram)</option>
                                     </select>
                                 </div>
                             </div>
@@ -753,6 +755,13 @@ export default function GroupsPage() {
                                         )}
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="pt-1">
+                                <p className="text-[10px] text-emerald-400/90 font-medium flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-2.5 rounded-xl">
+                                    <span>💡</span>
+                                    <span>Les hôtels cochés ci-dessus s'afficheront automatiquement sur l'offre de la landing page (ex: M Makkah & Zaha Taiba).</span>
+                                </p>
                             </div>
 
                             <footer className="pt-4 border-t border-white/5 flex gap-4 justify-end">

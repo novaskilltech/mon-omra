@@ -342,14 +342,29 @@ export default function BentoLandingHub() {
                                 </h2>
 
                                 <p className="text-xs sm:text-sm text-dim font-medium leading-relaxed max-w-2xl">
-                                    Vols sélectionnés {featuredGroup.flight_type === 'DIRECT' ? 'directs sans escale ⚡' : 'avec escales courtes'}, hébergements 5★ confirmés à Médine et La Mecque avec transferts inclus et accompagnement religieux dédié.
+                                    Vols sélectionnés {featuredGroup.flight_type === 'DIRECT' ? 'directs sans escale ⚡' : 'avec escales courtes'}
+                                    {featuredGroup.makkah_hotel && featuredGroup.madinah_hotel
+                                        ? `, hébergements confirmés à La Mecque (${featuredGroup.makkah_hotel.replace(' by Millennium', '')}) et Médine (${featuredGroup.madinah_hotel})`
+                                        : featuredGroup.hotels_label
+                                            ? `, hébergements confirmés (${featuredGroup.hotels_label})`
+                                            : featuredGroup.formula_type === 'PIEDS_HARAM'
+                                                ? ', hébergements 5★ au pied du Haram'
+                                                : ', hébergements confort confirmés'} avec transferts inclus et accompagnement religieux dédié.
                                 </p>
 
                                 {/* Features Chips */}
                                 <div className="flex flex-wrap gap-2.5 pt-1">
-                                    <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5">
+                                    <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5" title={featuredGroup.hotels_label || ''}>
                                         <Hotel className="w-3.5 h-3.5 text-[#D8AA4D]" />
-                                        {featuredGroup.formula_type === 'ECO' ? 'Formule Économique Accessible' : 'Hôtels 5★ Pieds dans le Haram'}
+                                        {featuredGroup.hotels_label
+                                            ? `Hôtels : ${featuredGroup.hotels_label}`
+                                            : featuredGroup.formula_type === 'ECO'
+                                                ? 'Formule Économique Accessible'
+                                                : featuredGroup.formula_type === 'CONFORT_NAVETTE'
+                                                    ? 'Hôtels Confort avec Navette 24h'
+                                                    : featuredGroup.formula_type === 'PIEDS_HARAM'
+                                                        ? 'Hôtels 5★ Pieds dans le Haram'
+                                                        : 'Hôtels Confort Sélectionnés'}
                                     </span>
                                     <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5">
                                         <Plane className="w-3.5 h-3.5 text-emerald-400" />
@@ -407,7 +422,7 @@ export default function BentoLandingHub() {
                             Séjours OMRA
                         </h2>
                         <p className="text-xs text-dim font-medium mt-2 leading-relaxed">
-                            Formules tout-compris, vols directs & hôtels 5★ au pied du Haram. Cliquez pour choisir votre aéroport.
+                            Formules tout-compris, vols sélectionnés & hébergements certifiés. Cliquez pour choisir votre aéroport.
                         </p>
                     </div>
 
