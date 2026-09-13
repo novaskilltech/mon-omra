@@ -162,4 +162,36 @@ describe('toggleGroupFeaturedAction & getFeaturedGroupsAction', () => {
         expect(res.groups).toBeDefined();
         expect(res.groups?.length).toBe(2);
     });
+
+    it('should fetch groups sorted chronologically by departure_date', async () => {
+        const mockSupabase = createClient();
+        const selectMock = vi.fn().mockReturnThis();
+        const orderSecondaryMock = vi.fn().mockResolvedValue({
+            data: [
+                { id: 'g1', name: 'OMRA LYON', departure_date: '2026-05-01', status: 'En préparation' },
+                { id: 'g2', name: 'OMRA PARIS', departure_date: '2026-06-01', status: 'En préparation' }
+            ],
+            error: null
+        });
+        const orderMock = vi.fn().mockReturnValue({
+            order: orderSecondaryMock
+        });
+
+        mockSupabase.from = vi.fn().mockReturnValue({
+            select: selectMock.mockReturnValue({
+                order: orderMock
+            })
+        });
+
+        const { getGroups } = await import('../concierge');
+        const res = await getGroups();
+
+        expect(mockSupabase.from).toHaveBeenCalledWith('groups');
+        expect(selectMock).toHaveBeenCalledWith('id, name, departure_date, status');
+        expect(orderMock).toHaveBeenCalledWith('departure_date', { ascending: true });
+        expect(orderSecondaryMock).toHaveBeenCalledWith('name', { ascending: true });
+        expect(res.length).toBe(2);
+        expect(res[0].name).toBe('OMRA LYON');
+    });
 });
+

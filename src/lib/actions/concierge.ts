@@ -426,7 +426,9 @@ export async function getGroups() {
     const supabase = createClient();
     const { data, error } = await supabase
         .from('groups')
-        .select('id, name');
+        .select('id, name, departure_date, status')
+        .order('departure_date', { ascending: true })
+        .order('name', { ascending: true });
     
     if (error) {
         console.error("Error fetching groups:", error);

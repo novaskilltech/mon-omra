@@ -147,7 +147,13 @@ export default function ConciergeDashboard() {
             setAllPilgrims(fullList);
 
             const grps = await getGroups();
-            setGroups(grps);
+            const sortedGrps = (grps || []).sort((a: any, b: any) => {
+                const timeA = a.departure_date ? new Date(a.departure_date).getTime() : 0;
+                const timeB = b.departure_date ? new Date(b.departure_date).getTime() : 0;
+                if (timeA !== timeB) return timeA - timeB;
+                return (a.name || '').localeCompare(b.name || '');
+            });
+            setGroups(sortedGrps);
 
             // Load registration requests
             const reqs = await getRegistrationRequests();

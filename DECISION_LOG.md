@@ -450,3 +450,17 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests unitaires et d'intégration validés (29/29 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
 *   **Version** : v1.23.0
 
+---
+
+## 40. Tri Chronologique des Départs dans les Listes et Sélecteurs de Groupes du Backoffice Conciergerie
+*   **Décision** :
+    1. Mise à jour de l'action serveur `getGroups()` dans `src/lib/actions/concierge.ts` pour extraire `departure_date` et `status` et ordonner systématiquement les groupes par `.order('departure_date', { ascending: true }).order('name', { ascending: true })`.
+    2. Tri chronologique côté client (défense en profondeur) dans le tableau de bord de la Conciergerie (`src/app/backoffice/concierge/page.tsx`) et dans le module des transferts logistiques (`src/app/backoffice/logistics/transfers/page.tsx`).
+    3. Impact direct sur le filtre principal *"Tous les groupes"* ainsi que sur les modales d'ajout de pèlerins, d'approbation d'inscriptions et de modification de groupe : les départs s'enchaînent désormais chronologiquement (Lyon, Marseille, Paris, etc. selon les dates de départs effectives).
+*   **Justification** : Évite le désordre issu de l'ordre d'insertion Postgres non déterministe et permet aux concierges de localiser immédiatement le prochain départ à gérer.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/lib/actions/concierge.ts`, `src/app/backoffice/concierge/page.tsx`, `src/app/backoffice/logistics/transfers/page.tsx`, `src/lib/actions/__tests__/concierge.test.ts`.
+    *   Tests unitaires et d'intégration validés (30/30 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
+*   **Version** : v1.23.1
+
+
