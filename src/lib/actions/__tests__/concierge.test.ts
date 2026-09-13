@@ -85,21 +85,19 @@ describe('updatePilgrimAction', () => {
     });
 });
 
-describe('toggleGroupFeaturedAction & getFeaturedGroupAction', () => {
+describe('toggleGroupFeaturedAction & getFeaturedGroupsAction', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('should set group as featured and unset other groups', async () => {
+    it('should set group as featured without unsetting others', async () => {
         const mockSupabase = createAdminClient();
         const updateMock = vi.fn().mockReturnThis();
         const eqMock = vi.fn().mockResolvedValue({ error: null });
-        const neqMock = vi.fn().mockResolvedValue({ error: null });
         
         mockSupabase.from = vi.fn().mockReturnValue({
             update: updateMock,
-            eq: eqMock,
-            neq: neqMock
+            eq: eqMock
         });
 
         const result = await toggleGroupFeaturedAction('group-123', true);
@@ -124,5 +122,44 @@ describe('toggleGroupFeaturedAction & getFeaturedGroupAction', () => {
 
         expect(result).toEqual({ success: true, isFeatured: false });
         expect(mockSupabase.from).toHaveBeenCalledWith('groups');
+    });
+
+    it('should fetch featured groups for the carousel', async () => {
+        const mockSupabase = createClient();
+        const selectMock = vi.fn().mockReturnThis();
+        const eqMock = vi.fn().mockReturnThis();
+        const inMock = vi.fn().mockReturnThis();
+        const orderMock = vi.fn().mockResolvedValue({
+            data: [
+                { id: 'grp-1', name: 'OMRA PARIS', is_featured: true, departure_date: '2026-05-01' },
+                { id: 'grp-2', name: 'OMRA LYON', is_featured: true, departure_date: '2026-05-15' }
+            ],
+            error: null
+        });
+
+        mockSupabase.from = vi.fn().mockImplementation((table: string) => {
+            if (table === 'groups') {
+                return {
+                    select: selectMock,
+                    eq: eqMock,
+                    in: inMock,
+                    order: orderMock
+                };
+            }
+            if (table === 'group_hotel_stays') {
+                return {
+                    select: vi.fn().mockReturnThis(),
+                    in: vi.fn().mockResolvedValue({ data: [], error: null })
+                };
+            }
+            return mockSupabase;
+        });
+
+        const { getFeaturedGroupsAction } = await import('../concierge');
+        const res = await getFeaturedGroupsAction();
+
+        expect(res.success).toBe(true);
+        expect(res.groups).toBeDefined();
+        expect(res.groups?.length).toBe(2);
     });
 });

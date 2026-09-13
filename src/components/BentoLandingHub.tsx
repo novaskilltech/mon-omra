@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { 
     Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, 
     MessageSquare, Heart, Sparkles, ShoppingBag, ShieldAlert, Star, 
-    Calendar, Users, Globe, X, CheckCircle, AlertCircle, Loader2, GraduationCap, Home
+    Calendar, Users, Globe, X, CheckCircle, AlertCircle, Loader2, GraduationCap, Home,
+    ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { getPublicActiveGroups, getFeaturedGroupAction, requestRegistration } from '@/lib/actions/concierge';
 import { createHajjRequestAction } from '@/lib/actions/hajj';
@@ -16,8 +17,11 @@ export default function BentoLandingHub() {
     const [isOmraModalOpen, setIsOmraModalOpen] = useState(false);
     const [isHajjModalOpen, setIsHajjModalOpen] = useState(false);
 
-    // Featured Group Spotlight state
-    const [featuredGroup, setFeaturedGroup] = useState<any | null>(null);
+    // Featured Groups Carousel state
+    const [featuredGroups, setFeaturedGroups] = useState<any[]>([]);
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
+    const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
     // Omra Form Data
     const [groups, setGroups] = useState<any[]>([]);
@@ -108,9 +112,9 @@ export default function BentoLandingHub() {
                     const uniqueAirports = Array.from(new Set(mapped.map((g: any) => g.airport))) as string[];
                     setAirports(uniqueAirports.filter(Boolean).sort());
 
-                    // Check for featured spotlight group
-                    const featured = mapped.find((g: any) => g.is_featured);
-                    setFeaturedGroup(featured || null);
+                    // Check for featured spotlight groups (carousel if multiple)
+                    const featuredList = mapped.filter((g: any) => g.is_featured);
+                    setFeaturedGroups(featuredList);
                 }
             } catch (err) {
                 console.error("Error loading groups:", err);
@@ -130,6 +134,52 @@ export default function BentoLandingHub() {
             setFilteredGroups([]);
         }
     }, [selectedAirport, groups]);
+
+    // Autoplay carousel every 6s (pause when hovered or only 1 item)
+    useEffect(() => {
+        if (featuredGroups.length <= 1 || isHovered) return;
+        const timer = setInterval(() => {
+            setCurrentSlide(prev => (prev + 1) % featuredGroups.length);
+        }, 6000);
+        return () => clearInterval(timer);
+    }, [featuredGroups.length, isHovered]);
+
+    const nextSlide = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (featuredGroups.length <= 1) return;
+        setCurrentSlide(prev => (prev + 1) % featuredGroups.length);
+    };
+
+    const prevSlide = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (featuredGroups.length <= 1) return;
+        setCurrentSlide(prev => (prev - 1 + featuredGroups.length) % featuredGroups.length);
+    };
+
+    const goToSlide = (index: number, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        setCurrentSlide(index);
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStartX(e.touches[0].clientX);
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (touchStartX === null) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const diffX = touchStartX - touchEndX;
+        if (Math.abs(diffX) > 50) {
+            if (diffX > 0) {
+                nextSlide();
+            } else {
+                prevSlide();
+            }
+        }
+        setTouchStartX(null);
+    };
+
+    const activeFeaturedGroup = featuredGroups[currentSlide] || featuredGroups[0] || null;
 
     const handleOpenFeaturedOmraModal = (group: any) => {
         setOmraSuccess(false);
@@ -296,25 +346,54 @@ export default function BentoLandingHub() {
                 </p>
             </header>
 
-            {/* SECTION BENTO 3D PYRAMIDAL : FORMULE VEDETTE DU MOMENT */}
-            {featuredGroup && (
-                <div className="mb-10 w-full max-w-5xl mx-auto" style={{ perspective: '1200px' }}>
+            {/* SECTION BENTO 3D PYRAMIDAL : CARROUSEL DES FORMULES VEDETTES */}
+            {activeFeaturedGroup && (
+                <div 
+                    className="mb-10 w-full max-w-5xl mx-auto relative group/carousel" 
+                    style={{ perspective: '1200px' }}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                >
                     <div 
-                        onClick={() => handleOpenFeaturedOmraModal(featuredGroup)}
+                        onClick={() => handleOpenFeaturedOmraModal(activeFeaturedGroup)}
                         className="bento-featured-3d animate-3d-push-pull glass p-8 sm:p-10 rounded-[3rem] border-2 border-amber-500/50 bg-gradient-to-br from-amber-500/20 via-emerald-500/10 to-transparent cursor-pointer group relative overflow-hidden shadow-[0_25px_60px_-15px_rgba(216,170,77,0.35)] hover:border-amber-400 transition-all text-left select-none"
                     >
                         {/* Ambient background glows */}
                         <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/20 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/30 transition-all" />
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none" />
 
-                        {/* Top Badges & Signal */}
+                        {/* Top Badges & Carousel Controls */}
                         <div className="flex flex-wrap items-center justify-between gap-3 mb-6 relative z-10">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/25 to-amber-500/10 border border-amber-400/50 text-[#F2CE79] text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-amber-500/10">
                                 <Star className="w-4 h-4 fill-amber-400 text-amber-400 animate-spin" style={{ animationDuration: '6s' }} />
-                                <span>🌟 FORMULE VEDETTE — SÉLECTION PRIVILÈGE DU MOMENT</span>
+                                <span>🌟 FORMULE VEDETTE {featuredGroups.length > 1 ? `(${currentSlide + 1} / ${featuredGroups.length})` : '— SÉLECTION PRIVILÈGE'}</span>
                             </div>
 
                             <div className="flex items-center gap-2">
+                                {featuredGroups.length > 1 && (
+                                    <div className="flex items-center gap-1.5 mr-2">
+                                        <button
+                                            type="button"
+                                            onClick={prevSlide}
+                                            aria-label="Offre précédente"
+                                            className="w-8 h-8 rounded-full bg-black/40 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                                            title="Précédent"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={nextSlide}
+                                            aria-label="Offre suivante"
+                                            className="w-8 h-8 rounded-full bg-black/40 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                                            title="Suivant"
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
                                 <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider shadow-sm flex items-center gap-1.5">
                                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                                     Places Disponibles Immédiates
@@ -322,53 +401,53 @@ export default function BentoLandingHub() {
                             </div>
                         </div>
 
-                        {/* Main Content Layout */}
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
+                        {/* Main Content Layout with key for smooth transition */}
+                        <div key={activeFeaturedGroup.id || currentSlide} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10 animate-fade-in">
                             {/* Left / Info */}
                             <div className="lg:col-span-8 space-y-4">
                                 <div className="flex items-center gap-3 text-xs font-black uppercase tracking-wider text-[#D8AA4D]">
                                     <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30">
                                         <Plane className="w-3.5 h-3.5" />
-                                        Départ : {featuredGroup.airport || 'France / Europe'}
+                                        Départ : {activeFeaturedGroup.airport || 'France / Europe'}
                                     </span>
                                     <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
                                         <Calendar className="w-3.5 h-3.5" />
-                                        {formatDateDisplay(featuredGroup.departure_date)}
+                                        {formatDateDisplay(activeFeaturedGroup.departure_date)}
                                     </span>
                                 </div>
 
                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-tight text-main group-hover:text-[#F2CE79] transition-colors leading-tight">
-                                    {featuredGroup.name}
+                                    {activeFeaturedGroup.name}
                                 </h2>
 
                                 <p className="text-xs sm:text-sm text-dim font-medium leading-relaxed max-w-2xl">
-                                    Vols sélectionnés {featuredGroup.flight_type === 'DIRECT' ? 'directs sans escale ⚡' : 'avec escales courtes'}
-                                    {featuredGroup.makkah_hotel && featuredGroup.madinah_hotel
-                                        ? `, hébergements confirmés à La Mecque (${featuredGroup.makkah_hotel.replace(' by Millennium', '')}) et Médine (${featuredGroup.madinah_hotel})`
-                                        : featuredGroup.hotels_label
-                                            ? `, hébergements confirmés (${featuredGroup.hotels_label})`
-                                            : featuredGroup.formula_type === 'PIEDS_HARAM'
+                                    Vols sélectionnés {activeFeaturedGroup.flight_type === 'DIRECT' ? 'directs sans escale ⚡' : 'avec escales courtes'}
+                                    {activeFeaturedGroup.makkah_hotel && activeFeaturedGroup.madinah_hotel
+                                        ? `, hébergements confirmés à La Mecque (${activeFeaturedGroup.makkah_hotel.replace(' by Millennium', '')}) et Médine (${activeFeaturedGroup.madinah_hotel})`
+                                        : activeFeaturedGroup.hotels_label
+                                            ? `, hébergements confirmés (${activeFeaturedGroup.hotels_label})`
+                                            : activeFeaturedGroup.formula_type === 'PIEDS_HARAM'
                                                 ? ', hébergements 5★ au pied du Haram'
                                                 : ', hébergements confort confirmés'} avec transferts inclus et accompagnement religieux dédié.
                                 </p>
 
                                 {/* Features Chips */}
                                 <div className="flex flex-wrap gap-2.5 pt-1">
-                                    <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5" title={featuredGroup.hotels_label || ''}>
+                                    <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5" title={activeFeaturedGroup.hotels_label || ''}>
                                         <Hotel className="w-3.5 h-3.5 text-[#D8AA4D]" />
-                                        {featuredGroup.hotels_label
-                                            ? `Hôtels : ${featuredGroup.hotels_label}`
-                                            : featuredGroup.formula_type === 'ECO'
+                                        {activeFeaturedGroup.hotels_label
+                                            ? `Hôtels : ${activeFeaturedGroup.hotels_label}`
+                                            : activeFeaturedGroup.formula_type === 'ECO'
                                                 ? 'Formule Économique Accessible'
-                                                : featuredGroup.formula_type === 'CONFORT_NAVETTE'
+                                                : activeFeaturedGroup.formula_type === 'CONFORT_NAVETTE'
                                                     ? 'Hôtels Confort avec Navette 24h'
-                                                    : featuredGroup.formula_type === 'PIEDS_HARAM'
+                                                    : activeFeaturedGroup.formula_type === 'PIEDS_HARAM'
                                                         ? 'Hôtels 5★ Pieds dans le Haram'
                                                         : 'Hôtels Confort Sélectionnés'}
                                     </span>
                                     <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5">
                                         <Plane className="w-3.5 h-3.5 text-emerald-400" />
-                                        {featuredGroup.flight_type === 'DIRECT' ? 'Vol Direct Garanti' : 'Vol Confort avec Escale'}
+                                        {activeFeaturedGroup.flight_type === 'DIRECT' ? 'Vol Direct Garanti' : 'Vol Confort avec Escale'}
                                     </span>
                                     <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-main flex items-center gap-1.5">
                                         <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
@@ -382,7 +461,7 @@ export default function BentoLandingHub() {
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-dim">Tarif Tout Inclus</p>
                                     <p className="text-3xl sm:text-4xl font-black text-[#D8AA4D] tracking-tight">
-                                        {featuredGroup.price ? `${Number(featuredGroup.price).toLocaleString('fr-FR')} €` : 'Sur Demande'}
+                                        {activeFeaturedGroup.price ? `${Number(activeFeaturedGroup.price).toLocaleString('fr-FR')} €` : 'Sur Demande'}
                                         <span className="text-xs font-bold text-dim tracking-normal ml-1">/ pers</span>
                                     </p>
                                 </div>
@@ -396,7 +475,48 @@ export default function BentoLandingHub() {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Bottom Pagination Dots / Indicators (only if multiple featured groups) */}
+                        {featuredGroups.length > 1 && (
+                            <div className="flex items-center justify-center gap-2 pt-6 mt-2 relative z-10">
+                                {featuredGroups.map((g, idx) => (
+                                    <button
+                                        key={g.id || idx}
+                                        type="button"
+                                        onClick={(e) => goToSlide(idx, e)}
+                                        aria-label={`Aller à l'offre ${idx + 1}`}
+                                        className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                                            idx === currentSlide 
+                                                ? 'w-8 bg-gradient-to-r from-amber-400 to-[#D8AA4D] shadow-[0_0_10px_rgba(216,170,77,0.5)]' 
+                                                : 'w-2 bg-white/20 hover:bg-white/40'
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
+
+                    {/* Floating Side Arrows on larger screens */}
+                    {featuredGroups.length > 1 && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={prevSlide}
+                                aria-label="Offre précédente"
+                                className="hidden sm:flex absolute -left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/80 hover:bg-[#D8AA4D] text-amber-400 hover:text-black border border-amber-500/40 items-center justify-center shadow-2xl backdrop-blur-md transition-all hover:scale-110 active:scale-95 z-20 cursor-pointer"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={nextSlide}
+                                aria-label="Offre suivante"
+                                className="hidden sm:flex absolute -right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/80 hover:bg-[#D8AA4D] text-amber-400 hover:text-black border border-amber-500/40 items-center justify-center shadow-2xl backdrop-blur-md transition-all hover:scale-110 active:scale-95 z-20 cursor-pointer"
+                            >
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
 

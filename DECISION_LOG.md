@@ -430,3 +430,23 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/lib/actions/concierge.ts`, `src/components/BentoLandingHub.tsx` et `src/app/backoffice/groups/page.tsx`.
     *   Tests de non-régression validés (28/28 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
 *   **Version** : v1.22.2
+
+---
+
+## 39. Carrousel 3D Multi-Formules Vedettes sur la Landing Page & Gestion Backoffice
+*   **Décision** :
+    1. **Autorisation du multi-vedettes** : Levée de la restriction d'exclusivité sur `is_featured = true`. L'administrateur peut mettre en avant plusieurs formules simultanément depuis le backoffice (`/backoffice/groups`).
+    2. **Carrousel 3D Interactif sur la Landing Page (`BentoLandingHub.tsx`)** :
+        *   Si plusieurs formules sont en vedette : affichage d'un carrousel interactif avec flèches de navigation (précédent/suivant), pillules de pagination dynamiques, indicateur de slide (`🌟 FORMULE VEDETTE (1 / N)`), défilement automatique toutes les 6 secondes avec pause au survol de la souris (`hover`) et au toucher (`touch`), et prise en charge des gestes tactiles mobiles (`swipe left / swipe right`).
+        *   Si une seule formule est en vedette : affichage du Bento 3D pyramidal individuel sans commandes superflues (rétro-compatibilité intégrale).
+        *   Si aucune formule n'est en vedette : masquage gracieux de la section.
+        *   Chaque slide permet de réserver directement l'offre correspondante en ouvrant le modal pré-rempli avec le nom du groupe et la date de départ spécifique.
+    3. **Expérience Backoffice Enrichie (`/backoffice/groups`)** :
+        *   Le bandeau d'alerte supérieur recense désormais l'ensemble des formules en vedette actives avec leur nombre total, leurs caractéristiques et un bouton de retrait en un clic.
+        *   Le toggle rapide de mise en avant en 1-clic préserve l'état des autres formules sans désélection intempestive.
+*   **Justification** : Répond à la demande utilisateur de pouvoir promouvoir plusieurs départs stratégiques simultanément tout en maintenant l'impact visuel fort du Bento 3D animé sur desktop comme sur mobile.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/lib/actions/concierge.ts`, `src/components/BentoLandingHub.tsx`, `src/app/backoffice/groups/page.tsx`, `src/lib/actions/__tests__/concierge.test.ts`.
+    *   Tests unitaires et d'intégration validés (29/29 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
+*   **Version** : v1.23.0
+

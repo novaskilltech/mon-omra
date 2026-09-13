@@ -70,7 +70,7 @@ export default function GroupsPage() {
             if (g.id === group.id) {
                 return { ...g, isFeatured: newStatus };
             }
-            return newStatus ? { ...g, isFeatured: false } : g;
+            return g;
         }));
 
         try {
@@ -294,14 +294,14 @@ export default function GroupsPage() {
         };
     });
 
-    const featuredGroup = groups.find(g => g.isFeatured);
+    const featuredGroups = groups.filter(g => g.isFeatured);
 
     return (
         <div className="space-y-8 p-6 text-left">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-4xl font-black uppercase tracking-tighter text-main">Gestion des <span className="text-emerald-500">Groupes</span></h1>
-                    <p className="text-sub text-sm mt-1">Créez et gérez vos départs pour la saison 2026. Mettez en avant votre formule vedette sur la Landing Page.</p>
+                    <p className="text-sub text-sm mt-1">Créez et gérez vos départs pour la saison 2026. Mettez en avant vos formules vedettes dans le carrousel 3D de la Landing Page.</p>
                 </div>
                 <button 
                     onClick={openAddModal}
@@ -311,33 +311,48 @@ export default function GroupsPage() {
                 </button>
             </header>
 
-            {/* Spotlight Banner Formule en Vedette */}
-            {featuredGroup && (
-                <div className="glass p-5 md:p-6 rounded-[2rem] border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-emerald-500/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg shadow-amber-500/5 animate-in fade-in duration-300">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-                            <Star className="w-6 h-6 fill-amber-400 text-amber-400 animate-pulse" />
-                        </div>
-                        <div>
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-[#F2CE79] border border-amber-500/30 text-[9px] font-black uppercase tracking-widest mb-1">
-                                <Sparkles className="w-3 h-3" />
-                                Formule Actuellement en Vedette sur la Landing Page (Bento 3D)
+            {/* Spotlight Banner Formules en Vedette (Carrousel 3D) */}
+            {featuredGroups.length > 0 && (
+                <div className="glass p-5 md:p-6 rounded-[2rem] border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-emerald-500/5 space-y-3 shadow-lg shadow-amber-500/5 animate-in fade-in duration-300">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                                <Star className="w-5 h-5 fill-amber-400 text-amber-400 animate-pulse" />
                             </div>
-                            <h4 className="text-base font-black uppercase tracking-tight text-main">
-                                {featuredGroup.name}
-                            </h4>
-                            <p className="text-xs text-dim font-medium mt-0.5">
-                                {formatDateDisplay(featuredGroup.date)} • {featuredGroup.price ? `${featuredGroup.price.toLocaleString('fr-FR')} €` : 'Prix sur demande'} • {featuredGroup.flightType === 'DIRECT' ? 'Vol Direct' : 'Avec Escale'}
-                            </p>
+                            <div>
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-[#F2CE79] border border-amber-500/30 text-[9px] font-black uppercase tracking-widest">
+                                    <Sparkles className="w-3 h-3" />
+                                    {featuredGroups.length} Formule{featuredGroups.length > 1 ? 's' : ''} en Vedette sur la Landing Page (Carrousel 3D)
+                                </div>
+                                <p className="text-xs text-dim font-medium mt-1">
+                                    {featuredGroups.length > 1 
+                                        ? "Ces formules défilent automatiquement dans le carrousel 3D en haut de la landing page." 
+                                        : "Cette formule apparaît mise en avant dans le Bento 3D en haut de la landing page."}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    <button
-                        disabled={togglingFeaturedId === featuredGroup.id}
-                        onClick={() => handleToggleFeatured(featuredGroup)}
-                        className="text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl bg-white/5 hover:bg-red-500/10 text-dim hover:text-red-400 border border-white/10 hover:border-red-500/30 transition-all shrink-0 cursor-pointer"
-                    >
-                        Retirer de la Vedette
-                    </button>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                        {featuredGroups.map(fg => (
+                            <div key={fg.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-500/30 transition-all">
+                                <div className="min-w-0">
+                                    <h5 className="text-xs font-black uppercase tracking-tight text-main truncate">{fg.name}</h5>
+                                    <p className="text-[10px] text-dim truncate">
+                                        {formatDateDisplay(fg.date)} • {fg.price ? `${fg.price.toLocaleString('fr-FR')} €` : 'Sur devis'}
+                                    </p>
+                                </div>
+                                <button
+                                    disabled={togglingFeaturedId === fg.id}
+                                    onClick={() => handleToggleFeatured(fg)}
+                                    className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 transition-all shrink-0 cursor-pointer"
+                                    title="Retirer du carrousel vedette"
+                                >
+                                    Retirer
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 
