@@ -46,13 +46,16 @@ export default function PublicDeparturesCatalog() {
         setSelectedGroup(group);
         setSuccess(false);
         setError(null);
+        const isFull = group.status === 'Complet';
         setForm({
             firstName: '',
             familyName: '',
             gender: 'M',
             email: '',
             phone: '',
-            message: `Intéressé par le départ : ${group.name}`,
+            message: isFull 
+                ? `Bonjour, je souhaite m'inscrire sur liste d'attente pour le départ complet : ${group.name} (Départ le ${new Date(group.departure_date).toLocaleDateString('fr-FR')}). Pouvez-vous me contacter dès qu'une place se libère ?`
+                : `Intéressé par le départ : ${group.name}`,
             isFormerClient: false,
             wantsLoyaltyBenefits: false
         });
@@ -131,10 +134,11 @@ export default function PublicDeparturesCatalog() {
                                     <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
                                         <Calendar className="w-5 h-5" />
                                     </div>
-                                    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${
-                                        grp.status === 'Complet' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/15' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15'
+                                    <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md flex items-center gap-1.5 ${
+                                        grp.status === 'Complet' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15'
                                     }`}>
-                                        {grp.status}
+                                        {grp.status === 'Complet' && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />}
+                                        {grp.status === 'Complet' ? 'Complet (Liste d\'attente)' : grp.status}
                                     </span>
                                 </div>
                                 <h3 className="text-base font-black uppercase tracking-tight text-main group-hover:text-[#D8AA4D] transition-colors">{grp.name}</h3>

@@ -214,7 +214,7 @@ export default function PromoInquiryBanner() {
                                             <option value="" className="bg-[#0c120f] text-dim">-- Choisir une date --</option>
                                             {filteredGroups.map((grp) => (
                                                 <option key={grp.id} value={grp.id} className="bg-[#0c120f] text-main">
-                                                    {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} - {grp.name} {grp.price ? `(${Number(grp.price).toLocaleString('fr-FR')} €)` : ''}
+                                                    {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} - {grp.name} {grp.price ? `(${Number(grp.price).toLocaleString('fr-FR')} €)` : ''} {grp.status === 'Complet' ? '🔴 [COMPLET - LISTE D\'ATTENTE]' : ''}
                                                 </option>
                                             ))}
                                         </select>

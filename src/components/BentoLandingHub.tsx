@@ -188,13 +188,16 @@ export default function BentoLandingHub() {
         setSelectedAirport(group.airport || '');
         setWantsCustomDates(false);
         setCustomDatesInput('');
+        const isFull = group.status === 'Complet';
         setOmraForm({
             firstName: '',
             familyName: '',
             gender: 'M',
             email: '',
             phone: '',
-            message: `Je souhaite réserver la formule sélectionnée : ${group.name} (Départ du ${formatDateDisplay(group.departure_date)}).`,
+            message: isFull
+                ? `Bonjour, je souhaite m'inscrire sur liste d'attente prioritaire pour la formule complète : ${group.name} (Départ du ${formatDateDisplay(group.departure_date)}). Pouvez-vous me recontacter dès qu'une place se libère ?`
+                : `Je souhaite réserver la formule sélectionnée : ${group.name} (Départ du ${formatDateDisplay(group.departure_date)}).`,
             isFormerClient: false,
             wantsLoyaltyBenefits: false,
             desiredGroupId: group.id
@@ -415,10 +418,17 @@ export default function BentoLandingHub() {
                                         </button>
                                     </div>
                                 )}
-                                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider shadow-sm flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                                    Places Disponibles Immédiates
-                                </span>
+                                {activeFeaturedGroup.status === 'Complet' ? (
+                                    <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[9px] sm:text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-wider shadow-sm flex items-center gap-1.5 animate-pulse">
+                                        <span className="w-2 h-2 rounded-full bg-rose-500" />
+                                        🔴 Formule Complète (Liste d&apos;attente)
+                                    </span>
+                                ) : (
+                                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider shadow-sm flex items-center gap-1.5">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                        Places Disponibles Immédiates
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -426,7 +436,7 @@ export default function BentoLandingHub() {
                         <div key={activeFeaturedGroup.id || currentSlide} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10 animate-fade-in">
                             {/* Left / Info */}
                             <div className="lg:col-span-8 space-y-4">
-                                <div className="flex items-center gap-3 text-xs font-black uppercase tracking-wider text-[#D8AA4D]">
+                                <div className="flex flex-wrap items-center gap-3 text-xs font-black uppercase tracking-wider text-[#D8AA4D]">
                                     <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30">
                                         <Plane className="w-3.5 h-3.5" />
                                         Départ : {activeFeaturedGroup.airport || 'France / Europe'}
@@ -435,6 +445,11 @@ export default function BentoLandingHub() {
                                         <Calendar className="w-3.5 h-3.5" />
                                         {formatDateDisplay(activeFeaturedGroup.departure_date)}
                                     </span>
+                                    {activeFeaturedGroup.status === 'Complet' && (
+                                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 font-black">
+                                            ⚠️ Complet
+                                        </span>
+                                    )}
                                 </div>
 
                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-tight text-main group-hover:text-[#F2CE79] transition-colors leading-tight">
@@ -451,6 +466,13 @@ export default function BentoLandingHub() {
                                                 ? ', hébergements 5★ au pied du Haram'
                                                 : ', hébergements confort confirmés'} avec transferts inclus et accompagnement religieux dédié.
                                 </p>
+
+                                {activeFeaturedGroup.status === 'Complet' && (
+                                    <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs font-medium flex items-center gap-2.5">
+                                        <span className="text-base">📢</span>
+                                        <span>Ce départ a atteint sa capacité maximale de pèlerins. Vous pouvez vous inscrire sur <strong>liste d&apos;attente prioritaire</strong> pour être contacté(e) en premier en cas de place libérée.</span>
+                                    </div>
+                                )}
 
                                 {/* Features Chips */}
                                 <div className="flex flex-wrap gap-2.5 pt-1">
@@ -480,20 +502,37 @@ export default function BentoLandingHub() {
                             {/* Right / Price & CTA Button */}
                             <div className="lg:col-span-4 flex flex-col items-start lg:items-end justify-center lg:text-right pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-amber-500/20 lg:pl-6 space-y-4">
                                 <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-dim">Tarif Tout Inclus</p>
+                                    <div className="flex items-center justify-start lg:justify-end gap-2">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-dim">Tarif Tout Inclus</p>
+                                        {activeFeaturedGroup.status === 'Complet' && (
+                                            <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                                Complet
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className="text-3xl sm:text-4xl font-black text-[#D8AA4D] tracking-tight">
                                         {activeFeaturedGroup.price ? `${Number(activeFeaturedGroup.price).toLocaleString('fr-FR')} €` : 'Sur Demande'}
                                         <span className="text-xs font-bold text-dim tracking-normal ml-1">/ pers</span>
                                     </p>
                                 </div>
 
-                                <button 
-                                    type="button"
-                                    className="btn-3d-gold w-full sm:w-auto px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-wider text-amber-950 shadow-2xl group-hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                                >
-                                    <span>Réserver cette Offre</span>
-                                    <ArrowRight className="w-4 h-4" />
-                                </button>
+                                {activeFeaturedGroup.status === 'Complet' ? (
+                                    <button 
+                                        type="button"
+                                        className="w-full sm:w-auto px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-wider bg-gradient-to-r from-rose-600/30 via-amber-500/20 to-rose-600/30 hover:from-rose-600/40 hover:to-rose-600/40 border-2 border-rose-500/50 text-rose-200 shadow-2xl group-hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                    >
+                                        <span>Liste d&apos;Attente (Complet)</span>
+                                        <ArrowRight className="w-4 h-4 text-rose-300" />
+                                    </button>
+                                ) : (
+                                    <button 
+                                        type="button"
+                                        className="btn-3d-gold w-full sm:w-auto px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-wider text-amber-950 shadow-2xl group-hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                    >
+                                        <span>Réserver cette Offre</span>
+                                        <ArrowRight className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -1059,7 +1098,7 @@ export default function BentoLandingHub() {
                                                 <option value="" className="bg-[#0c120f] text-dim">-- Sélectionner une date de voyage --</option>
                                                 {[...groups].sort((a: any, b: any) => new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime()).map((grp) => (
                                                     <option key={grp.id} value={grp.id} className="bg-[#0c120f] text-main">
-                                                        {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} — Départ {grp.airport || 'Même Ville'} ({grp.name}) {grp.is_featured && grp.price ? `— ${Number(grp.price).toLocaleString('fr-FR')} € (Offre Vedette)` : '— Sur devis'}
+                                                        {new Date(grp.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} — Départ {grp.airport || 'Même Ville'} ({grp.name}) {grp.is_featured && grp.price ? `— ${Number(grp.price).toLocaleString('fr-FR')} € (Offre Vedette)` : '— Sur devis'} {grp.status === 'Complet' ? '🔴 [COMPLET - LISTE D\'ATTENTE]' : ''}
                                                     </option>
                                                 ))}
                                             </select>

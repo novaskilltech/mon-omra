@@ -498,6 +498,12 @@ export default function DepartAirportPage() {
                                                                             🔥 Date conseillée
                                                                         </span>
                                                                     )}
+                                                                    {group.status === 'Complet' && (
+                                                                        <span className="bg-rose-500/15 text-rose-400 border border-rose-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shrink-0">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                                                                            Complet
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                                 <p className="text-[10px] text-dim font-bold uppercase tracking-wider mt-1">
                                                                     Départ : {group.departure_date ? new Date(group.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Date à confirmer'}
@@ -507,16 +513,18 @@ export default function DepartAirportPage() {
                                                         <div className="flex items-center gap-3">
                                                             <div className="text-right hidden sm:block">
                                                                 <p className="text-[9px] font-black text-dim uppercase tracking-wider">
-                                                                    {group.isFeatured ? (isWiser ? "Tarif" : "À partir de") : "Tarif"}
+                                                                    {group.status === 'Complet' ? 'Disponibilité' : (group.isFeatured ? (isWiser ? "Tarif" : "À partir de") : "Tarif")}
                                                                 </p>
-                                                                <p className={`text-base font-black ${group.isFeatured ? 'text-emerald-400' : 'text-[#F2CE79]'}`}>
-                                                                    {group.isFeatured 
-                                                                        ? (isWiser 
-                                                                            ? "Sur demande" 
-                                                                            : !group.isApiSuccess 
-                                                                                ? "Nous consulter" 
-                                                                                : `${priceNum.toLocaleString('fr-FR')} €`)
-                                                                        : "Sur devis WhatsApp"
+                                                                <p className={`text-base font-black ${group.status === 'Complet' ? 'text-rose-400' : (group.isFeatured ? 'text-emerald-400' : 'text-[#F2CE79]')}`}>
+                                                                    {group.status === 'Complet' 
+                                                                        ? "Complet (Liste d'attente)"
+                                                                        : (group.isFeatured 
+                                                                            ? (isWiser 
+                                                                                ? "Sur demande" 
+                                                                                : !group.isApiSuccess 
+                                                                                    ? "Nous consulter" 
+                                                                                    : `${priceNum.toLocaleString('fr-FR')} €`)
+                                                                            : "Sur devis WhatsApp")
                                                                     }
                                                                 </p>
                                                             </div>

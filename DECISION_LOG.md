@@ -485,6 +485,28 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     4. **Confirmation de conformité du statut "Complet"** : Validation que le statut `Complet` est 100% supporté par la base de données PostgreSQL (`CHECK (status IN ('En préparation', 'Complet', 'Brouillon', 'Terminé'))`).
 *   **Justification** : L'alerte navigateur signalée par l'utilisateur résultait de l'expiration du jeton de session après 24h d'inactivité et non d'un refus du statut "Complet".
 *   **Impacts** :
-    *   Fichiers modifiés : `src/lib/actions/auth.ts`, `src/app/backoffice/groups/page.tsx`.
-    *   Tests de non-régression validés (30/30 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
 *   **Version** : v1.24.1
+
+---
+
+## 43. Prise en Compte du Statut "Complet" sur la Landing Page (Bento 3D / Formules Vedettes & Catalogues)
+*   **Décision** :
+    1. **Bento 3D & Carrousel des Formules Vedettes (`src/components/BentoLandingHub.tsx`)** :
+        *   Remplacement du badge hardcodé *"Places Disponibles Immédiates"* par un badge dynamique *"🔴 Formule Complète (Liste d'attente)"* dès que le groupe est marqué au statut `Complet`.
+        *   Ajout d'un badge distinctif `⚠️ Complet` dans la ligne départ/date et d'un encart informatif précisant que le départ a atteint sa capacité maximale et qu'une inscription sur liste d'attente prioritaire est disponible.
+        *   Transformation du bouton CTA de réservation : passage de *"Réserver cette Offre"* à *"Liste d'Attente (Complet)"* avec style dégradé ambre/rose.
+        *   Pré-remplissage intelligent du formulaire de contact orienté désistement / réouverture de places.
+    2. **Catalogue Public des Départs (`src/components/PublicDeparturesCatalog.tsx`)** :
+        *   Mise en valeur du statut `Complet` avec badge rose vif et pastille pulsante (*"Complet (Liste d'attente)"*).
+        *   Adaptation de la modale de renseignement dédiée.
+    3. **Page Départs par Aéroport (`src/app/depart/[airport]/page.tsx`)** :
+        *   Ajout du badge `Complet` sur l'en-tête de chaque départ et remplacement du tarif dans l'aperçu par *"Complet (Liste d'attente)"*.
+    4. **Sélecteurs Modales & Backoffice** :
+        *   Mentions `🔴 [COMPLET - LISTE D'ATTENTE]` ajoutées dans les listes déroulantes de choix de voyage (`BentoLandingHub.tsx` et `PromoInquiryBanner.tsx`).
+        *   Badge de statut plus visible et contrasté dans l'annuaire des groupes du Backoffice (`/backoffice/groups`).
+*   **Justification** : Le statut `Complet` était bien persistant en base de données Postgres, mais les composants d'affichage de la Landing Page n'adaptaient pas dynamiquement leurs libellés et badges selon le champ `status`.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/components/BentoLandingHub.tsx`, `src/components/PublicDeparturesCatalog.tsx`, `src/app/depart/[airport]/page.tsx`, `src/components/PromoInquiryBanner.tsx`, `src/app/backoffice/groups/page.tsx`.
+    *   Tests de non-régression validés (30/30 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
+*   **Version** : v1.25.0
+

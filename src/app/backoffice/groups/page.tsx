@@ -367,8 +367,13 @@ export default function GroupsPage() {
                             <div key={fg.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-500/30 transition-all">
                                 <div className="min-w-0">
                                     <h5 className="text-xs font-black uppercase tracking-tight text-main truncate">{fg.name}</h5>
-                                    <p className="text-[10px] text-dim truncate">
-                                        {formatDateDisplay(fg.date)} • {fg.price ? `${fg.price.toLocaleString('fr-FR')} €` : 'Sur devis'}
+                                    <p className="text-[10px] text-dim truncate flex items-center gap-1.5 mt-0.5">
+                                        <span>{formatDateDisplay(fg.date)} • {fg.price ? `${fg.price.toLocaleString('fr-FR')} €` : 'Sur devis'}</span>
+                                        {fg.status === 'Complet' && (
+                                            <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 shrink-0">
+                                                🔴 Complet
+                                            </span>
+                                        )}
                                     </p>
                                 </div>
                                 <button
@@ -525,12 +530,13 @@ export default function GroupsPage() {
                                                     </Link>
                                                 </div>
 
-                                                <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm ${
-                                                    g.status === 'Complet' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' :
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm flex items-center gap-1.5 ${
+                                                    g.status === 'Complet' ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 font-black' :
                                                     g.status === 'En préparation' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
                                                     g.status === 'Terminé' ? 'bg-gray-500/20 border-white/10 text-dim' :
                                                     'bg-gray-500/10 border-gray-500/20 text-dim'
                                                 }`}>
+                                                    {g.status === 'Complet' && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />}
                                                     {g.status}
                                                 </span>
                                                 
