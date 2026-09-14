@@ -463,4 +463,25 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests unitaires et d'intégration validés (30/30 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
 *   **Version** : v1.23.1
 
+---
+
+## 41. Rubrique "Le Cercle Privilège & Club Fidélité" sur la Landing Page
+*   **Décision** :
+    1. Intégration d'une rubrique dédiée premium sur la Landing Page (`src/components/BentoLandingHub.tsx`), positionnée stratégiquement après la grille des 6 Bento univers.
+    2. Mise en avant des 4 privilèges fidélité concrets de l'agence sous forme de cartes glassmorphism dorées et émeraudes :
+        * 🎒 **Bagage en Soute Retour Offert** (vols sélectionnés, transport d'eau de Zamzam et souvenirs sans franchise additionnelle).
+        * 🍳 **Petit-Déjeuner Offert à La Mecque** (séjours de 10 jours ou moins, valeur 10 €/jour/pers).
+        * 🛂 **Visa Enfant (-16 ans) Offert** (voyages en famille pendant les vacances scolaires).
+        * 🏷️ **Remise Fidélité Immédiate de 75 €** (déduite directement du forfait de voyage).
+    3. Bandeau VIP des engagements permanents de la conciergerie : Ligne WhatsApp concierge 24/7 dédiée, attribution prioritaire des chambres, et application mobile/web compagnon spirituel utilisable 100% hors-ligne.
+    4. Call-to-actions interactifs :
+        * Bouton *« Activer mes Avantages Fidélité »* ouvrant directement la modale de pré-réservation Omra avec les flags `isFormerClient: true` et `wantsLoyaltyBenefits: true`.
+        * Bouton *« Échanger avec mon Concierge Privilège »* ciblant WhatsApp (`07 52 28 08 90`) avec message pré-rempli.
+*   **Justification** : Répond à la demande utilisateur d'exposer clairement les privilèges clients sur la vitrine publique pour fidéliser les pèlerins récurrents et maximiser la conversion des familles.
+*   **Impacts** :
+    *   Fichier modifié : `src/components/BentoLandingHub.tsx`.
+    *   Tests de non-régression validés (30/30 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
+*   **Version** : v1.24.0
+
+
 

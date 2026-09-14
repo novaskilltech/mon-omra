@@ -7,7 +7,8 @@ import {
     Compass, BookOpen, ShieldCheck, Map, ArrowRight, Plane, Hotel, 
     MessageSquare, Heart, Sparkles, ShoppingBag, ShieldAlert, Star, 
     Calendar, Users, Globe, X, CheckCircle, AlertCircle, Loader2, GraduationCap, Home,
-    ChevronLeft, ChevronRight
+    ChevronLeft, ChevronRight, Crown, Gift, Coffee, Luggage, Tag, HeartHandshake,
+    CheckCircle2, MessageCircle
 } from 'lucide-react';
 import { getPublicActiveGroups, getFeaturedGroupAction, requestRegistration } from '@/lib/actions/concierge';
 import { createHajjRequestAction } from '@/lib/actions/hajj';
@@ -216,6 +217,26 @@ export default function BentoLandingHub() {
             message: "Je souhaite obtenir des renseignements pour une prochaine Omra.",
             isFormerClient: false,
             wantsLoyaltyBenefits: false,
+            desiredGroupId: ''
+        });
+        setIsOmraModalOpen(true);
+    };
+
+    const handleOpenLoyaltyOmraModal = () => {
+        setOmraSuccess(false);
+        setOmraError(null);
+        setSelectedAirport('');
+        setWantsCustomDates(false);
+        setCustomDatesInput('');
+        setOmraForm({
+            firstName: '',
+            familyName: '',
+            gender: 'M',
+            email: '',
+            phone: '',
+            message: "Bonjour, je souhaite réserver un séjour Omra et bénéficier de mes privilèges et avantages fidélité.",
+            isFormerClient: true,
+            wantsLoyaltyBenefits: true,
             desiredGroupId: ''
         });
         setIsOmraModalOpen(true);
@@ -748,6 +769,194 @@ export default function BentoLandingHub() {
                     </div>
                 </Link>
 
+            </div>
+
+            {/* SECTION LE CERCLE PRIVILÈGE & CLUB FIDÉLITÉ CLIENTS */}
+            <div className="mt-16 w-full max-w-6xl mx-auto space-y-8">
+                {/* En-tête de section */}
+                <div className="text-center max-w-3xl mx-auto space-y-3">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-emerald-500/10 border border-amber-400/30 text-[#F2CE79] text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-amber-500/10">
+                        <Crown className="w-4 h-4 text-amber-400 fill-amber-400/30" />
+                        <span>LE CERCLE PRIVILÈGE OMRAYANAIR</span>
+                    </div>
+
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-main leading-tight">
+                        VOTRE FIDÉLITÉ <span className="text-[#D8AA4D]">RÉCOMPENSÉE</span> À CHAQUE DÉPART.
+                    </h2>
+
+                    <p className="text-xs sm:text-sm text-dim font-medium leading-relaxed max-w-2xl mx-auto">
+                        Parce que votre confiance spirituelle est précieuse, nous réservons des avantages exclusifs et des attentions sur-mesure à nos pèlerins réguliers et à leurs familles.
+                    </p>
+                </div>
+
+                {/* Grille des 4 Privilèges Fidélité Concrets */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Carte 1 : Bagage Retour */}
+                    <div className="glass p-6 rounded-[2rem] border border-amber-500/20 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent hover:border-amber-500/40 transition-all duration-300 relative overflow-hidden flex flex-col justify-between text-left group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 blur-2xl rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all" />
+                        <div className="space-y-3 relative z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-[#D8AA4D] group-hover:scale-110 transition-transform">
+                                    <Luggage className="w-6 h-6" />
+                                </div>
+                                <span className="text-[9px] font-black uppercase px-2.5 py-1 rounded-full bg-amber-500/20 text-[#F2CE79] border border-amber-500/30 tracking-wider">
+                                    Spécial Retour
+                                </span>
+                            </div>
+                            <h3 className="text-base font-black uppercase tracking-tight text-main group-hover:text-[#F2CE79] transition-colors">
+                                Bagage Soute Retour Offert
+                            </h3>
+                            <p className="text-xs text-dim font-medium leading-relaxed">
+                                1 bagage supplémentaire offert au retour pour rapporter l'eau bénite de Zamzam, les dattes de Médine et vos souvenirs en toute sérénité.
+                            </p>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-amber-400/80">
+                            <Sparkles className="w-3 h-3" />
+                            <span>Vols partenaires sélectionnés</span>
+                        </div>
+                    </div>
+
+                    {/* Carte 2 : Petit-Déjeuner à La Mecque */}
+                    <div className="glass p-6 rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent hover:border-emerald-500/40 transition-all duration-300 relative overflow-hidden flex flex-col justify-between text-left group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 blur-2xl rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
+                        <div className="space-y-3 relative z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                                    <Coffee className="w-6 h-6" />
+                                </div>
+                                <span className="text-[9px] font-black uppercase px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">
+                                    Confort Hôtelier
+                                </span>
+                            </div>
+                            <h3 className="text-base font-black uppercase tracking-tight text-main group-hover:text-emerald-400 transition-colors">
+                                Petit-Déjeuner Offert à La Mecque
+                            </h3>
+                            <p className="text-xs text-dim font-medium leading-relaxed">
+                                Formule buffet petit-déjeuner offerte chaque matin dans votre hôtel à La Mecque (séjours de 10j ou moins) pour débuter votre journée de culte sereinement.
+                            </p>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-400/80">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Valeur 10 €/jour/personne</span>
+                        </div>
+                    </div>
+
+                    {/* Carte 3 : Visa Enfant Offert */}
+                    <div className="glass p-6 rounded-[2rem] border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent hover:border-blue-500/40 transition-all duration-300 relative overflow-hidden flex flex-col justify-between text-left group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-2xl rounded-full pointer-events-none group-hover:bg-blue-500/20 transition-all" />
+                        <div className="space-y-3 relative z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                                    <Gift className="w-6 h-6" />
+                                </div>
+                                <span className="text-[9px] font-black uppercase px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 tracking-wider">
+                                    Spécial Famille
+                                </span>
+                            </div>
+                            <h3 className="text-base font-black uppercase tracking-tight text-main group-hover:text-blue-400 transition-colors">
+                                Visa Enfant (-16 ans) Offert
+                            </h3>
+                            <p className="text-xs text-dim font-medium leading-relaxed">
+                                Frais de visa saoudien intégralement offerts pour votre enfant lors des pèlerinages en famille pendant les périodes de vacances scolaires.
+                            </p>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-blue-400/80">
+                            <Heart className="w-3 h-3" />
+                            <span>Vacances scolaires & familles</span>
+                        </div>
+                    </div>
+
+                    {/* Carte 4 : Remise Fidélité 75 € */}
+                    <div className="glass p-6 rounded-[2rem] border border-[#D8AA4D]/30 bg-gradient-to-br from-[#D8AA4D]/15 via-amber-500/5 to-transparent hover:border-[#D8AA4D]/60 transition-all duration-300 relative overflow-hidden flex flex-col justify-between text-left group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-[#D8AA4D]/15 blur-2xl rounded-full pointer-events-none group-hover:bg-[#D8AA4D]/25 transition-all" />
+                        <div className="space-y-3 relative z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="w-12 h-12 rounded-2xl bg-[#D8AA4D]/20 border border-[#D8AA4D]/40 flex items-center justify-center text-[#F2CE79] group-hover:scale-110 transition-transform">
+                                    <Tag className="w-6 h-6" />
+                                </div>
+                                <span className="text-[9px] font-black uppercase px-2.5 py-1 rounded-full bg-[#D8AA4D]/25 text-[#F2CE79] border border-[#D8AA4D]/40 tracking-wider">
+                                    Remise Directe
+                                </span>
+                            </div>
+                            <h3 className="text-base font-black uppercase tracking-tight text-main group-hover:text-[#F2CE79] transition-colors">
+                                Remise Fidélité Immédiate : 75 €
+                            </h3>
+                            <p className="text-xs text-dim font-medium leading-relaxed">
+                                Déduction immédiate de 75 € par pèlerin ancien client sur le montant global de votre forfait Omra, cumulable avec vos facilités de paiement.
+                            </p>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-[#D8AA4D]">
+                            <Star className="w-3 h-3 fill-current" />
+                            <span>Déduit directement du forfait</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bandeau Privilèges de Service Conciergerie VIP & Call to Action */}
+                <div className="glass p-6 sm:p-8 rounded-[2.5rem] border border-amber-500/25 bg-gradient-to-r from-amber-500/10 via-emerald-500/5 to-transparent text-left relative overflow-hidden">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                        <div className="lg:col-span-7 space-y-3">
+                            <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#D8AA4D]">
+                                <HeartHandshake className="w-4 h-4" />
+                                <span>Les Engagements Permanents du Cercle Privilège</span>
+                            </div>
+                            <h4 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-main">
+                                Un accompagnement VIP à chaque étape de votre voyage
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                                <div className="flex items-start gap-2.5">
+                                    <div className="w-7 h-7 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+                                        <MessageSquare className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-main uppercase">Ligne Concierge 24/7</p>
+                                        <p className="text-[10px] text-dim font-medium">Liaison directe WhatsApp dédiée</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2.5">
+                                    <div className="w-7 h-7 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+                                        <Hotel className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-main uppercase">Chambres Prioritaires</p>
+                                        <p className="text-[10px] text-dim font-medium">Attribution des meilleurs étages</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2.5">
+                                    <div className="w-7 h-7 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
+                                        <ShieldCheck className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-main uppercase">App Hors-Ligne</p>
+                                        <p className="text-[10px] text-dim font-medium">Guide rituels & coffre-fort digital</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* CTA Buttons */}
+                        <div className="lg:col-span-5 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center lg:items-end">
+                            <button
+                                type="button"
+                                onClick={handleOpenLoyaltyOmraModal}
+                                className="btn-3d-gold w-full sm:w-auto px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-wider text-amber-950 shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                            >
+                                <Crown className="w-4 h-4" />
+                                <span>Activer mes Avantages Fidélité</span>
+                            </button>
+
+                            <a
+                                href="https://wa.me/33752280890?text=Bonjour,%20je%20suis%20client%20OMRAYANAIR%20et%20je%20souhaite%20connaitre%20mes%20privileges%20et%20avantages%20fidelite%20pour%20mon%20prochain%20voyage."
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-dim hover:text-main border border-white/10 text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer text-center"
+                            >
+                                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Échanger avec mon Concierge Privilège</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Section Professionnels / Agences */}
