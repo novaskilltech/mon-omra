@@ -29,12 +29,12 @@ export async function loginAdmin(formData: FormData) {
     const password = formData.get('password');
 
     if (password === ADMIN_PASSWORD) {
-        // Définir un cookie de session avec une valeur "signée" (simulée ici par le secret)
+        // Définir un cookie de session avec une durée confortable (30 jours) et sameSite: 'lax'
         cookies().set(SESSION_COOKIE, ADMIN_SECRET, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 60 * 60 * 24, // 24 heures pour plus de sécurité
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 30, // 30 jours pour éviter les déconnexions intempestives
             path: '/',
         });
         return { success: true };
@@ -52,7 +52,31 @@ export async function logoutAdmin() {
 }
 
 export async function isAdminAuthenticated() {
-    return cookies().get(SESSION_COOKIE)?.value === ADMIN_SECRET;
+    // 1. Vérification du cookie de session d'administration
+    const sessionVal = cookies().get(SESSION_COOKIE)?.value;
+    if (sessionVal === ADMIN_SECRET) {
+        return true;
+    }
+
+    // 2. Fallback session Supabase Auth (pour les profils administrateur)
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+            if (profile && (profile.role === 'SUPER_ADMIN' || profile.role === 'ADMIN' || profile.role === 'AGENCY')) {
+                return true;
+            }
+        }
+    } catch {
+        // ignore
+    }
+
+    return false;
 }
 
 export async function sendOtpToPilgrim(email: string) {

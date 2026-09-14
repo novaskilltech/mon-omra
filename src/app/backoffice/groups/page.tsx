@@ -76,6 +76,11 @@ export default function GroupsPage() {
         try {
             const res = await toggleGroupFeaturedAction(group.id, newStatus);
             if (!res.success) {
+                if (res.error === "Non autorisé" || res.error?.includes("Non autorisé")) {
+                    alert("Votre session administrateur a expiré. Vous allez être redirigé vers la page de connexion.");
+                    window.location.href = '/backoffice/login';
+                    return;
+                }
                 alert(res.error || "Erreur lors de la mise en avant");
                 await loadGroups();
             }
@@ -195,7 +200,15 @@ export default function GroupsPage() {
                     formulaType,
                     isFeatured
                 });
-                if (res.error) alert(res.error);
+                if (res.error) {
+                    if (res.error === "Non autorisé" || res.error.includes("Non autorisé")) {
+                        alert("Votre session administrateur a expiré. Vous allez être redirigé vers la page de connexion.");
+                        window.location.href = '/backoffice/login';
+                        return;
+                    }
+                    alert(res.error);
+                    return;
+                }
             } else if (modalMode === 'edit' && selectedGroup) {
                 const res = await updateGroupAction(selectedGroup.id, {
                     name,
@@ -210,7 +223,15 @@ export default function GroupsPage() {
                     formulaType,
                     isFeatured
                 });
-                if (res.error) alert(res.error);
+                if (res.error) {
+                    if (res.error === "Non autorisé" || res.error.includes("Non autorisé")) {
+                        alert("Votre session administrateur a expiré. Vous allez être redirigé vers la page de connexion.");
+                        window.location.href = '/backoffice/login';
+                        return;
+                    }
+                    alert(res.error);
+                    return;
+                }
             }
             setIsModalOpen(false);
             await loadGroups();
@@ -226,7 +247,15 @@ export default function GroupsPage() {
             setLoading(true);
             try {
                 const res = await deleteGroupAction(id);
-                if (res.error) alert(res.error);
+                if (res.error) {
+                    if (res.error === "Non autorisé" || res.error.includes("Non autorisé")) {
+                        alert("Votre session administrateur a expiré. Vous allez être redirigé vers la page de connexion.");
+                        window.location.href = '/backoffice/login';
+                        return;
+                    }
+                    alert(res.error);
+                    return;
+                }
                 await loadGroups();
             } catch (err) {
                 console.error(err);

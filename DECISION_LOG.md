@@ -393,14 +393,6 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Mise à jour de `src/app/depart/[airport]/page.tsx` et `src/components/BentoLandingHub.tsx`.
 *   **Version** : v1.22.0
 
-
-
-
-
-
-
-
-
 ---
 
 ## 37. Résolution Violation RLS (Row-Level Security) lors de la Création de Groupes & Upload de Flyers
@@ -483,5 +475,16 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests de non-régression validés (30/30 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
 *   **Version** : v1.24.0
 
+---
 
-
+## 42. Résolution de l'Expiration de Session d'Administration Backoffice (Erreur "Non autorisé")
+*   **Décision** :
+    1. **Prolongation de la session d'administration** : Extension de la durée de validité du cookie `omra_admin_session` de 24 heures à 30 jours (`maxAge: 60 * 60 * 24 * 30`) avec attribut `sameSite: 'lax'` dans `src/lib/actions/auth.ts` pour empêcher les déconnexions inopinées pendant le travail quotidien.
+    2. **Authentification Hybride & Fallback Supabase Auth** : Ajout d'une détection automatique du compte connecté via Supabase Auth pour les rôles `SUPER_ADMIN`, `ADMIN` et `AGENCY` dans `isAdminAuthenticated()`, garantissant la persistance des droits même en cas de rafraîchissement des cookies.
+    3. **Expérience Utilisateur & Redirection Intelligente** : Dans `src/app/backoffice/groups/page.tsx` (modifications de groupe, ajouts, suppressions, toggle vedette), interception proactive de l'erreur `"Non autorisé"` avec notification claire (« *Votre session administrateur a expiré. Vous allez être redirigé vers la page de connexion.* ») et redirection automatique vers `/backoffice/login`. Maintien de la modale ouverte en cas d'erreur standard pour éviter toute perte de saisie.
+    4. **Confirmation de conformité du statut "Complet"** : Validation que le statut `Complet` est 100% supporté par la base de données PostgreSQL (`CHECK (status IN ('En préparation', 'Complet', 'Brouillon', 'Terminé'))`).
+*   **Justification** : L'alerte navigateur signalée par l'utilisateur résultait de l'expiration du jeton de session après 24h d'inactivité et non d'un refus du statut "Complet".
+*   **Impacts** :
+    *   Fichiers modifiés : `src/lib/actions/auth.ts`, `src/app/backoffice/groups/page.tsx`.
+    *   Tests de non-régression validés (30/30 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
+*   **Version** : v1.24.1
