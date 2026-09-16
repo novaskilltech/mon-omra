@@ -510,3 +510,35 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests de non-régression validés (30/30 tests réussis, vérification TypeScript `tsc --noEmit` à 0 erreur).
 *   **Version** : v1.25.0
 
+---
+
+## 44. Déclaration des Paiements Pèlerins avec Justificatif & Validation Agence Conciergerie
+*   **Décision** :
+    1. **Évolution Schéma Base de Données (`payments`)** :
+        *   Ajout des colonnes `proof_path TEXT`, `admin_notes TEXT`, `validated_at TIMESTAMPTZ`, `validated_by UUID`.
+        *   Maintien de la contrainte CHECK existante `('PENDING', 'COMPLETED', 'REFUNDED', 'FAILED')`.
+    2. **Actions Serveur Sécurisées (`src/lib/actions/concierge.ts`)** :
+        *   `submitPilgrimPaymentProofAction(formData)` : vérification anti-IDOR stricte (pèlerin connecté ou chef de famille), contrôle MIME (PDF/JPEG/PNG/WebP <= 5 Mo), téléversement dans le bucket privé `pelerin-documents/payment-proofs/${pilgrimId}/...`, insertion du paiement au statut `PENDING`, et création automatique d'une alerte dans la table `notifications`.
+        *   `getPendingPaymentsAction()` : réservé administrateur, extrait l'ensemble des paiements `PENDING` enrichis des coordonnées pèlerin (nom, email, téléphone WhatsApp direct) et du nom de groupe.
+        *   `approvePaymentAction(paymentId)` : validation de l'encaissement par l'agence (bascule vers `COMPLETED`, horodatage `validated_at`, notification de confirmation au pèlerin et mise à jour en temps réel du solde).
+        *   `rejectPaymentAction(paymentId, reason)` : refus motivé obligatoire (bascule vers `FAILED`, enregistrement d'`admin_notes = reason`, notification au pèlerin pour régularisation).
+        *   `getPaymentProofSignedUrlAction(proofPath)` : génération exclusive d'URLs signées temporaires (15 minutes) avec contrôle d'accès propriétaire / admin.
+        *   `getPilgrimPaymentSummary(pilgrimId)` : synthèse financière consolidée (prix du forfait, total encaissé, total en attente, solde restant dû).
+    3. **Espace Pèlerin Client (`/dashboard`)** :
+        *   Création du composant interactif `PaymentManager.tsx` affichant la jauge financière (Forfait, Encaissé & Validé, En cours de vérification agence, Reste à solder).
+        *   Barre de progression visuelle bicolore (vert pour les paiements validés, ambre pulsant pour les paiements en attente de pointage).
+        *   Modale de déclaration avec rappel clair des coordonnées bancaires officielles de l'agence (IBAN, BIC BNP Paribas, libellé recommandé avec bouton copie 1-clic) et zone de téléversement sécurisée du justificatif.
+        *   Tableau d'historique des règlements avec badges de statuts explicites (🟡 *« Pointage bancaire en cours »*, 🟢 *« Validé »*, 🔴 *« Non validé »* avec motif du refus visible).
+        *   Bouton d'ouverture sécurisée du reçu bancaire par URL signée éphémère.
+    4. **Espace Conciergerie Agence (`/backoffice/concierge`)** :
+        *   Ajout de l'onglet prioritaire **« Paiements à valider (N) »** avec pastille numérique animée signalant instantanément les déclarations en attente.
+        *   Tableau dédié permettant de prévisualiser la preuve, de contacter le pèlerin sur WhatsApp en 1 clic, de valider l'encaissement en 1 clic (*« Valider l'encaissement »*), ou de refuser (*« Refuser »*) via une modale de motif obligatoire.
+        *   Intégration du suivi dans le tiroir latéral individuel de chaque pèlerin avec statuts colorés, bouton d'accès au justificatif et actions rapides de validation/refus.
+*   **Justification** : Répond à la demande utilisateur d'offrir une traçabilité financière totale : les pèlerins peuvent déclarer leurs acomptes/soldes avec preuve pour être rassurés, tandis que l'agence garde le contrôle absolu sur le pointage bancaire avant de marquer le forfait comme payé.
+*   **Impacts** :
+    *   Fichiers créés : `src/app/dashboard/_components/PaymentManager.tsx`.
+    *   Fichiers modifiés : `src/lib/actions/concierge.ts`, `src/lib/actions/logistics.ts`, `src/app/dashboard/page.tsx`, `src/app/backoffice/concierge/page.tsx`, `src/lib/actions/__tests__/payments.test.ts`.
+    *   Tests : 38/38 tests Vitest réussis (100% de réussite), compilation TypeScript `tsc --noEmit` à 0 erreur.
+*   **Version** : v1.26.0
+
+

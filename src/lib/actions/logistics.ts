@@ -491,6 +491,8 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
             .eq('pilgrim_id', resolvedId);
         
         const totalPaid = payments ? payments.reduce((acc, curr) => curr.status === 'COMPLETED' ? acc + Number(curr.amount) : acc, 0) : 0;
+        const totalPending = payments ? payments.reduce((acc, curr) => curr.status === 'PENDING' ? acc + Number(curr.amount) : acc, 0) : 0;
+        const sortedPayments = payments ? [...payments].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) : [];
         const pilgrimPrice = pilgrim?.package_price !== undefined && pilgrim?.package_price !== null ? Number(pilgrim.package_price) : 2500;
         const isPaid = totalPaid >= pilgrimPrice;
 
@@ -621,6 +623,11 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
                 { label: "Solde", status: isPaid ? "Payé" : `Reste : ${pilgrimPrice - totalPaid} €`, ok: isPaid },
                 { label: "Check-in", status: profile.checkin_done ? "Prêt" : "À faire", ok: !!profile.checkin_done },
             ],
+            payments: sortedPayments,
+            totalPaid: totalPaid,
+            totalPending: totalPending,
+            packagePrice: pilgrimPrice,
+            remainingBalance: Math.max(0, pilgrimPrice - totalPaid),
             familyMembers,
             currentDayOfTrip,
             todayActivities,
@@ -648,6 +655,11 @@ export async function getPilgrimDashboardData(pilgrimId: string, email?: string)
                 { label: "Solde", status: "Reste : 2500 €", ok: false },
                 { label: "Check-in", status: "À faire", ok: false },
             ],
+            payments: [],
+            totalPaid: 0,
+            totalPending: 0,
+            packagePrice: 2500,
+            remainingBalance: 2500,
             familyMembers: []
         };
     }

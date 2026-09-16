@@ -2,7 +2,9 @@
 
 import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { isAdminAuthenticated } from './auth';
+import { resolvePilgrimIdByEmail } from './logistics';
 import zlib from 'zlib';
 import crypto from 'crypto';
 import { encryptToken, decryptToken, hashPIN } from '../utils/crypto';
@@ -413,13 +415,452 @@ export async function getPilgrimPayments(pilgrimId: string) {
     const { data, error } = await supabase
         .from('payments')
         .select('*')
-        .eq('pilgrim_id', pilgrimId);
+        .eq('pilgrim_id', pilgrimId)
+        .order('created_at', { ascending: false });
 
     if (error) {
         console.error("Error fetching pilgrim payments:", error);
         return [];
     }
     return data;
+}
+
+/**
+ * Déclaration de paiement par le pèlerin avec justificatif (PDF, JPEG, PNG, WebP <= 5Mo)
+ */
+export async function submitPilgrimPaymentProofAction(formData: FormData) {
+    const supabase = createAdminClient();
+    try {
+        const amountStr = formData.get('amount') as string;
+        const method = (formData.get('method') as string || 'TRANSFER') as 'CASH' | 'TRANSFER' | 'CARD' | 'CHECK';
+        const reference = (formData.get('reference') as string || '').trim();
+        const file = formData.get('file') as File | null;
+        const requestedPilgrimId = (formData.get('pilgrimId') as string || '').trim();
+
+        const amount = parseFloat(amountStr);
+        if (isNaN(amount) || amount <= 0) {
+            return { error: "Veuillez saisir un montant valide supérieur à 0 €." };
+        }
+
+        if (!file || !(file instanceof File) || file.size === 0) {
+            return { error: "Veuillez joindre une preuve de paiement (reçu de virement ou justificatif bancaire)." };
+        }
+
+        // Contrôle du format et de la taille (5 Mo max)
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            return { error: "Format de fichier non supporté. Formats acceptés : PDF, JPEG, PNG, WebP." };
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            return { error: "Le justificatif est trop volumineux (5 Mo maximum)." };
+        }
+
+        // Authentification et contrôle anti-IDOR
+        const authClient = createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+        const isAdmin = await isAdminAuthenticated();
+
+        let resolvedId: string | null = null;
+        if (pilgrimCookieId) {
+            resolvedId = pilgrimCookieId;
+        } else if (user) {
+            resolvedId = await resolvePilgrimIdByEmail(user.id, user.email || undefined);
+        }
+
+        const targetPilgrimId = requestedPilgrimId || resolvedId;
+
+        if (!isAdmin) {
+            if (!resolvedId) {
+                return { error: "Non autorisé. Veuillez vous connecter." };
+            }
+            if (targetPilgrimId !== resolvedId) {
+                // Vérifier si resolvedId est chef de famille pour targetPilgrimId
+                const { data: targetPilgrim } = await supabase
+                    .from('pilgrims')
+                    .select('id, family_head_id')
+                    .eq('id', targetPilgrimId)
+                    .maybeSingle();
+
+                if (!targetPilgrim || targetPilgrim.family_head_id !== resolvedId) {
+                    return { error: "Action non autorisée sur ce dossier pèlerin." };
+                }
+            }
+        }
+
+        if (!targetPilgrimId) {
+            return { error: "Dossier pèlerin introuvable." };
+        }
+
+        // Upload dans le bucket privé 'pelerin-documents'
+        const fileExt = file.name.split('.').pop() || 'pdf';
+        const cleanExt = fileExt.replace(/[^a-zA-Z0-9]/g, '');
+        const safeFileName = `${Date.now()}_proof.${cleanExt}`;
+        const filePath = `payment-proofs/${targetPilgrimId}/${safeFileName}`;
+        const fileBuffer = typeof file.arrayBuffer === 'function'
+            ? Buffer.from(await file.arrayBuffer())
+            : Buffer.from(await (file as any).text());
+
+        const { error: uploadError } = await supabase.storage
+            .from('pelerin-documents')
+            .upload(filePath, fileBuffer, {
+                contentType: file.type,
+                duplex: 'half'
+            });
+
+        if (uploadError) {
+            console.error("Storage upload error:", uploadError);
+            throw new Error("Impossible d'enregistrer le justificatif de paiement dans le stockage sécurisé.");
+        }
+
+        // Récupération de l'ID agence
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'SUPER_ADMIN')
+            .limit(1)
+            .maybeSingle();
+
+        const agencyId = adminProfile?.id || targetPilgrimId;
+
+        // Insertion du règlement en attente (PENDING)
+        const { data: paymentRecord, error: insertError } = await supabase
+            .from('payments')
+            .insert({
+                agency_id: agencyId,
+                pilgrim_id: targetPilgrimId,
+                amount: amount,
+                currency: 'EUR',
+                method: method,
+                status: 'PENDING',
+                reference: reference || null,
+                proof_path: filePath
+            })
+            .select('id')
+            .single();
+
+        if (insertError) {
+            console.error("Payment insert error:", insertError);
+            throw insertError;
+        }
+
+        // Notification conciergerie / agence
+        try {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', targetPilgrimId)
+                .maybeSingle();
+
+            const pilgrimName = profile?.full_name || 'Un pèlerin';
+
+            await supabase
+                .from('notifications')
+                .insert({
+                    agency_id: agencyId,
+                    pilgrim_id: targetPilgrimId,
+                    type: 'PAYMENT',
+                    title: `Nouveau paiement déclaré : ${amount} €`,
+                    content: `${pilgrimName} a déclaré un règlement de ${amount} € (${method}) avec justificatif. En attente de validation bancaire.`
+                });
+        } catch (notifErr) {
+            console.error("Error creating payment notification:", notifErr);
+        }
+
+        revalidatePath('/dashboard');
+        revalidatePath('/backoffice/concierge');
+        return { success: true, paymentId: paymentRecord?.id };
+    } catch (e: any) {
+        console.error("Error submitting pilgrim payment:", e);
+        return { error: e.message || "Erreur lors de la déclaration du paiement." };
+    }
+}
+
+/**
+ * Récupération de l'ensemble des paiements en attente de validation (Agence Backoffice)
+ */
+export async function getPendingPaymentsAction() {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé", data: [] };
+
+    const supabase = createAdminClient();
+    try {
+        const { data: payments, error } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('status', 'PENDING')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (!payments || payments.length === 0) {
+            return { success: true, data: [] };
+        }
+
+        const pilgrimIds = Array.from(new Set(payments.map(p => p.pilgrim_id)));
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, phone')
+            .in('id', pilgrimIds);
+
+        const { data: pilgrims } = await supabase
+            .from('pilgrims')
+            .select('id, group_id, groups(name)')
+            .in('id', pilgrimIds);
+
+        const profilesMap = new Map((profiles || []).map(p => [p.id, p]));
+        const pilgrimsMap = new Map((pilgrims || []).map(p => [p.id, p]));
+
+        const enriched = payments.map(p => {
+            const prof = profilesMap.get(p.pilgrim_id);
+            const pilg: any = pilgrimsMap.get(p.pilgrim_id);
+            return {
+                ...p,
+                pilgrim_name: prof?.full_name || 'Pèlerin',
+                pilgrim_email: prof?.email || '',
+                pilgrim_phone: prof?.phone || '',
+                group_name: pilg?.groups?.name || 'Sans Groupe'
+            };
+        });
+
+        return { success: true, data: enriched };
+    } catch (e: any) {
+        console.error("Error fetching pending payments:", e);
+        return { error: e.message || "Erreur lors de la récupération des paiements.", data: [] };
+    }
+}
+
+/**
+ * Validation de l'encaissement d'un paiement (Agence Backoffice)
+ */
+export async function approvePaymentAction(paymentId: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const supabase = createAdminClient();
+    try {
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'SUPER_ADMIN')
+            .limit(1)
+            .maybeSingle();
+
+        const { data: payment, error: pFetchError } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('id', paymentId)
+            .single();
+
+        if (pFetchError || !payment) {
+            return { error: "Paiement introuvable." };
+        }
+
+        const { error: updateError } = await supabase
+            .from('payments')
+            .update({
+                status: 'COMPLETED',
+                validated_at: new Date().toISOString(),
+                validated_by: adminProfile?.id || null
+            })
+            .eq('id', paymentId);
+
+        if (updateError) throw updateError;
+
+        // Notification pèlerin
+        try {
+            await supabase
+                .from('notifications')
+                .insert({
+                    agency_id: payment.agency_id || adminProfile?.id,
+                    pilgrim_id: payment.pilgrim_id,
+                    type: 'PAYMENT',
+                    title: 'Paiement encaissé et validé ✅',
+                    content: `Votre règlement de ${payment.amount} € a bien été réceptionné sur notre compte bancaire et validé.`
+                });
+        } catch (notifErr) {
+            console.error("Error creating approval notification:", notifErr);
+        }
+
+        revalidatePath('/backoffice/concierge');
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error approving payment:", e);
+        return { error: e.message || "Erreur lors de la validation du paiement." };
+    }
+}
+
+/**
+ * Refus d'un paiement déclaré avec motif obligatoire (Agence Backoffice)
+ */
+export async function rejectPaymentAction(paymentId: string, reason: string) {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    if (!reason || !reason.trim()) {
+        return { error: "Veuillez indiquer un motif de refus pour informer le pèlerin." };
+    }
+
+    const supabase = createAdminClient();
+    try {
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'SUPER_ADMIN')
+            .limit(1)
+            .maybeSingle();
+
+        const { data: payment, error: pFetchError } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('id', paymentId)
+            .single();
+
+        if (pFetchError || !payment) {
+            return { error: "Paiement introuvable." };
+        }
+
+        const { error: updateError } = await supabase
+            .from('payments')
+            .update({
+                status: 'FAILED',
+                admin_notes: reason.trim(),
+                validated_at: new Date().toISOString(),
+                validated_by: adminProfile?.id || null
+            })
+            .eq('id', paymentId);
+
+        if (updateError) throw updateError;
+
+        // Notification pèlerin avec motif
+        try {
+            await supabase
+                .from('notifications')
+                .insert({
+                    agency_id: payment.agency_id || adminProfile?.id,
+                    pilgrim_id: payment.pilgrim_id,
+                    type: 'PAYMENT',
+                    title: 'Paiement non validé ⚠️',
+                    content: `Votre déclaration de paiement de ${payment.amount} € n'a pas pu être validée. Motif : ${reason.trim()}`
+                });
+        } catch (notifErr) {
+            console.error("Error creating rejection notification:", notifErr);
+        }
+
+        revalidatePath('/backoffice/concierge');
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error rejecting payment:", e);
+        return { error: e.message || "Erreur lors du refus du paiement." };
+    }
+}
+
+/**
+ * Génération d'une URL signée temporaire (15 min) pour consulter la preuve de paiement
+ */
+export async function getPaymentProofSignedUrlAction(proofPath: string) {
+    if (!proofPath) return { error: "Chemin de justificatif manquant." };
+
+    const supabase = createAdminClient();
+    const isAdmin = await isAdminAuthenticated();
+
+    if (!isAdmin) {
+        const authClient = createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+        const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
+
+        if (!resolvedId) {
+            return { error: "Non autorisé" };
+        }
+
+        if (!proofPath.includes(`payment-proofs/${resolvedId}/`)) {
+            const parts = proofPath.split('/');
+            const ownerId = parts.length >= 2 ? parts[1] : null;
+
+            if (ownerId) {
+                const { data: ownerPilgrim } = await supabase
+                    .from('pilgrims')
+                    .select('family_head_id')
+                    .eq('id', ownerId)
+                    .maybeSingle();
+
+                if (!ownerPilgrim || ownerPilgrim.family_head_id !== resolvedId) {
+                    return { error: "Non autorisé à consulter ce justificatif." };
+                }
+            } else {
+                return { error: "Non autorisé à consulter ce justificatif." };
+            }
+        }
+    }
+
+    const { data, error } = await supabase.storage
+        .from('pelerin-documents')
+        .createSignedUrl(proofPath, 900); // 15 minutes
+
+    if (error || !data?.signedUrl) {
+        console.error("Error creating signed URL for proof:", error);
+        return { error: "Impossible de générer le lien de consultation du justificatif." };
+    }
+
+    return { success: true, signedUrl: data.signedUrl };
+}
+
+/**
+ * Synthèse financière détaillée pour un pèlerin
+ */
+export async function getPilgrimPaymentSummary(pilgrimId: string) {
+    const supabase = createAdminClient();
+    try {
+        const { data: pilgrim } = await supabase
+            .from('pilgrims')
+            .select('package_price')
+            .eq('id', pilgrimId)
+            .maybeSingle();
+
+        const packagePrice = pilgrim?.package_price != null ? Number(pilgrim.package_price) : 2500;
+
+        const { data: payments, error } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('pilgrim_id', pilgrimId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const allPayments = payments || [];
+        const totalPaid = allPayments
+            .filter(p => p.status === 'COMPLETED')
+            .reduce((sum, p) => sum + Number(p.amount), 0);
+
+        const totalPending = allPayments
+            .filter(p => p.status === 'PENDING')
+            .reduce((sum, p) => sum + Number(p.amount), 0);
+
+        const remainingBalance = Math.max(0, packagePrice - totalPaid);
+
+        return {
+            success: true,
+            packagePrice,
+            totalPaid,
+            totalPending,
+            remainingBalance,
+            isPaid: totalPaid >= packagePrice,
+            payments: allPayments
+        };
+    } catch (e: any) {
+        console.error("Error fetching pilgrim payment summary:", e);
+        return {
+            success: false,
+            packagePrice: 2500,
+            totalPaid: 0,
+            totalPending: 0,
+            remainingBalance: 2500,
+            isPaid: false,
+            payments: []
+        };
+    }
 }
 
 export async function getGroups() {

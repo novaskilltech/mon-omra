@@ -23,6 +23,7 @@ const PermissionConsent = nextDynamic(
 
 import { isAdminAuthenticated } from '@/lib/actions/auth';
 import ChecklistEditor from './_components/ChecklistEditor';
+import PaymentManager from './_components/PaymentManager';
 
 export default async function Dashboard({ searchParams }: { searchParams: { pilgrimId?: string } }) {
     const supabase = createClient();
@@ -310,6 +311,18 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
                         <ChecklistEditor initialChecklist={data.checklist} pilgrimId={targetPilgrimId} />
                     </div>
                 )}
+
+                {/* Suivi des Règlements & Paiements Pèlerins avec Justificatifs */}
+                <PaymentManager
+                    pilgrimId={targetPilgrimId}
+                    pilgrimName={data.pilgrimName}
+                    packagePrice={(data as any).packagePrice || 2500}
+                    totalPaid={(data as any).totalPaid || 0}
+                    totalPending={(data as any).totalPending || 0}
+                    remainingBalance={(data as any).remainingBalance !== undefined ? (data as any).remainingBalance : 2500}
+                    payments={(data as any).payments || []}
+                    isPreview={isPreview}
+                />
 
                 {/* TODAY'S TIMELINE & MEETING POINT WIDGETS */}
                 {!data.hasNoGroup && (

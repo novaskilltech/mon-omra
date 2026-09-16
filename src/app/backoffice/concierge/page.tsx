@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { 
     Users, Plus, Search, User, CreditCard, 
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
-    CheckCircle, XCircle, Clock, CheckCircle2,
+    CheckCircle, XCircle, Clock, CheckCircle2, Check, FileText,
     DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2, Eye,
     Mail, Phone, MessageCircle
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import {
     getPilgrimsList, createPilgrim, updateVisaStatus, uploadVisaDocument,
     deletePilgrimAction,
     addPayment, getPilgrimPayments, getGroups, updatePayment, deletePayment,
+    getPendingPaymentsAction, approvePaymentAction, rejectPaymentAction, getPaymentProofSignedUrlAction,
     getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
     extractFlightTicketOCR, extractFlightTicketFromText, saveIndividualFlightInfo, updatePilgrimPackagePrice,
     linkFamilyMember, unlinkFamilyMember, updatePilgrimAction,
@@ -56,9 +57,15 @@ export default function ConciergeDashboard() {
     const [availableFlights, setAvailableFlights] = useState<any[]>([]);
     
     // Tab active view
-    const [activeView, setActiveView] = useState<'pilgrims' | 'archived' | 'requests' | 'urgences'>('pilgrims');
+    const [activeView, setActiveView] = useState<'pilgrims' | 'archived' | 'requests' | 'urgences' | 'payments'>('pilgrims');
     const [requests, setRequests] = useState<any[]>([]);
     const [assistanceRequests, setAssistanceRequests] = useState<any[]>([]);
+    const [pendingPayments, setPendingPayments] = useState<any[]>([]);
+    const [showRejectPaymentModal, setShowRejectPaymentModal] = useState(false);
+    const [rejectingPayment, setRejectingPayment] = useState<any>(null);
+    const [rejectionReason, setRejectionReason] = useState('');
+    const [paymentActionLoading, setPaymentActionLoading] = useState<string | null>(null);
+    const [viewingProofId, setViewingProofId] = useState<string | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<any>(null);
     const [showApproveModal, setShowApproveModal] = useState(false);
     const [approveForm, setApproveForm] = useState({
@@ -163,6 +170,12 @@ export default function ConciergeDashboard() {
             const ast = await getAssistanceRequestsAction();
             if (ast.success && ast.requests) {
                 setAssistanceRequests(ast.requests);
+            }
+
+            // Load pending payments for agency validation
+            const pendingRes = await getPendingPaymentsAction();
+            if (pendingRes.success && pendingRes.data) {
+                setPendingPayments(pendingRes.data);
             }
 
             // Fetch hotels and flights
@@ -402,6 +415,86 @@ export default function ConciergeDashboard() {
             alert("Erreur lors de la suppression");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleApprovePayment = async (paymentId: string) => {
+        setPaymentActionLoading(paymentId);
+        try {
+            const res = await approvePaymentAction(paymentId);
+            if (res.success) {
+                const pendingRes = await getPendingPaymentsAction();
+                if (pendingRes.success && pendingRes.data) {
+                    setPendingPayments(pendingRes.data);
+                }
+                if (selectedPilgrim) {
+                    await handleSelectPilgrim(selectedPilgrim);
+                }
+                alert("Paiement validé avec succès ! L'encaissement a été confirmé.");
+            } else {
+                alert(res.error || "Erreur lors de la validation du paiement");
+            }
+        } catch (err: any) {
+            console.error(err);
+            alert("Erreur lors de la validation du paiement");
+        } finally {
+            setPaymentActionLoading(null);
+        }
+    };
+
+    const handleOpenRejectModal = (payment: any) => {
+        setRejectingPayment(payment);
+        setRejectionReason('');
+        setShowRejectPaymentModal(true);
+    };
+
+    const handleConfirmRejectPayment = async () => {
+        if (!rejectingPayment) return;
+        if (!rejectionReason.trim()) {
+            alert("Veuillez renseigner un motif de refus.");
+            return;
+        }
+
+        setPaymentActionLoading(rejectingPayment.id);
+        try {
+            const res = await rejectPaymentAction(rejectingPayment.id, rejectionReason.trim());
+            if (res.success) {
+                setShowRejectPaymentModal(false);
+                setRejectingPayment(null);
+                setRejectionReason('');
+                const pendingRes = await getPendingPaymentsAction();
+                if (pendingRes.success && pendingRes.data) {
+                    setPendingPayments(pendingRes.data);
+                }
+                if (selectedPilgrim) {
+                    await handleSelectPilgrim(selectedPilgrim);
+                }
+                alert("Paiement refusé. Le pèlerin a été notifié du motif.");
+            } else {
+                alert(res.error || "Erreur lors du refus");
+            }
+        } catch (err: any) {
+            console.error(err);
+            alert("Erreur lors du refus du paiement");
+        } finally {
+            setPaymentActionLoading(null);
+        }
+    };
+
+    const handleViewPaymentProof = async (proofPath: string, paymentId: string) => {
+        setViewingProofId(paymentId);
+        try {
+            const res = await getPaymentProofSignedUrlAction(proofPath);
+            if (res.success && res.signedUrl) {
+                window.open(res.signedUrl, '_blank', 'noopener,noreferrer');
+            } else {
+                alert(res.error || "Impossible d'accéder au justificatif");
+            }
+        } catch (err: any) {
+            console.error(err);
+            alert("Erreur lors de la consultation du justificatif");
+        } finally {
+            setViewingProofId(null);
         }
     };
 
@@ -839,10 +932,32 @@ export default function ConciergeDashboard() {
                     onClick={() => setActiveView('requests')}
                     className={`pb-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 relative ${activeView === 'requests' ? 'border-emerald-500 text-main' : 'border-transparent text-dim hover:text-main'}`}
                 >
-                    Demandes de renseignement ({requests.length})
+                    Demandes ({requests.length})
                     {requests.length > 0 && (
                         <span className="absolute -top-1 -right-4 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">
                             {requests.length}
+                        </span>
+                    )}
+                </button>
+                <button
+                    onClick={() => setActiveView('payments')}
+                    className={`pb-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 relative ${activeView === 'payments' ? 'border-emerald-500 text-main' : 'border-transparent text-dim hover:text-main'}`}
+                >
+                    Paiements à valider ({pendingPayments.length})
+                    {pendingPayments.length > 0 && (
+                        <span className="absolute -top-1 -right-4 bg-amber-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse shadow-sm">
+                            {pendingPayments.length}
+                        </span>
+                    )}
+                </button>
+                <button
+                    onClick={() => setActiveView('urgences')}
+                    className={`pb-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 relative ${activeView === 'urgences' ? 'border-red-500 text-main' : 'border-transparent text-dim hover:text-main'}`}
+                >
+                    Urgences & SOS ({assistanceRequests.length})
+                    {assistanceRequests.length > 0 && (
+                        <span className="absolute -top-1 -right-4 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse shadow-sm">
+                            {assistanceRequests.length}
                         </span>
                     )}
                 </button>
@@ -1240,6 +1355,7 @@ export default function ConciergeDashboard() {
                                                             <th className="pb-2 font-bold uppercase tracking-wider">Méthode</th>
                                                             <th className="pb-2 font-bold uppercase tracking-wider">Référence</th>
                                                             <th className="pb-2 font-bold uppercase tracking-wider">Statut</th>
+                                                            <th className="pb-2 font-bold uppercase tracking-wider">Justificatif</th>
                                                             <th className="pb-2 font-bold uppercase tracking-wider text-right">Actions</th>
                                                         </tr>
                                                     </thead>
@@ -1251,11 +1367,66 @@ export default function ConciergeDashboard() {
                                                                 <td className="py-2.5 font-mono">{pay.method}</td>
                                                                 <td className="py-2.5 text-dim">{pay.reference || '-'}</td>
                                                                 <td className="py-2.5">
-                                                                    <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-black uppercase">
-                                                                        {pay.status}
-                                                                    </span>
+                                                                    {pay.status === 'COMPLETED' ? (
+                                                                        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-black uppercase inline-flex items-center gap-1">
+                                                                            <Check className="w-2.5 h-2.5" /> Validé
+                                                                        </span>
+                                                                    ) : pay.status === 'PENDING' ? (
+                                                                        <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[9px] font-black uppercase inline-flex items-center gap-1 animate-pulse">
+                                                                            <Clock className="w-2.5 h-2.5" /> En attente
+                                                                        </span>
+                                                                    ) : (
+                                                                        <div className="space-y-0.5">
+                                                                            <span className="bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded text-[9px] font-black uppercase inline-flex items-center gap-1">
+                                                                                <XCircle className="w-2.5 h-2.5" /> Non validé
+                                                                            </span>
+                                                                            {pay.admin_notes && (
+                                                                                <p className="text-[9px] text-red-400/80 italic max-w-[140px] truncate" title={pay.admin_notes}>
+                                                                                    {pay.admin_notes}
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
                                                                 </td>
-                                                                <td className="py-2.5 text-right space-x-2">
+                                                                <td className="py-2.5">
+                                                                    {pay.proof_path ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleViewPaymentProof(pay.proof_path, pay.id)}
+                                                                            disabled={viewingProofId === pay.id}
+                                                                            className="text-emerald-400 hover:text-emerald-300 text-[10px] font-bold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                                                                        >
+                                                                            {viewingProofId === pay.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
+                                                                            <span>Reçu</span>
+                                                                        </button>
+                                                                    ) : (
+                                                                        <span className="text-dim/40 italic text-[10px]">-</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="py-2.5 text-right space-x-1.5">
+                                                                    {pay.status === 'PENDING' && (
+                                                                        <>
+                                                                            <button
+                                                                                onClick={() => handleApprovePayment(pay.id)}
+                                                                                disabled={paymentActionLoading === pay.id}
+                                                                                className="p-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg transition-all inline-block cursor-pointer"
+                                                                                title="Valider l'encaissement"
+                                                                            >
+                                                                                <Check className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleOpenRejectModal({
+                                                                                    ...pay,
+                                                                                    pilgrim_name: `${selectedPilgrim?.first_name || ''} ${selectedPilgrim?.family_name || ''}`.trim() || 'Pèlerin'
+                                                                                })}
+                                                                                disabled={paymentActionLoading === pay.id}
+                                                                                className="p-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-all inline-block cursor-pointer"
+                                                                                title="Refuser avec motif"
+                                                                            >
+                                                                                <XCircle className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        </>
+                                                                    )}
                                                                     <button 
                                                                         onClick={() => handleEditPayment(pay)}
                                                                         className="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all inline-block"
@@ -1812,6 +1983,147 @@ export default function ConciergeDashboard() {
                                                     >
                                                         Traité
                                                     </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            ) : activeView === 'payments' ? (
+                <div className="glass p-8 rounded-[2.5rem] border-emerald-500/5 space-y-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h3 className="text-sm font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                                <CreditCard className="w-4 h-4 text-amber-500 animate-pulse" /> 
+                                Règlements Pèlerins à Pointer & Valider ({pendingPayments.length})
+                            </h3>
+                            <p className="text-dim text-xs mt-1">
+                                Vérifiez la bonne réception des fonds sur le compte bancaire avant de valider l'encaissement.
+                            </p>
+                        </div>
+                    </div>
+
+                    {loading ? (
+                        <div className="flex justify-center items-center py-12">
+                            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                        </div>
+                    ) : pendingPayments.length === 0 ? (
+                        <div className="text-center py-16 space-y-3">
+                            <CheckCircle2 className="w-12 h-12 text-emerald-500/40 mx-auto" />
+                            <p className="text-main font-bold text-sm">Tous les paiements sont à jour !</p>
+                            <p className="text-dim text-xs italic m-0">
+                                Aucun règlement n'est en attente de pointage bancaire pour le moment.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto animate-in fade-in duration-500">
+                            <table className="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr className="border-b border-emerald-500/10 text-dim">
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Date</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Pèlerin</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Contact</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Groupe</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Montant</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Mode</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Référence</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider">Justificatif</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider text-right">Actions Agence</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {pendingPayments.map((pay) => {
+                                        const displayPhone = formatDisplayPhone(pay.pilgrim_phone);
+                                        const whatsappUrl = pay.pilgrim_phone ? getWhatsAppUrl(pay.pilgrim_phone, `Salam alaykoum ${pay.pilgrim_name}, c'est l'équipe conciergerie OMRAYANAIR concernant votre règlement de ${pay.amount} €.`) : null;
+                                        const isActionLoading = paymentActionLoading === pay.id;
+
+                                        return (
+                                            <tr key={pay.id} className="border-b border-emerald-500/5 text-main hover:bg-emerald-500/[0.02] transition-colors">
+                                                <td className="py-4 whitespace-nowrap">
+                                                    {new Date(pay.created_at).toLocaleDateString('fr-FR', {
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        year: 'numeric'
+                                                    })}
+                                                </td>
+                                                <td className="py-4">
+                                                    <p className="font-bold uppercase text-main">{pay.pilgrim_name}</p>
+                                                    <p className="text-[10px] text-dim font-mono">{pay.pilgrim_email || '-'}</p>
+                                                </td>
+                                                <td className="py-4">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="font-medium">{displayPhone || pay.pilgrim_phone || '-'}</span>
+                                                        {pay.pilgrim_phone && whatsappUrl && (
+                                                            <a
+                                                                href={whatsappUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="p-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg transition-all"
+                                                                title="WhatsApp direct"
+                                                            >
+                                                                <MessageCircle className="w-3 h-3" />
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 text-emerald-500 font-bold">
+                                                    {pay.group_name}
+                                                </td>
+                                                <td className="py-4 font-black text-sm text-amber-400">
+                                                    {Number(pay.amount).toLocaleString('fr-FR')} €
+                                                </td>
+                                                <td className="py-4">
+                                                    <span className="font-mono text-[9px] uppercase px-2 py-0.5 rounded bg-white/5 text-dim">
+                                                        {pay.method === 'TRANSFER' ? 'Virement' : pay.method === 'CASH' ? 'Espèces' : pay.method === 'CHECK' ? 'Chèque' : pay.method}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 text-dim max-w-[140px] truncate" title={pay.reference || ''}>
+                                                    {pay.reference || '-'}
+                                                </td>
+                                                <td className="py-4">
+                                                    {pay.proof_path ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleViewPaymentProof(pay.proof_path, pay.id)}
+                                                            disabled={viewingProofId === pay.id}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider transition-all border border-white/5 cursor-pointer disabled:opacity-50"
+                                                        >
+                                                            {viewingProofId === pay.id ? (
+                                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                                            ) : (
+                                                                <FileText className="w-3 h-3" />
+                                                            )}
+                                                            <span>Voir Reçu</span>
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-dim/40 italic text-[10px]">Aucun fichier</span>
+                                                    )}
+                                                </td>
+                                                <td className="py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleApprovePayment(pay.id)}
+                                                            disabled={isActionLoading}
+                                                            className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                                                            title="Confirmer la bonne réception des fonds sur le compte bancaire"
+                                                        >
+                                                            {isActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                                            <span>Valider l'encaissement</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleOpenRejectModal(pay)}
+                                                            disabled={isActionLoading}
+                                                            className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                                                            title="Refuser avec motif"
+                                                        >
+                                                            Refuser
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );
@@ -2466,6 +2778,63 @@ export default function ConciergeDashboard() {
                                 className="w-1/2 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-20 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all"
                             >
                                 Confirmer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Refuser un paiement avec motif obligatoire */}
+            {showRejectPaymentModal && rejectingPayment && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#0b0e0c] border border-red-500/20 rounded-[2rem] max-w-md w-full p-6 md:p-8 space-y-4 shadow-2xl relative">
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+                                <XCircle className="w-4 h-4 text-red-500" /> Refus de Déclaration de Paiement
+                            </span>
+                            <h3 className="text-lg font-black text-main uppercase">
+                                Non-validation du règlement
+                            </h3>
+                            <p className="text-dim text-xs leading-relaxed">
+                                Déclaration de <strong className="text-white">{Number(rejectingPayment.amount).toLocaleString('fr-FR')} €</strong> par <strong className="text-white uppercase">{rejectingPayment.pilgrim_name}</strong>.
+                                Le pèlerin recevra immédiatement une notification avec votre motif pour régulariser sa situation.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-wider text-dim mb-1.5">
+                                Motif du refus (obligatoire) *
+                            </label>
+                            <textarea
+                                value={rejectionReason}
+                                onChange={(e) => setRejectionReason(e.target.value)}
+                                rows={3}
+                                placeholder="Ex: Virement non crédité sur le compte bancaire de l'agence à ce jour, ou justificatif illisible."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-main focus:border-red-500 outline-none transition-all resize-none"
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-2.5 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowRejectPaymentModal(false);
+                                    setRejectingPayment(null);
+                                    setRejectionReason('');
+                                }}
+                                disabled={paymentActionLoading === rejectingPayment.id}
+                                className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-dim text-xs font-bold rounded-xl transition-all"
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmRejectPayment}
+                                disabled={paymentActionLoading === rejectingPayment.id || !rejectionReason.trim()}
+                                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all disabled:opacity-40 flex items-center gap-1.5 cursor-pointer shadow-lg shadow-red-600/20"
+                            >
+                                {paymentActionLoading === rejectingPayment.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                                <span>Confirmer le refus</span>
                             </button>
                         </div>
                     </div>
