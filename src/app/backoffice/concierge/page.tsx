@@ -6,7 +6,7 @@ import {
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
     CheckCircle, XCircle, Clock, CheckCircle2, Check, FileText,
     DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2, Eye,
-    Mail, Phone, MessageCircle
+    Mail, Phone, MessageCircle, Key, Copy, Sparkles, MapPin, Receipt
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, uploadVisaDocument,
@@ -18,6 +18,8 @@ import {
     linkFamilyMember, unlinkFamilyMember, updatePilgrimAction,
     getAvailableFlightsAndHotels, saveIndividualHotelInfo
 } from '@/lib/actions/concierge';
+import { getAdminOnboardingPasscodeAction } from '@/lib/actions/onboarding';
+import { updateAgencyOnboardingPasscode } from '@/lib/actions/agency';
 import { getPilgrimDocuments, deleteDocumentAction } from '@/lib/actions/documents';
 import { getAssistanceRequestsAction, resolveAssistanceRequestAction } from '@/lib/actions/logistics';
 import { getWhatsAppUrl, formatDisplayPhone } from '@/lib/utils/phone';
@@ -72,6 +74,12 @@ export default function ConciergeDashboard() {
         groupId: ''
     });
 
+    // Portail Auto-Inscription Passcode State
+    const [onboardingPasscode, setOnboardingPasscode] = useState('OMRA2026');
+    const [isSavingPasscode, setIsSavingPasscode] = useState(false);
+    const [copiedLink, setCopiedLink] = useState(false);
+    const [quickAssignGroupId, setQuickAssignGroupId] = useState('');
+
     // Filters
     const [search, setSearch] = useState('');
     const [groupFilter, setGroupFilter] = useState('');
@@ -100,7 +108,12 @@ export default function ConciergeDashboard() {
         groupId: '',
         flightId: '',
         requestedRoomType: 'DOUBLE' as 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE',
-        hasBreakfast: false
+        hasBreakfast: false,
+        phone: '',
+        address: '',
+        postalCode: '',
+        city: '',
+        invoiceNumber: ''
     });
     
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -182,6 +195,12 @@ export default function ConciergeDashboard() {
             const { hotels, flights: fls } = await getAvailableFlightsAndHotels();
             setDbHotels(hotels || []);
             setAvailableFlights(fls || []);
+
+            // Load onboarding passcode
+            const passcodeRes = await getAdminOnboardingPasscodeAction();
+            if (passcodeRes.success && passcodeRes.passcode) {
+                setOnboardingPasscode(passcodeRes.passcode);
+            }
         } catch (e) {
             console.error(e);
         } finally {
@@ -311,7 +330,12 @@ export default function ConciergeDashboard() {
                 groupId: editForm.groupId || undefined,
                 flightId: editForm.flightId,
                 requestedRoomType: editForm.requestedRoomType,
-                hasBreakfast: editForm.hasBreakfast
+                hasBreakfast: editForm.hasBreakfast,
+                phone: editForm.phone,
+                address: editForm.address,
+                postalCode: editForm.postalCode,
+                city: editForm.city,
+                invoiceNumber: editForm.invoiceNumber
             });
             if (res.success) {
                 setShowEditModal(false);
@@ -329,6 +353,59 @@ export default function ConciergeDashboard() {
             }
         } catch (err) {
             console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSavePasscode = async () => {
+        if (!onboardingPasscode.trim()) {
+            alert("Le mot de passe ne peut pas être vide.");
+            return;
+        }
+        setIsSavingPasscode(true);
+        try {
+            const res = await updateAgencyOnboardingPasscode(onboardingPasscode);
+            if (res.success) {
+                alert("Mot de passe d'enrôlement pèlerins mis à jour avec succès !");
+            } else {
+                alert(res.error || "Erreur de mise à jour du mot de passe.");
+            }
+        } catch {
+            alert("Erreur technique lors de la mise à jour.");
+        } finally {
+            setIsSavingPasscode(false);
+        }
+    };
+
+    const handleCopyOnboardingLink = () => {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const fullUrl = `${origin}/inscription`;
+        navigator.clipboard.writeText(fullUrl);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2500);
+    };
+
+    const handleQuickAssignGroup = async () => {
+        if (!selectedPilgrim || !quickAssignGroupId) return;
+        setLoading(true);
+        try {
+            const res = await updatePilgrimAction(selectedPilgrim.id, {
+                firstName: selectedPilgrim.first_name,
+                familyName: selectedPilgrim.family_name,
+                gender: selectedPilgrim.gender as 'M' | 'F',
+                email: selectedPilgrim.email || '',
+                groupId: quickAssignGroupId
+            });
+            if (res.success) {
+                setQuickAssignGroupId('');
+                await loadData();
+                alert("Pèlerin affecté au groupe avec succès !");
+            } else {
+                alert(res.error || "Erreur lors de l'affectation.");
+            }
+        } catch {
+            alert("Erreur lors de l'affectation.");
         } finally {
             setLoading(false);
         }
@@ -914,6 +991,68 @@ export default function ConciergeDashboard() {
                 </button>
             </header>
 
+            {/* Portail d'Auto-Enrôlement Pèlerins */}
+            <div className="bg-gradient-to-r from-slate-900/90 via-emerald-950/30 to-slate-900/90 border border-emerald-500/20 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="space-y-1.5 max-w-xl">
+                    <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" /> Auto-Enrôlement Pèlerins
+                        </span>
+                        <h3 className="text-sm font-black uppercase tracking-wider text-main m-0">
+                            Portail d&apos;inscription autonome
+                        </h3>
+                    </div>
+                    <p className="text-xs text-dim">
+                        Transmettez ce lien et votre mot de passe à vos clients après encaissement. Ils saisissent leurs coordonnées, adresse, dates et numéro de facture directement à votre place.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                        <span className="text-dim text-[11px]">Lien à communiquer :</span>
+                        <code className="bg-[#050605] px-2.5 py-1 rounded-lg text-emerald-400 font-mono text-[11px] border border-emerald-500/20 select-all">
+                            /inscription
+                        </code>
+                        <button
+                            type="button"
+                            onClick={handleCopyOnboardingLink}
+                            className="px-3 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg text-[10px] font-bold text-emerald-400 transition-colors flex items-center gap-1"
+                        >
+                            <Copy className="w-3 h-3" />
+                            <span>{copiedLink ? "Copié !" : "Copier le lien"}</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Configuration Mot de Passe Agence */}
+                <div className="bg-[#050605]/80 border border-emerald-500/20 rounded-2xl p-4 w-full md:w-auto min-w-[290px] space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-dim">
+                        <span className="flex items-center gap-1">
+                            <Key className="w-3 h-3 text-amber-400" />
+                            <span>Mot de passe d&apos;accès :</span>
+                        </span>
+                        <span className="text-emerald-400 font-bold">Actif</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="text"
+                            value={onboardingPasscode}
+                            onChange={(e) => setOnboardingPasscode(e.target.value)}
+                            placeholder="Ex: OMRA2026"
+                            className="bg-[#0b0e0c] border border-white/10 rounded-xl px-3 py-2 text-main font-mono font-bold text-xs uppercase focus:outline-none focus:border-emerald-500 w-full"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleSavePasscode}
+                            disabled={isSavingPasscode}
+                            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-[#050605] font-black rounded-xl text-xs transition-colors shrink-0 disabled:opacity-50"
+                        >
+                            {isSavingPasscode ? "..." : "Enregistrer"}
+                        </button>
+                    </div>
+                    <span className="text-[10px] text-dim/75 block">
+                        Modifiable à volonté. À donner aux clients après paiement.
+                    </span>
+                </div>
+            </div>
+
             {/* Navigation Tabs */}
             <div className="flex gap-6 border-b border-emerald-500/10 pb-1">
                 <button
@@ -1036,7 +1175,19 @@ export default function ConciergeDashboard() {
                                                         )}
                                                         <span>{p.first_name} {p.family_name}</span>
                                                     </h4>
-                                                    <p className="text-[10px] text-dim font-bold uppercase tracking-widest mt-1">{p.group_name}</p>
+                                                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                                        <p className="text-[10px] text-dim font-bold uppercase tracking-widest">{p.group_name}</p>
+                                                        {p.invoice_number && (
+                                                            <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20">
+                                                                Fac: {p.invoice_number}
+                                                            </span>
+                                                        )}
+                                                        {!p.group_id && (
+                                                            <span className="text-[8px] font-black text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">
+                                                                À affecter
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     {p.visa_status === 'APPROVED' ? (
@@ -1085,7 +1236,12 @@ export default function ConciergeDashboard() {
                                                         groupId: selectedPilgrim.group_id || '',
                                                         flightId: selectedPilgrim.individual_flight_info?.selected_flight_id || '',
                                                         requestedRoomType: selectedPilgrim.requested_room_type || 'DOUBLE',
-                                                        hasBreakfast: !!selectedPilgrim.has_breakfast
+                                                        hasBreakfast: !!selectedPilgrim.has_breakfast,
+                                                        phone: selectedPilgrim.phone || '',
+                                                        address: selectedPilgrim.address || '',
+                                                        postalCode: selectedPilgrim.postal_code || '',
+                                                        city: selectedPilgrim.city || '',
+                                                        invoiceNumber: selectedPilgrim.invoice_number || ''
                                                     });
                                                     setShowEditModal(true);
                                                 }}
@@ -1115,6 +1271,44 @@ export default function ConciergeDashboard() {
                                             </a>
                                         </div>
                                     </div>
+
+                                    {/* Alerte Pèlerin Non Affecté */}
+                                    {!selectedPilgrim.group_id && (
+                                        <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
+                                            <div>
+                                                <span className="text-amber-400 font-bold text-xs uppercase flex items-center gap-1.5">
+                                                    ⚠️ Pèlerin inscrit sans groupe assigné
+                                                </span>
+                                                <p className="text-[11px] text-dim mt-0.5">
+                                                    {selectedPilgrim.individual_flight_info?.requested_airport ? (
+                                                        <>Aéroport : <strong>{selectedPilgrim.individual_flight_info.requested_airport}</strong> — Dates souhaitées : <strong>{selectedPilgrim.individual_flight_info.requested_dates || 'Non précisées'}</strong></>
+                                                    ) : (
+                                                        <>Ce pèlerin attend d&apos;être rattaché à un départ de groupe.</>
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                                <select
+                                                    value={quickAssignGroupId}
+                                                    onChange={(e) => setQuickAssignGroupId(e.target.value)}
+                                                    className="bg-[#0b0e0c] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-main outline-none"
+                                                >
+                                                    <option value="">Choisir un groupe...</option>
+                                                    {groups.map(g => (
+                                                        <option key={g.id} value={g.id}>{g.name}</option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleQuickAssignGroup}
+                                                    disabled={!quickAssignGroupId}
+                                                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-[#050605] font-black text-xs rounded-xl transition-colors shrink-0"
+                                                >
+                                                    Affecter
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Two-Column Detail Blocks */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1331,6 +1525,81 @@ export default function ConciergeDashboard() {
                                                                     }} 
                                                                 />
                                                             </label>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Coordonnées & Facture d'Enrôlement Block */}
+                                        <div className="bg-emerald-500/5 p-6 rounded-3xl border border-emerald-500/10 space-y-4 md:col-span-2">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-500/10 pb-3">
+                                                <h4 className="text-xs font-black uppercase tracking-wider text-main flex items-center gap-2 m-0">
+                                                    <Receipt className="w-4 h-4 text-emerald-500" /> Coordonnées & Facturation Enrôlement
+                                                </h4>
+                                                {selectedPilgrim.invoice_number && (
+                                                    <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full font-mono text-[10px] font-black tracking-wider">
+                                                        Facture N° : {selectedPilgrim.invoice_number}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                                                {/* Colonne 1: Facturation & Vol */}
+                                                <div className="space-y-2 bg-[#0b0f0d]/30 p-4 rounded-2xl border border-emerald-500/5">
+                                                    <span className="text-dim uppercase text-[10px] font-bold block mb-1">Dossier de Voyage</span>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-dim">N° Facture :</span>
+                                                        <span className="font-mono font-bold text-amber-400">{selectedPilgrim.invoice_number || 'Non renseigné'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-dim">Aéroport Souhaité :</span>
+                                                        <span className="font-bold text-main">{selectedPilgrim.individual_flight_info?.requested_airport || 'N/A'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-dim">Dates Demandées :</span>
+                                                        <span className="font-bold text-main text-right">{selectedPilgrim.individual_flight_info?.requested_dates || 'N/A'}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Colonne 2: Domicile */}
+                                                <div className="space-y-2 bg-[#0b0f0d]/30 p-4 rounded-2xl border border-emerald-500/5">
+                                                    <span className="text-dim uppercase text-[10px] font-bold block mb-1">Adresse de Domicile</span>
+                                                    <div className="space-y-1">
+                                                        <div className="text-main font-semibold flex items-start gap-1.5">
+                                                            <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                                            <span>{selectedPilgrim.address || 'Aucune adresse renseignée'}</span>
+                                                        </div>
+                                                        {(selectedPilgrim.postal_code || selectedPilgrim.city) && (
+                                                            <div className="text-dim pl-5">
+                                                                {selectedPilgrim.postal_code} {selectedPilgrim.city}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Colonne 3: Contact Direct */}
+                                                <div className="space-y-2 bg-[#0b0f0d]/30 p-4 rounded-2xl border border-emerald-500/5">
+                                                    <span className="text-dim uppercase text-[10px] font-bold block mb-1">Contact Direct</span>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-dim">Téléphone :</span>
+                                                        <span className="font-bold text-main font-mono">{formatDisplayPhone(selectedPilgrim.phone) || 'Non renseigné'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-dim">Email :</span>
+                                                        <span className="text-main truncate max-w-[150px]" title={selectedPilgrim.email}>{selectedPilgrim.email || 'Non renseigné'}</span>
+                                                    </div>
+                                                    {selectedPilgrim.phone && (
+                                                        <div className="pt-1">
+                                                            <a
+                                                                href={getWhatsAppUrl(selectedPilgrim.phone, `Salam Alaykoum ${selectedPilgrim.first_name}, concernant votre dossier de voyage Omra (Facture ${selectedPilgrim.invoice_number || ''}).`)}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="w-full py-1.5 px-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors"
+                                                            >
+                                                                <MessageCircle className="w-3.5 h-3.5" />
+                                                                <span>Contacter sur WhatsApp</span>
+                                                            </a>
                                                         </div>
                                                     )}
                                                 </div>
@@ -2445,6 +2714,58 @@ export default function ConciergeDashboard() {
                                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                                     className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">N° de Facture</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ex: FAC-2026-001"
+                                    value={editForm.invoiceNumber}
+                                    onChange={(e) => setEditForm({ ...editForm, invoiceNumber: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main font-mono uppercase"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Téléphone</label>
+                                <input 
+                                    type="tel" 
+                                    placeholder="Ex: 06 12 34 56 78"
+                                    value={editForm.phone}
+                                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Adresse Postale</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Rue, bâtiment..."
+                                    value={editForm.address}
+                                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                    className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Code Postal</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Ex: 75001"
+                                        value={editForm.postalCode}
+                                        onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
+                                        className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Ville</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Ex: Paris"
+                                        value={editForm.city}
+                                        onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                                        className="w-full glass px-4 py-3 rounded-2xl border-emerald-500/5 outline-none text-sm text-main"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-[9px] font-black uppercase tracking-wider text-dim mb-1">Genre</label>

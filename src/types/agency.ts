@@ -6,6 +6,7 @@ export const AgencySettingsSchema = z.object({
     agency_id: z.string().uuid(),
     pricing_mode: PricingModeSchema.default('PER_PERSON'),
     currency: z.string().length(3).default('EUR'),
+    onboarding_passcode: z.string().optional().default('OMRA2026'),
 });
 
 export type PricingMode = z.infer<typeof PricingModeSchema>;

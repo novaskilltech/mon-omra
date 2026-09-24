@@ -81,7 +81,12 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
             package_price: pilgrimDetail?.package_price !== null && pilgrimDetail?.package_price !== undefined ? Number(pilgrimDetail.package_price) : 2500,
             family_head_id: pilgrimDetail?.family_head_id || null,
             requested_room_type: pilgrimDetail?.requested_room_type || 'DOUBLE',
-            has_breakfast: !!pilgrimDetail?.has_breakfast
+            has_breakfast: !!pilgrimDetail?.has_breakfast,
+            phone: p.phone || '',
+            address: p.address || '',
+            postal_code: p.postal_code || '',
+            city: p.city || '',
+            invoice_number: p.invoice_number || ''
         };
     }));
 
@@ -207,6 +212,11 @@ export async function updatePilgrimAction(id: string, data: {
     flightId?: string;
     requestedRoomType?: 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE';
     hasBreakfast?: boolean;
+    phone?: string;
+    address?: string;
+    postalCode?: string;
+    city?: string;
+    invoiceNumber?: string;
 }) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
@@ -216,14 +226,21 @@ export async function updatePilgrimAction(id: string, data: {
         const normalizedEmail = data.email ? data.email.trim().toLowerCase() : null;
 
         // 1. Mettre à jour profiles
+        const profileUpdate: any = {
+            full_name: `${data.firstName} ${data.familyName}`,
+            family_name: data.familyName,
+            gender: data.gender,
+            email: normalizedEmail
+        };
+        if (data.phone !== undefined) profileUpdate.phone = data.phone;
+        if (data.address !== undefined) profileUpdate.address = data.address;
+        if (data.postalCode !== undefined) profileUpdate.postal_code = data.postalCode;
+        if (data.city !== undefined) profileUpdate.city = data.city;
+        if (data.invoiceNumber !== undefined) profileUpdate.invoice_number = data.invoiceNumber;
+
         const { error: profileError } = await supabase
             .from('profiles')
-            .update({
-                full_name: `${data.firstName} ${data.familyName}`,
-                family_name: data.familyName,
-                gender: data.gender,
-                email: normalizedEmail
-            })
+            .update(profileUpdate)
             .eq('id', id);
 
         if (profileError) throw profileError;
