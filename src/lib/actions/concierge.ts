@@ -589,7 +589,7 @@ export async function submitPilgrimPaymentProofAction(formData: FormData) {
                 .insert({
                     agency_id: agencyId,
                     pilgrim_id: targetPilgrimId,
-                    type: 'PAYMENT',
+                    type: 'INFO',
                     title: `Nouveau paiement déclaré : ${amount} €`,
                     content: `${pilgrimName} a déclaré un règlement de ${amount} € (${method}) avec justificatif. En attente de validation bancaire.`
                 });
@@ -703,7 +703,7 @@ export async function approvePaymentAction(paymentId: string) {
                 .insert({
                     agency_id: payment.agency_id || adminProfile?.id,
                     pilgrim_id: payment.pilgrim_id,
-                    type: 'PAYMENT',
+                    type: 'INFO',
                     title: 'Paiement encaissé et validé ✅',
                     content: `Votre règlement de ${payment.amount} € a bien été réceptionné sur notre compte bancaire et validé.`
                 });
@@ -769,7 +769,7 @@ export async function rejectPaymentAction(paymentId: string, reason: string) {
                 .insert({
                     agency_id: payment.agency_id || adminProfile?.id,
                     pilgrim_id: payment.pilgrim_id,
-                    type: 'PAYMENT',
+                    type: 'INFO',
                     title: 'Paiement non validé ⚠️',
                     content: `Votre déclaration de paiement de ${payment.amount} € n'a pas pu être validée. Motif : ${reason.trim()}`
                 });

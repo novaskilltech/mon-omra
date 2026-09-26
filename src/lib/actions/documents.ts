@@ -13,12 +13,13 @@ import { isAdminAuthenticated } from './auth';
  */
 export async function uploadDocument(formData: FormData) {
     try {
+        const isAdmin = await isAdminAuthenticated();
         const authClient = createClient();
         const { data: { user } } = await authClient.auth.getUser();
         const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
         const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
 
-        if (!resolvedId) {
+        if (!isAdmin && !resolvedId) {
             return { error: 'Non autorisé. Veuillez vous connecter.' };
         }
 
@@ -31,13 +32,11 @@ export async function uploadDocument(formData: FormData) {
         }
 
         const adminClient = createAdminClient();
-        let uploadUserId = resolvedId;
+        let uploadUserId = targetUserId || resolvedId;
 
-        if (targetUserId && targetUserId !== resolvedId) {
-            const isAdmin = await isAdminAuthenticated();
-            if (isAdmin) {
-                uploadUserId = targetUserId;
-            } else {
+        if (!isAdmin) {
+            uploadUserId = resolvedId!;
+            if (targetUserId && targetUserId !== resolvedId) {
                 const { data: pilgrimRecords } = await adminClient
                     .from('pilgrims')
                     .select('id, family_head_id')
@@ -60,13 +59,17 @@ export async function uploadDocument(formData: FormData) {
             }
         }
 
+        if (!uploadUserId) {
+            return { error: 'Dossier pèlerin introuvable.' };
+        }
+
         // 1. Validate with Zod (Contract Enforcement)
         const validation = UserDocumentSchema.safeParse({
             user_id: uploadUserId,
             type: type,
             file_name: file.name,
             file_size: file.size,
-            content_type: file.type,
+            content_type: file.type || 'application/octet-stream',
             storage_path: 'pending', // Temporary
         });
 
@@ -157,7 +160,7 @@ export async function uploadDocument(formData: FormData) {
                     .insert({
                         agency_id: agencyId,
                         pilgrim_id: uploadUserId,
-                        type: 'PAYMENT',
+                        type: 'INFO',
                         title: 'Nouvelle facture disponible',
                         content: `Une nouvelle facture (${file.name}) a été mise en ligne dans votre dossier. Merci d'effectuer le virement sur le compte bancaire de l'agence.`
                     });
@@ -235,12 +238,13 @@ export async function getPilgrimDocuments(pilgrimId: string) {
  */
 export async function deleteDocumentAction(documentId: string) {
     try {
+        const isAdmin = await isAdminAuthenticated();
         const authClient = createClient();
         const { data: { user } } = await authClient.auth.getUser();
         const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
         const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
 
-        if (!resolvedId) {
+        if (!isAdmin && !resolvedId) {
             return { error: 'Non autorisé. Veuillez vous connecter.' };
         }
 
@@ -257,9 +261,8 @@ export async function deleteDocumentAction(documentId: string) {
         }
 
         // Ensure ownership or same family folder, or admin status
-        const isAdmin = await isAdminAuthenticated();
-        let isAuthorized = isAdmin || doc.user_id === resolvedId;
-        if (!isAuthorized) {
+        let isAuthorized = isAdmin || (resolvedId ? doc.user_id === resolvedId : false);
+        if (!isAuthorized && resolvedId) {
             const { data: pilgrimRecords } = await adminClient
                 .from('pilgrims')
                 .select('id, family_head_id')

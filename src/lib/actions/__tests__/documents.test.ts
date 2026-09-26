@@ -234,6 +234,67 @@ describe('uploadDocument Action', () => {
         const result = await uploadDocument(formData);
         expect(result.error).toMatch(/Non autorisé à charger des documents/i);
     });
+
+    it('should allow admin to upload invoice for pilgrim without pilgrim cookie', async () => {
+        vi.mocked(isAdminAuthenticated).mockResolvedValueOnce(true);
+        mockCookiesValue = {};
+        const mockSupabase = createClient();
+        mockSupabase.auth.getUser = vi.fn().mockResolvedValue({ data: { user: null } });
+
+        const mockAdmin = createAdminClient();
+        const uploadMock = vi.fn().mockResolvedValue({ error: null });
+        mockAdmin.storage.from = vi.fn().mockReturnValue({
+            upload: uploadMock,
+            remove: vi.fn().mockResolvedValue({ error: null })
+        });
+
+        const insertMock = vi.fn().mockResolvedValue({ error: null });
+        mockAdmin.from = vi.fn().mockImplementation((table: string) => {
+            if (table === 'user_documents') {
+                return {
+                    select: vi.fn().mockReturnValue({
+                        eq: vi.fn().mockReturnValue({
+                            eq: vi.fn().mockReturnValue({
+                                order: vi.fn().mockResolvedValue({ data: [] })
+                            })
+                        })
+                    }),
+                    insert: insertMock
+                };
+            }
+            if (table === 'profiles') {
+                return {
+                    select: vi.fn().mockReturnThis(),
+                    in: vi.fn().mockReturnThis(),
+                    limit: vi.fn().mockReturnThis(),
+                    maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'admin-123' } })
+                };
+            }
+            if (table === 'notifications') {
+                return {
+                    insert: vi.fn().mockResolvedValue({ error: null })
+                };
+            }
+            return {};
+        });
+
+        const formData = new FormData();
+        formData.append('type', 'INVOICE');
+        formData.append('targetUserId', STRANGER_ID);
+        const file = new File(['invoice content'], 'facture-001.pdf', { type: 'application/pdf' });
+        file.arrayBuffer = vi.fn().mockResolvedValue(new ArrayBuffer(10));
+        formData.append('file', file);
+
+        const result = await uploadDocument(formData);
+        expect(result.success).toBe(true);
+        expect(uploadMock).toHaveBeenCalled();
+        expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
+            user_id: STRANGER_ID,
+            type: 'INVOICE',
+            file_name: 'facture-001.pdf',
+            verified: true
+        }));
+    });
 });
 
 describe('deleteDocumentAction', () => {
