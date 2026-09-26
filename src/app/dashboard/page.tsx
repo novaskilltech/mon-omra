@@ -4,7 +4,7 @@ import Link from 'next/link';
 import nextDynamic from 'next/dynamic';
 import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
-import { getPilgrimDashboardData, getFutureDepartures, getDepartureRequest } from '@/lib/actions/logistics';
+import { getPilgrimDashboardData, getFutureDepartures, getDepartureRequest, resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
 import { checkFeedbackStatus } from '@/lib/actions/feedback';
 import Countdown from '@/components/Countdown';
 import DepartureRequestForm from './_components/DepartureRequestForm';
@@ -31,7 +31,8 @@ export default async function Dashboard({ searchParams }: { searchParams: { pilg
     const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
 
     const isAdmin = await isAdminAuthenticated();
-    const currentPilgrimId = pilgrimCookieId || user?.id || 'demo-pilgrim-id';
+    const userPilgrimId = user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null;
+    const currentPilgrimId = pilgrimCookieId || userPilgrimId || 'demo-pilgrim-id';
 
     let targetPilgrimId = currentPilgrimId;
     let isPreview = isAdmin && !!searchParams?.pilgrimId;

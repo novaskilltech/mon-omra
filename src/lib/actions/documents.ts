@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { UserDocumentSchema, DocumentType } from '@/types/documents';
@@ -12,68 +12,70 @@ import { isAdminAuthenticated } from './auth';
  * @param formData - Must contain 'file' and 'type'
  */
 export async function uploadDocument(formData: FormData) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
-    const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
+    try {
+        const authClient = createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+        const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
 
-    if (!resolvedId) {
-        throw new Error('Non autorisé');
-    }
+        if (!resolvedId) {
+            return { error: 'Non autorisé. Veuillez vous connecter.' };
+        }
 
-    const file = formData.get('file') as File;
-    const type = formData.get('type') as DocumentType;
-    const targetUserId = formData.get('targetUserId') as string | null;
+        const file = formData.get('file') as File;
+        const type = formData.get('type') as DocumentType;
+        const targetUserId = formData.get('targetUserId') as string | null;
 
-    if (!file || !type) {
-        throw new Error('Fichier ou type manquant');
-    }
+        if (!file || !type) {
+            return { error: 'Fichier ou type de document manquant.' };
+        }
 
-    let uploadUserId = resolvedId;
-    if (targetUserId && targetUserId !== resolvedId) {
-        const isAdmin = await isAdminAuthenticated();
-        if (isAdmin) {
-            uploadUserId = targetUserId;
-        } else {
-            const { data: pilgrimRecords } = await supabase
-                .from('pilgrims')
-                .select('id, family_head_id')
-                .in('id', [resolvedId, targetUserId]);
-                
-            if (pilgrimRecords && pilgrimRecords.length === 2) {
-                const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
-                const targetRecord = pilgrimRecords.find(p => p.id === targetUserId);
-                const selfHead = selfRecord?.family_head_id || resolvedId;
-                const targetHead = targetRecord?.family_head_id || targetUserId;
-                
-                if (selfHead === targetHead) {
-                    uploadUserId = targetUserId;
-                } else {
-                    throw new Error('Non autorisé à charger des documents pour ce pèlerin');
-                }
+        const adminClient = createAdminClient();
+        let uploadUserId = resolvedId;
+
+        if (targetUserId && targetUserId !== resolvedId) {
+            const isAdmin = await isAdminAuthenticated();
+            if (isAdmin) {
+                uploadUserId = targetUserId;
             } else {
-                throw new Error('Pèlerin ou relation de famille introuvable');
+                const { data: pilgrimRecords } = await adminClient
+                    .from('pilgrims')
+                    .select('id, family_head_id')
+                    .in('id', [resolvedId, targetUserId]);
+                    
+                if (pilgrimRecords && pilgrimRecords.length === 2) {
+                    const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
+                    const targetRecord = pilgrimRecords.find(p => p.id === targetUserId);
+                    const selfHead = selfRecord?.family_head_id || resolvedId;
+                    const targetHead = targetRecord?.family_head_id || targetUserId;
+                    
+                    if (selfHead === targetHead) {
+                        uploadUserId = targetUserId;
+                    } else {
+                        return { error: 'Non autorisé à charger des documents pour ce pèlerin.' };
+                    }
+                } else {
+                    return { error: 'Pèlerin ou relation de famille introuvable.' };
+                }
             }
         }
-    }
 
-    // 1. Validate with Zod (Contract Enforcement)
-    const validation = UserDocumentSchema.safeParse({
-        user_id: uploadUserId,
-        type: type,
-        file_name: file.name,
-        file_size: file.size,
-        content_type: file.type,
-        storage_path: 'pending', // Temporary
-    });
+        // 1. Validate with Zod (Contract Enforcement)
+        const validation = UserDocumentSchema.safeParse({
+            user_id: uploadUserId,
+            type: type,
+            file_name: file.name,
+            file_size: file.size,
+            content_type: file.type,
+            storage_path: 'pending', // Temporary
+        });
 
-    if (!validation.success) {
-        return { error: validation.error.issues[0]?.message || 'Données invalides' };
-    }
+        if (!validation.success) {
+            return { error: validation.error.issues[0]?.message || 'Données invalides' };
+        }
 
-    try {
         // Enforce document count limits and overwrite old ones
-        const { data: existingDocs } = await supabase
+        const { data: existingDocs } = await adminClient
             .from('user_documents')
             .select('*')
             .eq('user_id', uploadUserId)
@@ -89,34 +91,39 @@ export async function uploadDocument(formData: FormData) {
 
             for (const doc of docsToDelete) {
                 // Delete file from storage
-                await supabase.storage
+                await adminClient.storage
                     .from('pelerin-documents')
                     .remove([doc.storage_path]);
                 
                 // Delete record from DB
-                await supabase
+                await adminClient
                     .from('user_documents')
                     .delete()
                     .eq('id', doc.id);
             }
         }
 
-        // 2. Upload to Supabase Storage (Private Bucket)
-        const fileExt = file.name.split('.').pop();
+        // 2. Upload to Supabase Storage (Private Bucket via Admin Client)
+        const fileExt = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'pdf';
         const filePath = `${uploadUserId}/${type}_${Date.now()}.${fileExt}`;
-        const fileBuffer = Buffer.from(await file.arrayBuffer());
+        const fileBuffer = typeof file.arrayBuffer === 'function'
+            ? Buffer.from(await file.arrayBuffer())
+            : Buffer.from(await (file as any).text());
 
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await adminClient.storage
             .from('pelerin-documents')
             .upload(filePath, fileBuffer, {
-                contentType: file.type,
-                duplex: 'half'
+                contentType: file.type || 'application/octet-stream',
+                upsert: true
             });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+            console.error('Storage upload error:', uploadError);
+            return { error: "Erreur lors de l'enregistrement du fichier dans le stockage sécurisé." };
+        }
 
         // 3. Record in DB
-        const { error: dbError } = await supabase
+        const { error: dbError } = await adminClient
             .from('user_documents')
             .insert({
                 user_id: uploadUserId,
@@ -128,21 +135,24 @@ export async function uploadDocument(formData: FormData) {
                 verified: type === 'INVOICE', // Invoices uploaded by admin are auto-verified
             });
 
-        if (dbError) throw dbError;
+        if (dbError) {
+            console.error('User documents insert error:', dbError);
+            return { error: "Erreur lors de l'enregistrement du document." };
+        }
 
         // If it's an invoice, send notification to the pilgrim
         if (type === 'INVOICE') {
             try {
                 // Find agency admin user profile for notification agency_id
-                const { data: adminProfile } = await supabase
+                const { data: adminProfile } = await adminClient
                     .from('profiles')
                     .select('id')
-                    .eq('role', 'SUPER_ADMIN')
+                    .in('role', ['SUPER_ADMIN', 'ADMIN', 'AGENCY'])
                     .limit(1)
-                    .single();
-                const agencyId = adminProfile?.id || resolvedId;
+                    .maybeSingle();
+                const agencyId = adminProfile?.id || '3e319b07-d010-4478-8438-9cb3762efeb1';
 
-                await supabase
+                await adminClient
                     .from('notifications')
                     .insert({
                         agency_id: agencyId,
@@ -156,13 +166,14 @@ export async function uploadDocument(formData: FormData) {
             }
         }
 
+        revalidatePath('/dashboard');
         revalidatePath('/dashboard/documents');
         revalidatePath('/backoffice/concierge');
         return { success: true, path: filePath };
 
     } catch (error: any) {
         console.error('Upload error:', error);
-        return { error: "Erreur lors de l'envoi du document." };
+        return { error: error.message || "Erreur lors de l'envoi du document." };
     }
 }
 
@@ -170,7 +181,7 @@ export async function uploadDocument(formData: FormData) {
  * Retrieves the signed URL for a document.
  */
 export async function getDocumentUrl(storagePath: string) {
-    const supabase = createClient();
+    const supabase = createAdminClient();
     
     const { data, error } = await supabase.storage
         .from('pelerin-documents')
@@ -193,7 +204,7 @@ export async function getPilgrimDocuments(pilgrimId: string) {
         return { error: "Non autorisé" };
     }
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
     try {
         const { data, error } = await supabase
             .from('user_documents')
@@ -223,63 +234,66 @@ export async function getPilgrimDocuments(pilgrimId: string) {
  * Deletes a pilgrim document (can be called by pilgrim or family head).
  */
 export async function deleteDocumentAction(documentId: string) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
-    const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
+    try {
+        const authClient = createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
+        const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : null);
 
-    if (!resolvedId) {
-        throw new Error('Non autorisé');
-    }
+        if (!resolvedId) {
+            return { error: 'Non autorisé. Veuillez vous connecter.' };
+        }
 
-    const { data: doc, error: fetchError } = await supabase
-        .from('user_documents')
-        .select('*')
-        .eq('id', documentId)
-        .single();
+        const adminClient = createAdminClient();
 
-    if (fetchError || !doc) {
-        return { error: 'Document introuvable' };
-    }
+        const { data: doc, error: fetchError } = await adminClient
+            .from('user_documents')
+            .select('*')
+            .eq('id', documentId)
+            .single();
 
-    // Ensure ownership or same family folder, or admin status
-    const isAdmin = await isAdminAuthenticated();
-    let isAuthorized = isAdmin || doc.user_id === resolvedId;
-    if (!isAuthorized) {
-        const { data: pilgrimRecords } = await supabase
-            .from('pilgrims')
-            .select('id, family_head_id')
-            .in('id', [resolvedId, doc.user_id]);
+        if (fetchError || !doc) {
+            return { error: 'Document introuvable' };
+        }
 
-        if (pilgrimRecords && pilgrimRecords.length === 2) {
-            const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
-            const targetRecord = pilgrimRecords.find(p => p.id === doc.user_id);
-            const selfHead = selfRecord?.family_head_id || resolvedId;
-            const targetHead = targetRecord?.family_head_id || doc.user_id;
-            if (selfHead === targetHead) {
-                isAuthorized = true;
+        // Ensure ownership or same family folder, or admin status
+        const isAdmin = await isAdminAuthenticated();
+        let isAuthorized = isAdmin || doc.user_id === resolvedId;
+        if (!isAuthorized) {
+            const { data: pilgrimRecords } = await adminClient
+                .from('pilgrims')
+                .select('id, family_head_id')
+                .in('id', [resolvedId, doc.user_id]);
+
+            if (pilgrimRecords && pilgrimRecords.length === 2) {
+                const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
+                const targetRecord = pilgrimRecords.find(p => p.id === doc.user_id);
+                const selfHead = selfRecord?.family_head_id || resolvedId;
+                const targetHead = targetRecord?.family_head_id || doc.user_id;
+                if (selfHead === targetHead) {
+                    isAuthorized = true;
+                }
             }
         }
-    }
 
-    if (!isAuthorized) {
-        return { error: 'Non autorisé à supprimer ce document' };
-    }
+        if (!isAuthorized) {
+            return { error: 'Non autorisé à supprimer ce document' };
+        }
 
-    try {
-        const { error: storageError } = await supabase.storage
+        const { error: storageError } = await adminClient.storage
             .from('pelerin-documents')
             .remove([doc.storage_path]);
 
         if (storageError) console.error("Storage delete error:", storageError);
 
-        const { error: dbError } = await supabase
+        const { error: dbError } = await adminClient
             .from('user_documents')
             .delete()
             .eq('id', documentId);
 
         if (dbError) throw dbError;
 
+        revalidatePath('/dashboard');
         revalidatePath('/dashboard/documents');
         return { success: true };
     } catch (e: any) {

@@ -2,15 +2,15 @@ import { Compass, ShieldCheck, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { resolvePilgrimIdByEmail } from '@/lib/actions/logistics';
 import DocumentsClient from './_components/DocumentsClient';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DocumentsPage({ searchParams }: { searchParams: { pilgrimId?: string } }) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const authClient = createClient();
+    const { data: { user } } = await authClient.auth.getUser();
     const pilgrimCookieId = cookies().get('pilgrim_id')?.value;
 
     const resolvedId = pilgrimCookieId || (user ? await resolvePilgrimIdByEmail(user.id, user.email || undefined) : undefined);
@@ -19,17 +19,19 @@ export default async function DocumentsPage({ searchParams }: { searchParams: { 
         redirect('/login');
     }
 
+    const adminClient = createAdminClient();
+
     // 1. Fetch pilgrim to find family head
-    const { data: pilgrim } = await supabase
+    const { data: pilgrim } = await adminClient
         .from('pilgrims')
         .select('family_head_id')
         .eq('id', resolvedId)
-        .single();
+        .maybeSingle();
 
     const familyHeadId = pilgrim?.family_head_id || resolvedId;
 
     // 2. Fetch all pilgrims in the same family folder
-    const { data: rawPilgrims } = await supabase
+    const { data: rawPilgrims } = await adminClient
         .from('pilgrims')
         .select('id')
         .or(`id.eq.${familyHeadId},family_head_id.eq.${familyHeadId}`);
@@ -37,13 +39,13 @@ export default async function DocumentsPage({ searchParams }: { searchParams: { 
     const pilgrimIds = rawPilgrims?.map(p => p.id) || [resolvedId];
 
     // 3. Fetch profiles for all family members
-    const { data: profiles } = await supabase
+    const { data: profiles } = await adminClient
         .from('profiles')
         .select('id, full_name')
         .in('id', pilgrimIds);
 
     // 4. Fetch all documents for all family members
-    const { data: allDocuments } = await supabase
+    const { data: allDocuments } = await adminClient
         .from('user_documents')
         .select('*')
         .in('user_id', pilgrimIds);

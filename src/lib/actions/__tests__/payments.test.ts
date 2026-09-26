@@ -166,8 +166,9 @@ describe('submitPilgrimPaymentProofAction', () => {
                 return {
                     select: vi.fn().mockReturnThis(),
                     eq: vi.fn().mockReturnThis(),
+                    in: vi.fn().mockReturnThis(),
                     limit: vi.fn().mockReturnThis(),
-                    maybeSingle: vi.fn().mockResolvedValue({ data: { full_name: 'Test Pilgrim' } }),
+                    maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'admin-123', full_name: 'Test Pilgrim' } }),
                     single: singleAdminMock
                 };
             }

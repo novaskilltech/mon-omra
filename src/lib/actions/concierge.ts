@@ -428,7 +428,7 @@ export async function deletePayment(paymentId: string) {
 }
 
 export async function getPilgrimPayments(pilgrimId: string) {
-    const supabase = createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
         .from('payments')
         .select('*')
@@ -485,21 +485,34 @@ export async function submitPilgrimPaymentProofAction(formData: FormData) {
             resolvedId = await resolvePilgrimIdByEmail(user.id, user.email || undefined);
         }
 
-        const targetPilgrimId = requestedPilgrimId || resolvedId;
+        let targetPilgrimId = requestedPilgrimId || resolvedId;
+
+        // Si targetPilgrimId est l'ID d'authentification ou vide, normaliser avec l'ID pèlerin réel
+        if (user && (targetPilgrimId === user.id || !targetPilgrimId)) {
+            targetPilgrimId = resolvedId;
+        }
 
         if (!isAdmin) {
             if (!resolvedId) {
                 return { error: "Non autorisé. Veuillez vous connecter." };
             }
             if (targetPilgrimId !== resolvedId) {
-                // Vérifier si resolvedId est chef de famille pour targetPilgrimId
-                const { data: targetPilgrim } = await supabase
+                // Vérifier si resolvedId et targetPilgrimId partagent le même dossier de famille
+                const { data: pilgrimRecords } = await supabase
                     .from('pilgrims')
                     .select('id, family_head_id')
-                    .eq('id', targetPilgrimId)
-                    .maybeSingle();
+                    .in('id', [resolvedId, targetPilgrimId]);
 
-                if (!targetPilgrim || targetPilgrim.family_head_id !== resolvedId) {
+                if (pilgrimRecords && pilgrimRecords.length === 2) {
+                    const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
+                    const targetRecord = pilgrimRecords.find(p => p.id === targetPilgrimId);
+                    const selfHead = selfRecord?.family_head_id || resolvedId;
+                    const targetHead = targetRecord?.family_head_id || targetPilgrimId;
+
+                    if (selfHead !== targetHead) {
+                        return { error: "Action non autorisée sur ce dossier pèlerin." };
+                    }
+                } else {
                     return { error: "Action non autorisée sur ce dossier pèlerin." };
                 }
             }
@@ -521,7 +534,7 @@ export async function submitPilgrimPaymentProofAction(formData: FormData) {
         const { error: uploadError } = await supabase.storage
             .from('pelerin-documents')
             .upload(filePath, fileBuffer, {
-                contentType: file.type,
+                contentType: file.type || 'application/octet-stream',
                 duplex: 'half'
             });
 
@@ -530,15 +543,15 @@ export async function submitPilgrimPaymentProofAction(formData: FormData) {
             throw new Error("Impossible d'enregistrer le justificatif de paiement dans le stockage sécurisé.");
         }
 
-        // Récupération de l'ID agence
+        // Récupération de l'ID agence (toujours un profil admin valide, jamais un pèlerin)
         const { data: adminProfile } = await supabase
             .from('profiles')
             .select('id')
-            .eq('role', 'SUPER_ADMIN')
+            .in('role', ['SUPER_ADMIN', 'ADMIN', 'AGENCY'])
             .limit(1)
             .maybeSingle();
 
-        const agencyId = adminProfile?.id || targetPilgrimId;
+        const agencyId = adminProfile?.id || '3e319b07-d010-4478-8438-9cb3762efeb1';
 
         // Insertion du règlement en attente (PENDING)
         const { data: paymentRecord, error: insertError } = await supabase
@@ -797,13 +810,21 @@ export async function getPaymentProofSignedUrlAction(proofPath: string) {
             const ownerId = parts.length >= 2 ? parts[1] : null;
 
             if (ownerId) {
-                const { data: ownerPilgrim } = await supabase
+                const { data: pilgrimRecords } = await supabase
                     .from('pilgrims')
-                    .select('family_head_id')
-                    .eq('id', ownerId)
-                    .maybeSingle();
+                    .select('id, family_head_id')
+                    .in('id', [resolvedId, ownerId]);
 
-                if (!ownerPilgrim || ownerPilgrim.family_head_id !== resolvedId) {
+                if (pilgrimRecords && pilgrimRecords.length === 2) {
+                    const selfRecord = pilgrimRecords.find(p => p.id === resolvedId);
+                    const ownerRecord = pilgrimRecords.find(p => p.id === ownerId);
+                    const selfHead = selfRecord?.family_head_id || resolvedId;
+                    const ownerHead = ownerRecord?.family_head_id || ownerId;
+
+                    if (selfHead !== ownerHead) {
+                        return { error: "Non autorisé à consulter ce justificatif." };
+                    }
+                } else {
                     return { error: "Non autorisé à consulter ce justificatif." };
                 }
             } else {
