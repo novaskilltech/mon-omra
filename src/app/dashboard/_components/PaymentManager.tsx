@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
     CreditCard, Upload, CheckCircle2, Clock, XCircle, AlertCircle, 
     FileText, Copy, Check, ExternalLink, Loader2, ArrowUpRight, ShieldCheck, Info
@@ -43,7 +44,23 @@ export default function PaymentManager({
 }: PaymentManagerProps) {
     const [isPending, startTransition] = useTransition();
     const [showModal, setShowModal] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (showModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showModal]);
 
     // Form state
     const [amount, setAmount] = useState<string>('');
@@ -377,217 +394,238 @@ export default function PaymentManager({
                 )}
             </div>
 
-            {/* Declaration Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#0b0e0c] border border-emerald-500/20 rounded-[2rem] max-w-2xl w-full p-6 md:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-                        {/* Close button */}
-                        <button
-                            onClick={() => setShowModal(false)}
-                            className="absolute top-6 right-6 text-dim hover:text-main transition-colors"
-                        >
-                            <XCircle className="w-6 h-6" />
-                        </button>
-
-                        <div className="space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
-                                DÉCLARATION SÉCURISÉE
-                            </span>
-                            <h3 className="text-xl font-black text-main uppercase">
-                                Déclarer un Règlement & Transmettre le Justificatif
-                            </h3>
-                            <p className="text-dim text-xs leading-relaxed">
-                                Indiquez le montant réglé et joignez votre justificatif de virement bancaire pour validation par notre équipe comptable.
-                            </p>
-                        </div>
-
-                        {/* Agency Bank Information Card */}
-                        <div className="bg-emerald-500/[0.03] border border-emerald-500/15 rounded-2xl p-5 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                                    <ShieldCheck className="w-3.5 h-3.5" /> Coordonnées Bancaires Officielles de l'Agence
+            {/* Declaration Modal Portaled to Body */}
+            {showModal && mounted && createPortal(
+                <div 
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain animate-in fade-in duration-200"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setShowModal(false);
+                    }}
+                >
+                    <div 
+                        className="bg-[#0b0e0c] border border-emerald-500/20 rounded-[2rem] max-w-2xl w-full p-5 sm:p-8 shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="flex items-start justify-between gap-4 shrink-0 pb-3 border-b border-white/5 relative">
+                            <div className="space-y-1 pr-6">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                                    DÉCLARATION SÉCURISÉE
                                 </span>
-                                <span className="text-[9px] text-dim uppercase tracking-wider font-bold">BNP PARIBAS</span>
+                                <h3 className="text-lg sm:text-xl font-black text-main uppercase m-0 leading-tight">
+                                    Déclarer un Règlement & Transmettre le Justificatif
+                                </h3>
+                                <p className="text-dim text-xs leading-relaxed m-0">
+                                    Indiquez le montant réglé et joignez votre justificatif de virement bancaire pour validation par notre équipe comptable.
+                                </p>
                             </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                <div>
-                                    <span className="text-dim text-[10px] block font-bold uppercase">Bénéficiaire</span>
-                                    <span className="font-bold text-main">NOVA TRAVEL</span>
-                                </div>
-                                <div>
-                                    <span className="text-dim text-[10px] block font-bold uppercase">Banque</span>
-                                    <span className="font-bold text-main">BNP PARIBAS</span>
-                                </div>
-                                <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
-                                    <div>
-                                        <span className="text-dim text-[9px] block font-bold uppercase">IBAN</span>
-                                        <span className="font-mono font-bold text-emerald-400 text-xs select-all">
-                                            FR76 3000 4000 0012 3456 7890 123
-                                        </span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => copyToClipboard('FR76 3000 4000 0012 3456 7890 123', 'iban')}
-                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all"
-                                        title="Copier l'IBAN"
-                                    >
-                                        {copiedField === 'iban' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                                    </button>
-                                </div>
-                                <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
-                                    <div>
-                                        <span className="text-dim text-[9px] block font-bold uppercase">Code BIC / SWIFT</span>
-                                        <span className="font-mono font-bold text-main text-xs select-all">
-                                            BNPAFR22XXX
-                                        </span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => copyToClipboard('BNPAFR22XXX', 'bic')}
-                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all"
-                                        title="Copier le BIC"
-                                    >
-                                        {copiedField === 'bic' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                                    </button>
-                                </div>
-                                <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
-                                    <div>
-                                        <span className="text-dim text-[9px] block font-bold uppercase">Libellé obligatoire à indiquer</span>
-                                        <span className="font-bold text-amber-400 text-xs select-all">
-                                            Virement Omra - {pilgrimName}
-                                        </span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => copyToClipboard(`Virement Omra - ${pilgrimName}`, 'ref')}
-                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all"
-                                        title="Copier le libellé"
-                                    >
-                                        {copiedField === 'ref' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                                    </button>
-                                </div>
-                            </div>
+                            {/* Close button */}
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(false)}
+                                className="p-2 -mr-2 -mt-1 text-dim hover:text-main hover:bg-white/5 rounded-xl transition-all cursor-pointer shrink-0"
+                                aria-label="Fermer"
+                            >
+                                <XCircle className="w-6 h-6" />
+                            </button>
                         </div>
 
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {formError && (
-                                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-xs flex items-center gap-2">
-                                    <AlertCircle className="w-4 h-4 shrink-0" />
-                                    <span>{formError}</span>
-                                </div>
-                            )}
+                        {/* Form wrapping scrollable body and fixed footer */}
+                        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            {/* Scrollable container for Bank Details and Inputs */}
+                            <div 
+                                className="overflow-y-auto overscroll-contain flex-1 space-y-5 pr-1.5 -mr-1.5 py-4"
+                                style={{ WebkitOverflowScrolling: 'touch' }}
+                            >
+                                {/* Agency Bank Information Card */}
+                                <div className="bg-emerald-500/[0.03] border border-emerald-500/15 rounded-2xl p-4 sm:p-5 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                                            <ShieldCheck className="w-3.5 h-3.5" /> Coordonnées Bancaires Officielles de l'Agence
+                                        </span>
+                                        <span className="text-[9px] text-dim uppercase tracking-wider font-bold">BNP PARIBAS</span>
+                                    </div>
 
-                            {formSuccess && (
-                                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3.5 rounded-xl text-xs flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                                    <span>{formSuccess}</span>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {/* Montant */}
-                                <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-wider text-dim mb-1.5">
-                                        Montant viré / versé (€) *
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            min="1"
-                                            placeholder="Ex: 500"
-                                            value={amount}
-                                            onChange={(e) => setAmount(e.target.value)}
-                                            required
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-main focus:border-emerald-500 outline-none transition-all font-bold"
-                                        />
-                                        <span className="absolute right-4 top-3 text-dim font-bold text-sm">€</span>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <span className="text-dim text-[10px] block font-bold uppercase">Bénéficiaire</span>
+                                            <span className="font-bold text-main">NOVA TRAVEL</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-dim text-[10px] block font-bold uppercase">Banque</span>
+                                            <span className="font-bold text-main">BNP PARIBAS</span>
+                                        </div>
+                                        <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
+                                            <div>
+                                                <span className="text-dim text-[9px] block font-bold uppercase">IBAN</span>
+                                                <span className="font-mono font-bold text-emerald-400 text-xs select-all">
+                                                    FR76 3000 4000 0012 3456 7890 123
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyToClipboard('FR76 3000 4000 0012 3456 7890 123', 'iban')}
+                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all cursor-pointer"
+                                                title="Copier l'IBAN"
+                                            >
+                                                {copiedField === 'iban' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                            </button>
+                                        </div>
+                                        <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
+                                            <div>
+                                                <span className="text-dim text-[9px] block font-bold uppercase">Code BIC / SWIFT</span>
+                                                <span className="font-mono font-bold text-main text-xs select-all">
+                                                    BNPAFR22XXX
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyToClipboard('BNPAFR22XXX', 'bic')}
+                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all cursor-pointer"
+                                                title="Copier le BIC"
+                                            >
+                                                {copiedField === 'bic' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                            </button>
+                                        </div>
+                                        <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
+                                            <div>
+                                                <span className="text-dim text-[9px] block font-bold uppercase">Libellé obligatoire à indiquer</span>
+                                                <span className="font-bold text-amber-400 text-xs select-all">
+                                                    Virement Omra - {pilgrimName}
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyToClipboard(`Virement Omra - ${pilgrimName}`, 'ref')}
+                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all cursor-pointer"
+                                                title="Copier le libellé"
+                                            >
+                                                {copiedField === 'ref' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Mode */}
+                                {formError && (
+                                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-xs flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 shrink-0" />
+                                        <span>{formError}</span>
+                                    </div>
+                                )}
+
+                                {formSuccess && (
+                                    <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3.5 rounded-xl text-xs flex items-center gap-2">
+                                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                        <span>{formSuccess}</span>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {/* Montant */}
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-wider text-dim mb-1.5">
+                                            Montant viré / versé (€) *
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                inputMode="decimal"
+                                                step="0.01"
+                                                min="1"
+                                                placeholder="Ex: 500"
+                                                value={amount}
+                                                onChange={(e) => setAmount(e.target.value)}
+                                                required
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-main focus:border-emerald-500 outline-none transition-all font-bold"
+                                            />
+                                            <span className="absolute right-4 top-3 text-dim font-bold text-sm">€</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Mode */}
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-wider text-dim mb-1.5">
+                                            Mode de règlement *
+                                        </label>
+                                        <select
+                                            value={method}
+                                            onChange={(e) => setMethod(e.target.value as any)}
+                                            className="w-full bg-[#0b0e0c] border border-white/10 rounded-xl px-4 py-3 text-sm text-main focus:border-emerald-500 outline-none transition-all"
+                                        >
+                                            <option value="TRANSFER">Virement Bancaire (recommandé)</option>
+                                            <option value="CASH">Espèces (dépôt en agence)</option>
+                                            <option value="CHECK">Chèque</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Référence */}
                                 <div>
                                     <label className="block text-[10px] font-black uppercase tracking-wider text-dim mb-1.5">
-                                        Mode de règlement *
+                                        Référence de virement ou numéro d'opération
                                     </label>
-                                    <select
-                                        value={method}
-                                        onChange={(e) => setMethod(e.target.value as any)}
-                                        className="w-full bg-[#0b0e0c] border border-white/10 rounded-xl px-4 py-3 text-sm text-main focus:border-emerald-500 outline-none transition-all"
-                                    >
-                                        <option value="TRANSFER">Virement Bancaire (recommandé)</option>
-                                        <option value="CASH">Espèces (dépôt en agence)</option>
-                                        <option value="CHECK">Chèque</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Référence */}
-                            <div>
-                                <label className="block text-[10px] font-black uppercase tracking-wider text-dim mb-1.5">
-                                    Référence de virement ou numéro d'opération
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: Virement Boursorama REF #98214"
-                                    value={reference}
-                                    onChange={(e) => setReference(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-main focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            {/* Justificatif Upload */}
-                            <div>
-                                <label className="block text-[10px] font-black uppercase tracking-wider text-dim mb-1.5">
-                                    Preuve de paiement (Justificatif bancaire ou reçu) *
-                                </label>
-                                <div className="border-2 border-dashed border-white/10 hover:border-emerald-500/40 rounded-2xl p-6 text-center transition-all bg-white/[0.01]">
                                     <input
-                                        type="file"
-                                        id="proofFileInput"
-                                        accept=".pdf,image/jpeg,image/png,image/webp"
-                                        onChange={handleFileChange}
-                                        className="hidden"
+                                        type="text"
+                                        placeholder="Ex: Virement Boursorama REF #98214"
+                                        value={reference}
+                                        onChange={(e) => setReference(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-main focus:border-emerald-500 outline-none transition-all"
                                     />
-                                    <label htmlFor="proofFileInput" className="cursor-pointer block space-y-2">
-                                        <Upload className="w-8 h-8 text-emerald-500 mx-auto" />
-                                        {selectedFile ? (
-                                            <div className="space-y-1">
-                                                <p className="text-xs font-bold text-emerald-400 break-all">{selectedFile.name}</p>
-                                                <p className="text-[10px] text-dim">
-                                                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} Mo • Cliquez pour changer de fichier
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-1">
-                                                <p className="text-xs font-bold text-main">
-                                                    Cliquez pour choisir un fichier ou glissez-déposez ici
-                                                </p>
-                                                <p className="text-[10px] text-dim">
-                                                    PDF, JPG, PNG, WebP acceptés (max 5 Mo)
-                                                </p>
-                                            </div>
-                                        )}
+                                </div>
+
+                                {/* Justificatif Upload */}
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-wider text-dim mb-1.5">
+                                        Preuve de paiement (Justificatif bancaire ou reçu) *
                                     </label>
+                                    <div className="border-2 border-dashed border-white/10 hover:border-emerald-500/40 rounded-2xl p-5 text-center transition-all bg-white/[0.01]">
+                                        <input
+                                            type="file"
+                                            id="proofFileInput"
+                                            accept=".pdf,image/jpeg,image/png,image/webp"
+                                            onChange={handleFileChange}
+                                            className="hidden"
+                                        />
+                                        <label htmlFor="proofFileInput" className="cursor-pointer block space-y-2">
+                                            <Upload className="w-8 h-8 text-emerald-500 mx-auto" />
+                                            {selectedFile ? (
+                                                <div className="space-y-1">
+                                                    <p className="text-xs font-bold text-emerald-400 break-all">{selectedFile.name}</p>
+                                                    <p className="text-[10px] text-dim">
+                                                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} Mo • Cliquez pour changer de fichier
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-1">
+                                                    <p className="text-xs font-bold text-main">
+                                                        Cliquez pour choisir un fichier ou glissez-déposez ici
+                                                    </p>
+                                                    <p className="text-[10px] text-dim">
+                                                        PDF, JPG, PNG, WebP acceptés (max 5 Mo)
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+                            {/* Actions Footer */}
+                            <div className="flex justify-end gap-3 pt-4 border-t border-white/5 shrink-0">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
                                     disabled={isPending}
-                                    className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-dim hover:text-main text-xs font-bold uppercase tracking-wider transition-all"
+                                    className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-dim hover:text-main text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                                 >
                                     Annuler
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isPending}
-                                    className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 disabled:opacity-50"
+                                    className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                                 >
                                     {isPending ? (
                                         <>
@@ -601,7 +639,8 @@ export default function PaymentManager({
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </section>
     );
