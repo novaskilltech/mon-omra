@@ -411,7 +411,7 @@ export default function PaymentManager({
                                     Déclarer un Règlement & Transmettre le Justificatif
                                 </h3>
                                 <p className="text-dim text-xs leading-relaxed m-0">
-                                    Indiquez le montant réglé et joignez votre justificatif de virement bancaire pour validation par notre équipe comptable.
+                                    Indiquez le montant réglé et joignez votre preuve de paiement (effectué à l'aide des coordonnées bancaires figurant sur votre facture).
                                 </p>
                             </div>
                             {/* Close button */}
