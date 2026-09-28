@@ -135,39 +135,6 @@ export default function DocumentsClient({ travelers, initialActiveTab }: Documen
                             </div>
                         ))}
                     </div>
-
-                    {/* Bank Transfer Instructions */}
-                    <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-3xl p-6 space-y-4">
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-emerald-500 block font-bold">
-                            Instructions de Règlement par Virement
-                        </span>
-                        <p className="text-xs text-dim leading-relaxed">
-                            Pour valider votre règlement, merci d'effectuer le virement bancaire sur le compte de l'agence ci-dessous. Pensez à préciser votre nom en référence de virement.
-                        </p>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono bg-[#0b0f0d]/50 p-4 rounded-2xl border border-emerald-500/5">
-                            <div>
-                                <span className="text-dim block text-[10px] uppercase font-bold tracking-wider mb-1 font-sans">Bénéficiaire</span>
-                                <span className="text-main font-bold">NOVA TRAVEL</span>
-                            </div>
-                            <div>
-                                <span className="text-dim block text-[10px] uppercase font-bold tracking-wider mb-1 font-sans">Banque</span>
-                                <span className="text-main font-bold">BNP PARIBAS</span>
-                            </div>
-                            <div className="sm:col-span-2">
-                                <span className="text-dim block text-[10px] uppercase font-bold tracking-wider mb-1 font-sans">IBAN</span>
-                                <span className="text-main font-bold select-all">FR76 3000 4000 0012 3456 7890 123</span>
-                            </div>
-                            <div>
-                                <span className="text-dim block text-[10px] uppercase font-bold tracking-wider mb-1 font-sans">Code BIC/SWIFT</span>
-                                <span className="text-main font-bold select-all">BNPAFR22XXX</span>
-                            </div>
-                            <div className="sm:col-span-2">
-                                <span className="text-dim block text-[10px] uppercase font-bold tracking-wider mb-1 font-sans font-sans">Référence Obligatoire</span>
-                                <span className="text-emerald-500 font-bold select-all">Virement Omra - {currentTraveler.name}</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             )}
 

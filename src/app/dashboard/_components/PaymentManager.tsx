@@ -4,7 +4,7 @@ import React, { useState, useTransition, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
     CreditCard, Upload, CheckCircle2, Clock, XCircle, AlertCircle, 
-    FileText, Copy, Check, ExternalLink, Loader2, ArrowUpRight, ShieldCheck, Info
+    FileText, ExternalLink, Loader2, ArrowUpRight, Info
 } from 'lucide-react';
 import { submitPilgrimPaymentProofAction, getPaymentProofSignedUrlAction } from '@/lib/actions/concierge';
 
@@ -45,7 +45,6 @@ export default function PaymentManager({
     const [isPending, startTransition] = useTransition();
     const [showModal, setShowModal] = useState(false);
     const [mounted, setMounted] = useState(false);
-    const [copiedField, setCopiedField] = useState<string | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -77,12 +76,6 @@ export default function PaymentManager({
     const isSoldOut = remainingBalance <= 0;
     const paidPercentage = packagePrice > 0 ? Math.min(100, Math.round((totalPaid / packagePrice) * 100)) : 0;
     const pendingPercentage = packagePrice > 0 ? Math.min(100 - paidPercentage, Math.round((totalPending / packagePrice) * 100)) : 0;
-
-    const copyToClipboard = (text: string, fieldId: string) => {
-        navigator.clipboard.writeText(text);
-        setCopiedField(fieldId);
-        setTimeout(() => setCopiedField(null), 2500);
-    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -434,80 +427,11 @@ export default function PaymentManager({
 
                         {/* Form wrapping scrollable body and fixed footer */}
                         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-                            {/* Scrollable container for Bank Details and Inputs */}
+                            {/* Scrollable container for Form Inputs */}
                             <div 
                                 className="overflow-y-auto overscroll-contain flex-1 space-y-5 pr-1.5 -mr-1.5 py-4"
                                 style={{ WebkitOverflowScrolling: 'touch' }}
                             >
-                                {/* Agency Bank Information Card */}
-                                <div className="bg-emerald-500/[0.03] border border-emerald-500/15 rounded-2xl p-4 sm:p-5 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                                            <ShieldCheck className="w-3.5 h-3.5" /> Coordonnées Bancaires Officielles de l'Agence
-                                        </span>
-                                        <span className="text-[9px] text-dim uppercase tracking-wider font-bold">BNP PARIBAS</span>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                        <div>
-                                            <span className="text-dim text-[10px] block font-bold uppercase">Bénéficiaire</span>
-                                            <span className="font-bold text-main">NOVA TRAVEL</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-dim text-[10px] block font-bold uppercase">Banque</span>
-                                            <span className="font-bold text-main">BNP PARIBAS</span>
-                                        </div>
-                                        <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
-                                            <div>
-                                                <span className="text-dim text-[9px] block font-bold uppercase">IBAN</span>
-                                                <span className="font-mono font-bold text-emerald-400 text-xs select-all">
-                                                    FR76 3000 4000 0012 3456 7890 123
-                                                </span>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => copyToClipboard('FR76 3000 4000 0012 3456 7890 123', 'iban')}
-                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all cursor-pointer"
-                                                title="Copier l'IBAN"
-                                            >
-                                                {copiedField === 'iban' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                                            </button>
-                                        </div>
-                                        <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
-                                            <div>
-                                                <span className="text-dim text-[9px] block font-bold uppercase">Code BIC / SWIFT</span>
-                                                <span className="font-mono font-bold text-main text-xs select-all">
-                                                    BNPAFR22XXX
-                                                </span>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => copyToClipboard('BNPAFR22XXX', 'bic')}
-                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all cursor-pointer"
-                                                title="Copier le BIC"
-                                            >
-                                                {copiedField === 'bic' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                                            </button>
-                                        </div>
-                                        <div className="sm:col-span-2 flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
-                                            <div>
-                                                <span className="text-dim text-[9px] block font-bold uppercase">Libellé obligatoire à indiquer</span>
-                                                <span className="font-bold text-amber-400 text-xs select-all">
-                                                    Virement Omra - {pilgrimName}
-                                                </span>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => copyToClipboard(`Virement Omra - ${pilgrimName}`, 'ref')}
-                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-dim hover:text-emerald-400 transition-all cursor-pointer"
-                                                title="Copier le libellé"
-                                            >
-                                                {copiedField === 'ref' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {formError && (
                                     <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-xs flex items-center gap-2">
                                         <AlertCircle className="w-4 h-4 shrink-0" />
