@@ -34,7 +34,11 @@ export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?:
         .eq('role', 'PILGRIM');
 
     if (filters?.groupId) {
-        query = query.eq('pilgrims.group_id', filters.groupId);
+        if (filters.groupId === 'UNASSIGNED' || filters.groupId === 'NONE' || filters.groupId === 'no-group') {
+            query = query.is('pilgrims.group_id', null);
+        } else {
+            query = query.eq('pilgrims.group_id', filters.groupId);
+        }
     }
     if (filters?.visaStatus) {
         query = query.eq('visa_status', filters.visaStatus);

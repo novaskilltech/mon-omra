@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updatePilgrimAction, toggleGroupFeaturedAction, getFeaturedGroupAction } from '../concierge';
+import { updatePilgrimAction, toggleGroupFeaturedAction, getFeaturedGroupAction, getPilgrimsList } from '../concierge';
 import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 
@@ -10,6 +10,7 @@ vi.mock('@/utils/supabase/server', () => {
         update: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
+        is: vi.fn().mockReturnThis(),
         neq: vi.fn().mockReturnThis(),
         in: vi.fn().mockReturnThis(),
         order: vi.fn().mockReturnThis(),
@@ -192,6 +193,78 @@ describe('toggleGroupFeaturedAction & getFeaturedGroupsAction', () => {
         expect(orderSecondaryMock).toHaveBeenCalledWith('name', { ascending: true });
         expect(res.length).toBe(2);
         expect(res[0].name).toBe('OMRA LYON');
+    });
+});
+
+describe('getPilgrimsList', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('should query unassigned pilgrims using is(pilgrims.group_id, null) when groupId is UNASSIGNED', async () => {
+        const mockSupabase = createClient();
+        const selectMock = vi.fn().mockReturnThis();
+        const eqMock = vi.fn().mockReturnThis();
+        const isMock = vi.fn().mockResolvedValue({
+            data: [
+                {
+                    id: 'p-1',
+                    full_name: 'Test Pilgrim',
+                    email: 'test@example.com',
+                    role: 'PILGRIM',
+                    pilgrims: { id: 'p-1', group_id: null, groups: null }
+                }
+            ],
+            error: null
+        });
+
+        mockSupabase.from = vi.fn().mockReturnValue({
+            select: selectMock.mockReturnValue({
+                eq: eqMock.mockReturnValue({
+                    is: isMock
+                })
+            })
+        });
+
+        const list = await getPilgrimsList({ groupId: 'UNASSIGNED' });
+
+        expect(mockSupabase.from).toHaveBeenCalledWith('profiles');
+        expect(isMock).toHaveBeenCalledWith('pilgrims.group_id', null);
+        expect(list.length).toBe(1);
+        expect(list[0].group_name).toBe('Sans Groupe');
+    });
+
+    it('should query specific group using eq(pilgrims.group_id, id) when regular groupId is passed', async () => {
+        const mockSupabase = createClient();
+        const selectMock = vi.fn().mockReturnThis();
+        const eqRoleMock = vi.fn().mockReturnThis();
+        const eqGroupMock = vi.fn().mockResolvedValue({
+            data: [
+                {
+                    id: 'p-2',
+                    full_name: 'Group Pilgrim',
+                    email: 'group@example.com',
+                    role: 'PILGRIM',
+                    pilgrims: { id: 'p-2', group_id: 'grp-999', groups: { name: 'Groupe Médine' } }
+                }
+            ],
+            error: null
+        });
+
+        mockSupabase.from = vi.fn().mockReturnValue({
+            select: selectMock.mockReturnValue({
+                eq: eqRoleMock.mockReturnValue({
+                    eq: eqGroupMock
+                })
+            })
+        });
+
+        const list = await getPilgrimsList({ groupId: 'grp-999' });
+
+        expect(mockSupabase.from).toHaveBeenCalledWith('profiles');
+        expect(eqGroupMock).toHaveBeenCalledWith('pilgrims.group_id', 'grp-999');
+        expect(list.length).toBe(1);
+        expect(list[0].group_name).toBe('Groupe Médine');
     });
 });
 

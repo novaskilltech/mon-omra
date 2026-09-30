@@ -344,6 +344,8 @@ export default function ConciergeDashboard() {
                     visaStatus: visaFilter || undefined
                 });
                 setPilgrims(updatedList);
+                const fullList = await getPilgrimsList();
+                setAllPilgrims(fullList);
                 const updatedPilgrim = updatedList.find((p: any) => p.id === editForm.id);
                 if (updatedPilgrim) {
                     await handleSelectPilgrim(updatedPilgrim);
@@ -969,6 +971,7 @@ export default function ConciergeDashboard() {
     );
 
     const pilgrimPool = allPilgrims.length > 0 ? allPilgrims : pilgrims;
+    const unassignedPilgrimsCount = pilgrimPool.filter(p => !p.group_id && p.group_status !== 'Terminé').length;
     const linkedFamilyMembers = pilgrimPool.filter(p => p.family_head_id === selectedPilgrim?.id);
     const eligiblePilgrimsToLink = pilgrimPool.filter(p => 
         p.id !== selectedPilgrim?.id &&
@@ -1122,6 +1125,9 @@ export default function ConciergeDashboard() {
                             className="glass px-4 py-3 rounded-2xl border border-emerald-500/5 text-sm text-main outline-none"
                         >
                             <option value="" className="bg-[#0b0e0c] text-main">Tous les groupes</option>
+                            <option value="UNASSIGNED" className="bg-[#0b0e0c] text-amber-400 font-medium">
+                                Sans groupe / Non affecté ({unassignedPilgrimsCount})
+                            </option>
                             {groups.map(g => (
                                 <option key={g.id} value={g.id} className="bg-[#0b0e0c] text-main">{g.name}</option>
                             ))}
