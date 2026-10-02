@@ -12,30 +12,26 @@ export default function DownloadReportButton({ stats }: { stats: any }) {
         setIsClient(true);
     }, []);
 
-    // Initial dummy data for rendering while loading/generating
+    // Data for rendering while generating PDF report
     const defaultData = stats || {
         kpis: [
-            { label: 'Pèlerins Actifs', value: '1,284' },
-            { label: 'Satisfaction', value: '4.9/5' },
-            { label: 'Visas Validés', value: '92%' },
-            { label: 'Alertes', value: '3' },
+            { label: 'Pèlerins Actifs', value: '0' },
+            { label: 'Satisfaction', value: 'N/A' },
+            { label: 'Visas Validés', value: '0%' },
+            { label: 'Alertes', value: '0' },
         ],
         logistics: [
-            { label: 'Vols Assignés', val: 78 },
-            { label: 'Rooming List', val: 42 },
-            { label: 'Kits Départ', val: 95 },
+            { label: 'Vols Assignés', val: 0 },
+            { label: 'Rooming List', val: 0 },
+            { label: 'Kits Départ', val: 0 },
         ],
         finance: {
-            totalRevenue: "482,000 €",
-            received: "312,000 €",
-            pending: "170,000 €",
-            completion: 64
+            totalRevenue: "0 €",
+            received: "0 €",
+            pending: "0 €",
+            completion: 0
         },
-        activities: [
-            { msg: "Paiement 1,200 € reçu de Yahya Ali", subgroup: "Virement immédiat", time: "12m ago", type: 'FINANCE' },
-            { msg: "Rooming List complète : Ramadan Premium", subgroup: "42 pèlerins logés", time: "1h ago", type: 'LOG' },
-            { msg: "Broadcast d'urgence envoyé", subgroup: "Sujet: Retard de vol JED", time: "4h ago", type: 'COMM' },
-        ]
+        activities: []
     };
 
     if (!isClient) {

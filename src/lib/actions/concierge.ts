@@ -2095,8 +2095,8 @@ export async function getBackofficeDashboardStats() {
 
     const supabase = createClient();
     try {
-        // 1. Get total pilgrims and approved visas
-        const { data: pilgrimsProfiles, error: pError } = await supabase
+        // 1. Total pèlerins et statuts de visa
+        const { data: pilgrimsProfiles } = await supabase
             .from('profiles')
             .select('id, visa_status, checkin_done')
             .eq('role', 'PILGRIM');
@@ -2105,66 +2105,77 @@ export async function getBackofficeDashboardStats() {
         const approvedVisasCount = pilgrimsProfiles?.filter((p: any) => p.visa_status === 'APPROVED').length || 0;
         const checkedInCount = pilgrimsProfiles?.filter((p: any) => p.checkin_done).length || 0;
 
-        const visaPercentage = totalPilgrimsCount > 0 ? Math.round((approvedVisasCount / totalPilgrimsCount) * 100) : 92;
-        const checkinPercentage = totalPilgrimsCount > 0 ? Math.round((checkedInCount / totalPilgrimsCount) * 100) : 95;
+        const visaPercentage = totalPilgrimsCount > 0 ? Math.round((approvedVisasCount / totalPilgrimsCount) * 100) : 0;
+        const checkinPercentage = totalPilgrimsCount > 0 ? Math.round((checkedInCount / totalPilgrimsCount) * 100) : 0;
 
-        // 2. Assistance requests alerts (status OPEN)
+        // 2. Alertes d'assistance pèlerins en cours (status OPEN)
         const { count: alertsCount } = await supabase
             .from('assistance_requests')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'OPEN');
 
-        // 3. Room assignments
+        // 3. Rooming assignments
         const { count: assignedCount } = await supabase
             .from('room_assignments')
             .select('*', { count: 'exact', head: true });
 
-        const roomingPercentage = totalPilgrimsCount > 0 ? Math.round(((assignedCount || 0) / totalPilgrimsCount) * 100) : 42;
+        const roomingPercentage = totalPilgrimsCount > 0 ? Math.round(((assignedCount || 0) / totalPilgrimsCount) * 100) : 0;
 
-        // 4. Flights percentage (assigned through groups or individually)
+        // 4. Vols assignés (optimisé en 1 seule requête groupée)
         const { data: pilgrimsFlights } = await supabase
             .from('pilgrims')
             .select('group_id, individual_flight_info');
-        
+
+        const { data: validGroupLogistics } = await supabase
+            .from('group_logistics')
+            .select('group_id')
+            .not('flight_departure_id', 'is', null);
+
+        const groupsWithFlight = new Set((validGroupLogistics || []).map(g => g.group_id));
+
         let flightAssignedCount = 0;
         if (pilgrimsFlights) {
             for (const p of pilgrimsFlights) {
-                if (p.individual_flight_info) {
+                if (p.individual_flight_info || (p.group_id && groupsWithFlight.has(p.group_id))) {
                     flightAssignedCount++;
-                } else if (p.group_id) {
-                    const { data: groupLog } = await supabase
-                        .from('group_logistics')
-                        .select('flight_departure_id')
-                        .eq('group_id', p.group_id)
-                        .maybeSingle();
-                    if (groupLog?.flight_departure_id) {
-                        flightAssignedCount++;
-                    }
                 }
             }
         }
-        const flightPercentage = totalPilgrimsCount > 0 ? Math.round((flightAssignedCount / totalPilgrimsCount) * 100) : 78;
+        const flightPercentage = totalPilgrimsCount > 0 ? Math.round((flightAssignedCount / totalPilgrimsCount) * 100) : 0;
 
-        // 5. Finance
+        // 5. Finances réelles
         const { data: pilgrimsPrices } = await supabase
             .from('pilgrims')
             .select('package_price');
-        
-        const totalExpectedRevenue = pilgrimsPrices && pilgrimsPrices.length > 0 ? pilgrimsPrices.reduce((acc, curr) => acc + (Number(curr.package_price) || 2500), 0) : 482000;
+
+        const totalExpectedRevenue = pilgrimsPrices && pilgrimsPrices.length > 0 
+            ? pilgrimsPrices.reduce((acc, curr) => acc + (Number(curr.package_price) || 0), 0) 
+            : 0;
 
         const { data: completedPayments } = await supabase
             .from('payments')
             .select('amount')
             .eq('status', 'COMPLETED');
-        
-        const totalReceived = completedPayments && completedPayments.length > 0 ? completedPayments.reduce((acc, curr) => acc + Number(curr.amount), 0) : 312000;
+
+        const totalReceived = completedPayments && completedPayments.length > 0 
+            ? completedPayments.reduce((acc, curr) => acc + Number(curr.amount), 0) 
+            : 0;
         const totalPending = Math.max(0, totalExpectedRevenue - totalReceived);
-        const completionRate = totalExpectedRevenue > 0 ? Math.round((totalReceived / totalExpectedRevenue) * 100) : 64;
+        const completionRate = totalExpectedRevenue > 0 ? Math.round((totalReceived / totalExpectedRevenue) * 100) : 0;
 
-        // 6. Recent activities (Flux d'activités)
-        const activities: any[] = [];
+        // 6. Satisfaction réelle calculée depuis pilgrim_feedbacks
+        const { data: feedbacks } = await supabase
+            .from('pilgrim_feedbacks')
+            .select('overall_rating');
 
-        // 6a. Recent completed payments
+        let satisfactionRating = 'N/A';
+        if (feedbacks && feedbacks.length > 0) {
+            const sum = feedbacks.reduce((acc, f) => acc + (Number(f.overall_rating) || 0), 0);
+            const avg = (sum / feedbacks.length).toFixed(1);
+            satisfactionRating = `${avg}/5`;
+        }
+
+        // 7. Activités récentes (optimisées par requêtes par lots)
         const { data: recentPayments } = await supabase
             .from('payments')
             .select('amount, created_at, pilgrim_id')
@@ -2172,14 +2183,56 @@ export async function getBackofficeDashboardStats() {
             .order('created_at', { ascending: false })
             .limit(3);
 
+        const { data: recentAssignments } = await supabase
+            .from('room_assignments')
+            .select('created_at, pilgrim_id, room_id')
+            .order('created_at', { ascending: false })
+            .limit(3);
+
+        const { data: recentRequests } = await supabase
+            .from('assistance_requests')
+            .select('created_at, pilgrim_id, category, message')
+            .order('created_at', { ascending: false })
+            .limit(3);
+
+        const allPilgrimIds = Array.from(new Set([
+            ...(recentPayments?.map(p => p.pilgrim_id) || []),
+            ...(recentAssignments?.map(a => a.pilgrim_id) || []),
+            ...(recentRequests?.map(r => r.pilgrim_id) || [])
+        ])).filter(Boolean);
+
+        const profileNameMap = new Map<string, string>();
+        if (allPilgrimIds.length > 0) {
+            const { data: profiles } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .in('id', allPilgrimIds);
+            if (profiles) {
+                for (const pr of profiles) {
+                    profileNameMap.set(pr.id, pr.full_name || 'Pèlerin');
+                }
+            }
+        }
+
+        const roomIds = (recentAssignments?.map(a => a.room_id) || []).filter(Boolean);
+        const roomHotelMap = new Map<string, string>();
+        if (roomIds.length > 0) {
+            const { data: rooms } = await supabase
+                .from('rooms')
+                .select('id, hotel_id, hotels(name)')
+                .in('id', roomIds);
+            if (rooms) {
+                for (const rm of rooms as any[]) {
+                    roomHotelMap.set(rm.id, rm.hotels?.name || 'Hôtel');
+                }
+            }
+        }
+
+        const activities: any[] = [];
+
         if (recentPayments) {
             for (const p of recentPayments) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('full_name')
-                    .eq('id', p.pilgrim_id)
-                    .maybeSingle();
-                const name = profile?.full_name || "Pèlerin";
+                const name = profileNameMap.get(p.pilgrim_id) || "Pèlerin";
                 const date = new Date(p.created_at);
                 activities.push({
                     msg: `Paiement ${Number(p.amount).toLocaleString('fr-FR')} € reçu de ${name}`,
@@ -2191,38 +2244,10 @@ export async function getBackofficeDashboardStats() {
             }
         }
 
-        // 6b. Recent room assignments
-        const { data: recentAssignments } = await supabase
-            .from('room_assignments')
-            .select('created_at, pilgrim_id, room_id')
-            .order('created_at', { ascending: false })
-            .limit(3);
-
         if (recentAssignments) {
             for (const a of recentAssignments) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('full_name')
-                    .eq('id', a.pilgrim_id)
-                    .maybeSingle();
-                const name = profile?.full_name || "Pèlerin";
-
-                const { data: room } = await supabase
-                    .from('rooms')
-                    .select('hotel_id')
-                    .eq('id', a.room_id)
-                    .maybeSingle();
-                
-                let hotelName = "Hôtel";
-                if (room?.hotel_id) {
-                    const { data: hotel } = await supabase
-                        .from('hotels')
-                        .select('name')
-                        .eq('id', room.hotel_id)
-                        .maybeSingle();
-                    if (hotel?.name) hotelName = hotel.name;
-                }
-
+                const name = profileNameMap.get(a.pilgrim_id) || "Pèlerin";
+                const hotelName = roomHotelMap.get(a.room_id) || "Hôtel";
                 const date = new Date(a.created_at);
                 activities.push({
                     msg: `Rooming List : ${name} logé`,
@@ -2234,24 +2259,12 @@ export async function getBackofficeDashboardStats() {
             }
         }
 
-        // 6c. Recent assistance requests
-        const { data: recentRequests } = await supabase
-            .from('assistance_requests')
-            .select('created_at, pilgrim_id, category, message')
-            .order('created_at', { ascending: false })
-            .limit(3);
-
         if (recentRequests) {
             for (const r of recentRequests) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('full_name')
-                    .eq('id', r.pilgrim_id)
-                    .maybeSingle();
-                const name = profile?.full_name || "Pèlerin";
+                const name = profileNameMap.get(r.pilgrim_id) || "Pèlerin";
                 const date = new Date(r.created_at);
                 activities.push({
-                    msg: `Broadcast d'urgence envoyé / SOS`,
+                    msg: `Demande d'assistance / SOS`,
                     subgroup: `${name} (${r.category}) : "${r.message.substring(0, 30)}${r.message.length > 30 ? '...' : ''}"`,
                     timestamp: date.getTime(),
                     time: formatTimeAgo(date),
@@ -2260,23 +2273,39 @@ export async function getBackofficeDashboardStats() {
             }
         }
 
-        // Sort activities by timestamp desc
         activities.sort((a, b) => b.timestamp - a.timestamp);
         const finalActivities = activities.slice(0, 4);
 
-        // Fallback placeholder if no database entries are found yet (to matches screenshot mockup)
-        const displayActivities = finalActivities.length > 0 ? finalActivities : [
-            { msg: "Paiement 1,200 € reçu de Yahya Ali", subgroup: "Virement immédiat", time: "12m ago", type: 'FINANCE' },
-            { msg: "Rooming List complète : Ramadan Premium", subgroup: "42 pèlerins logés", time: "1h ago", type: 'LOG' },
-            { msg: "Broadcast d'urgence envoyé", subgroup: "Sujet: Retard de vol JED", time: "4h ago", type: 'COMM' },
-        ];
-
         return {
             kpis: [
-                { label: 'Pèlerins Actifs', value: totalPilgrimsCount > 0 ? totalPilgrimsCount.toString() : '1,284', trend: '+12%', iconName: 'Users', color: 'text-emerald-600 dark:text-emerald-400' },
-                { label: 'Satisfaction', value: '4.9/5', trend: 'High', iconName: 'Star', color: 'text-amber-600 dark:text-amber-400' },
-                { label: 'Visas Validés', value: `${visaPercentage}%`, trend: '+5%', iconName: 'ShieldCheck', color: 'text-blue-600 dark:text-blue-400' },
-                { label: 'Alertes', value: (alertsCount || 0).toString(), alert: (alertsCount || 0) > 0, iconName: 'Bell', color: 'text-red-600 dark:text-red-400' },
+                { 
+                    label: 'Pèlerins Actifs', 
+                    value: totalPilgrimsCount.toLocaleString('fr-FR'), 
+                    trend: totalPilgrimsCount > 0 ? `${totalPilgrimsCount} inscrits` : '0 inscrit', 
+                    iconName: 'Users', 
+                    color: 'text-emerald-600 dark:text-emerald-400' 
+                },
+                { 
+                    label: 'Satisfaction', 
+                    value: satisfactionRating, 
+                    trend: satisfactionRating !== 'N/A' ? 'Avis réels' : 'Aucun avis', 
+                    iconName: 'Star', 
+                    color: 'text-amber-600 dark:text-amber-400' 
+                },
+                { 
+                    label: 'Visas Validés', 
+                    value: `${visaPercentage}%`, 
+                    trend: `${approvedVisasCount}/${totalPilgrimsCount}`, 
+                    iconName: 'ShieldCheck', 
+                    color: 'text-blue-600 dark:text-blue-400' 
+                },
+                { 
+                    label: 'Alertes', 
+                    value: (alertsCount || 0).toString(), 
+                    alert: (alertsCount || 0) > 0, 
+                    iconName: 'Bell', 
+                    color: 'text-red-600 dark:text-red-400' 
+                },
             ],
             logistics: [
                 { label: 'Vols Assignés', val: flightPercentage, color: 'bg-blue-500' },
@@ -2289,7 +2318,7 @@ export async function getBackofficeDashboardStats() {
                 pending: `${totalPending.toLocaleString('fr-FR')} €`,
                 completion: completionRate
             },
-            activities: displayActivities
+            activities: finalActivities
         };
     } catch (e: any) {
         console.error("Error fetching dashboard statistics:", e);
