@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updatePilgrimAction, toggleGroupFeaturedAction, getFeaturedGroupAction, getPilgrimsList } from '../concierge';
+import { updatePilgrimAction, toggleGroupFeaturedAction, getFeaturedGroupAction, getPilgrimsList, exportAllPilgrimsDataAction } from '../concierge';
 import { createClient, createAdminClient } from '@/utils/supabase/server';
+import { isAdminAuthenticated } from '../auth';
 import { revalidatePath } from 'next/cache';
 
 // Mock Supabase Server Utils
@@ -267,4 +268,176 @@ describe('getPilgrimsList', () => {
         expect(list[0].group_name).toBe('Groupe Médine');
     });
 });
+
+describe('exportAllPilgrimsDataAction', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('should return error if user is not admin authenticated', async () => {
+        vi.mocked(isAdminAuthenticated).mockResolvedValueOnce(false);
+
+        const result = await exportAllPilgrimsDataAction();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Non autorisé');
+    });
+
+    it('should successfully export pilgrims with family relationships and group logistics', async () => {
+        vi.mocked(isAdminAuthenticated).mockResolvedValueOnce(true);
+        const mockSupabase = createClient();
+
+        const mockProfiles = [
+            {
+                id: 'head-1',
+                full_name: 'Ahmad Al-Faruq',
+                first_name: 'Ahmad',
+                family_name: 'Al-Faruq',
+                gender: 'M',
+                email: 'ahmad@example.com',
+                phone: '+33612345678',
+                address: '10 Rue de la Paix',
+                postal_code: '75001',
+                city: 'Paris',
+                invoice_number: 'FAC-2026-001',
+                visa_status: 'APPROVED',
+                checkin_done: true,
+                created_at: '2026-09-01T10:00:00Z',
+                pilgrims: {
+                    id: 'head-1',
+                    group_id: 'grp-1',
+                    family_head_id: null,
+                    requested_room_type: 'DOUBLE',
+                    has_breakfast: true,
+                    package_price: 2600
+                }
+            },
+            {
+                id: 'member-2',
+                full_name: 'Fatima Al-Faruq',
+                first_name: 'Fatima',
+                family_name: 'Al-Faruq',
+                gender: 'F',
+                email: 'fatima@example.com',
+                phone: '+33687654321',
+                address: '10 Rue de la Paix',
+                postal_code: '75001',
+                city: 'Paris',
+                invoice_number: 'FAC-2026-002',
+                visa_status: 'APPROVED',
+                checkin_done: false,
+                created_at: '2026-09-01T10:05:00Z',
+                pilgrims: {
+                    id: 'member-2',
+                    group_id: 'grp-1',
+                    family_head_id: 'head-1',
+                    requested_room_type: 'DOUBLE',
+                    has_breakfast: true,
+                    package_price: 2600
+                }
+            }
+        ];
+
+        const mockGroups = [
+            {
+                id: 'grp-1',
+                name: 'Groupe Toussaint Prestige',
+                departure_date: '2026-10-24',
+                status: 'En préparation',
+                price: 2600,
+                flight_type: 'DIRECT',
+                formula_type: 'CONFORT'
+            }
+        ];
+
+        const mockLogistics = [
+            {
+                group_id: 'grp-1',
+                flight_departure_id: 'fl-dep-1',
+                flight_return_id: 'fl-ret-1'
+            }
+        ];
+
+        const mockFlights = [
+            {
+                id: 'fl-dep-1',
+                departure_airport: 'CDG',
+                arrival_airport: 'JED',
+                departure_time: '2026-10-24T12:00:00Z',
+                arrival_time: '2026-10-24T18:00:00Z',
+                flight_number: 'SV142',
+                airline: 'Saudia'
+            },
+            {
+                id: 'fl-ret-1',
+                departure_airport: 'MED',
+                arrival_airport: 'CDG',
+                departure_time: '2026-11-04T14:00:00Z',
+                arrival_time: '2026-11-04T19:00:00Z',
+                flight_number: 'SV143',
+                airline: 'Saudia'
+            }
+        ];
+
+        mockSupabase.from = vi.fn((table: string) => {
+            if (table === 'profiles') {
+                return {
+                    select: vi.fn().mockReturnValue({
+                        eq: vi.fn().mockResolvedValue({ data: mockProfiles, error: null })
+                    })
+                } as any;
+            }
+            if (table === 'groups') {
+                return {
+                    select: vi.fn().mockResolvedValue({ data: mockGroups, error: null })
+                } as any;
+            }
+            if (table === 'group_logistics') {
+                return {
+                    select: vi.fn().mockResolvedValue({ data: mockLogistics, error: null })
+                } as any;
+            }
+            if (table === 'flights') {
+                return {
+                    select: vi.fn().mockReturnValue({
+                        in: vi.fn().mockResolvedValue({ data: mockFlights, error: null })
+                    })
+                } as any;
+            }
+            return {
+                select: vi.fn().mockResolvedValue({ data: [], error: null })
+            } as any;
+        });
+
+        const result = await exportAllPilgrimsDataAction();
+
+        expect(result.success).toBe(true);
+        expect(result.total_count).toBe(2);
+        expect(result.pilgrims).toBeDefined();
+
+        const p1 = result.pilgrims![0];
+        const p2 = result.pilgrims![1];
+
+        // Vérification pèlerin 1 (Chef de famille)
+        expect(p1.id).toBe('head-1');
+        expect(p1.gender).toBe('Homme');
+        expect(p1.group_name).toBe('Groupe Toussaint Prestige');
+        expect(p1.departure_date).toBe('2026-10-24');
+        expect(p1.departure_airport).toBe('CDG');
+        expect(p1.is_family_head).toBe(true);
+        expect(p1.family_role).toBe('Chef de famille');
+        expect(p1.family_size).toBe(2);
+        expect(p1.family_members).toContain('Fatima Al-Faruq');
+
+        // Vérification pèlerin 2 (Membre rattaché)
+        expect(p2.id).toBe('member-2');
+        expect(p2.gender).toBe('Femme');
+        expect(p2.is_family_head).toBe(false);
+        expect(p2.family_role).toBe('Accompagnateur / Membre rattaché');
+        expect(p2.family_head_name).toBe('Ahmad Al-Faruq');
+        expect(p2.family_size).toBe(2);
+        expect(p2.departure_date).toBe('2026-10-24');
+    });
+});
+
 

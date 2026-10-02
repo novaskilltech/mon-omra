@@ -541,4 +541,28 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 38/38 tests Vitest réussis (100% de réussite), compilation TypeScript `tsc --noEmit` à 0 erreur.
 *   **Version** : v1.26.0
 
+---
+
+## 45. Moteur d'Exportation Universel des Données Pèlerins (JSON IA / LLM Ready & CSV/Excel)
+*   **Décision** :
+    1. **Contrat de Données & Action Serveur Sécurisée (`src/lib/actions/concierge.ts`)** :
+        *   Création de l'action serveur `exportAllPilgrimsDataAction()` strictement restreinte à l'administrateur authentifié (`isAdminAuthenticated()`).
+        *   Extraction consolidée des pèlerins (`profiles` + `pilgrims`), des groupes de voyage (`groups`), des liaisons logistiques (`group_logistics`) et des plans de vols (`flights`).
+        *   Résolution intelligente des grappes familiales : identification du chef de famille (`is_family_head`), du rôle familial (`family_role`), du nom du chef de famille (`family_head_name`), de la taille de la famille (`family_size`) et de la liste complète des membres rattachés (`family_members`).
+        *   Normalisation des identités, coordonnées (email, téléphone, adresse, code postal, ville), dates de départ et retour réelles, aéroports, forfaits, chambres, statuts de visa et statuts d'enregistrement.
+    2. **Double Format d'Exportation en 1 Clic sur le Backoffice (`src/app/backoffice/concierge/page.tsx`)** :
+        *   Intégration de deux boutons distincts dans l'en-tête du tableau de bord de la Conciergerie :
+            *   🏷️ **« Exporter JSON (IA) »** : génère et télécharge instantanément un fichier `.json` structuré et indenté (`mon-omra-pelerins-ia-YYYY-MM-DD.json`), optimisé pour injection dans un prompt LLM (Claude, ChatGPT, Qwen), scripts d'analyse ou intégrations API tierces.
+            *   📊 **« Exporter Excel / CSV »** : génère et télécharge un fichier `.csv` (`mon-omra-pelerins-excel-YYYY-MM-DD.csv`) encodé avec BOM UTF-8 (`\uFEFF`) et séparateurs points-virgules (`;`), garantissant une ouverture directe et sans corruption d'accents dans Microsoft Excel ou Google Sheets, avec colonnes prêtes pour les filtres par groupe, date de départ, genre et liens familiaux.
+        *   Gestion d'état de chargement réactive (`exportingType`) avec retours visuels animés.
+    3. **Sécurité & Confidentialité** :
+        *   Interdiction d'accès aux non-administrateurs.
+        *   Exclusion des données sensibles non pertinentes (hash de mots de passe, clés de session privées).
+*   **Justification** : Répond au besoin de l'agence d'extraire librement toutes les données saisies sur la plateforme afin d'effectuer des tris et analyses par IA (dates de départ, répartition par groupe, genre, familles) ou de les transférer vers des tableurs Excel et outils tiers.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/lib/actions/concierge.ts`, `src/app/backoffice/concierge/page.tsx`, `src/lib/actions/__tests__/concierge.test.ts`.
+    *   Tests : 61/61 tests Vitest réussis (100% de réussite), compilation TypeScript `tsc --noEmit` à 0 erreur.
+*   **Version** : v1.27.0
+
+
 

@@ -3328,3 +3328,272 @@ export async function getFeaturedGroupAction() {
         return { error: "Erreur lors de la récupération du groupe vedette", group: null };
     }
 }
+
+/**
+ * Type contrat d'exportation d'un dossier pèlerin
+ */
+export interface PilgrimExportRecord {
+    id: string;
+    full_name: string;
+    first_name: string;
+    family_name: string;
+    gender: 'Homme' | 'Femme' | 'Non renseigné';
+    email: string;
+    phone: string;
+    address: string;
+    postal_code: string;
+    city: string;
+    group_id: string | null;
+    group_name: string;
+    group_status: string;
+    departure_date: string;
+    return_date: string;
+    departure_airport: string;
+    is_family_head: boolean;
+    family_role: 'Chef de famille' | 'Accompagnateur / Membre rattaché' | 'Individuel (sans famille)';
+    family_head_name: string;
+    family_members: string[];
+    family_size: number;
+    requested_room_type: string;
+    has_breakfast: boolean;
+    package_price: number;
+    invoice_number: string;
+    visa_status: string;
+    checkin_done: boolean;
+    created_at: string;
+}
+
+/**
+ * Action serveur d'exportation universelle de l'ensemble des pèlerins
+ * Réservée aux administrateurs pour traitement IA / LLM ou tableur Excel / CSV
+ */
+export async function exportAllPilgrimsDataAction(): Promise<{
+    success: boolean;
+    error?: string;
+    export_timestamp?: string;
+    total_count?: number;
+    pilgrims?: PilgrimExportRecord[];
+}> {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) {
+        return { success: false, error: "Non autorisé. Accès réservé aux administrateurs." };
+    }
+
+    const supabase = createClient();
+    try {
+        // 1. Récupération de tous les profils pèlerins avec détails
+        const { data: rawProfiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select(`
+                *,
+                pilgrims(
+                    id,
+                    group_id,
+                    individual_flight_info,
+                    individual_hotel_info,
+                    land_transfers,
+                    package_price,
+                    family_head_id,
+                    requested_room_type,
+                    has_breakfast
+                )
+            `)
+            .eq('role', 'PILGRIM');
+
+        if (profilesError) {
+            console.error("Error fetching profiles for export:", profilesError);
+            return { success: false, error: "Erreur lors de la récupération des profils pèlerins." };
+        }
+
+        // 2. Récupération des groupes pour les dates et aéroports
+        const { data: groupsData } = await supabase
+            .from('groups')
+            .select('id, name, departure_date, status, price, flight_type, formula_type');
+
+        const groupsMap = new Map<string, any>();
+        if (groupsData) {
+            for (const g of groupsData) {
+                groupsMap.set(g.id, g);
+            }
+        }
+
+        // 3. Récupération des liaisons logistiques de groupes (vols aller / retour)
+        const { data: logisticsData } = await supabase
+            .from('group_logistics')
+            .select('group_id, flight_departure_id, flight_return_id');
+
+        const flightIdsToFetch = new Set<string>();
+        const groupLogisticsMap = new Map<string, any>();
+        if (logisticsData) {
+            for (const log of logisticsData) {
+                groupLogisticsMap.set(log.group_id, log);
+                if (log.flight_departure_id) flightIdsToFetch.add(log.flight_departure_id);
+                if (log.flight_return_id) flightIdsToFetch.add(log.flight_return_id);
+            }
+        }
+
+        // 4. Récupération des vols associés
+        const flightsMap = new Map<string, any>();
+        if (flightIdsToFetch.size > 0) {
+            const { data: flightsData } = await supabase
+                .from('flights')
+                .select('id, departure_airport, arrival_airport, departure_time, arrival_time, flight_number, airline')
+                .in('id', Array.from(flightIdsToFetch));
+
+            if (flightsData) {
+                for (const fl of flightsData) {
+                    flightsMap.set(fl.id, fl);
+                }
+            }
+        }
+
+        // 5. Première passe : indexer les pèlerins et construire les grappes familiales
+        interface TempPilgrim {
+            profile: any;
+            detail: any;
+            fullName: string;
+            familyHeadId: string | null;
+        }
+
+        const tempPilgrims: TempPilgrim[] = (rawProfiles || []).map((p: any) => {
+            const detail = Array.isArray(p.pilgrims) ? p.pilgrims[0] : p.pilgrims;
+            const fullName = p.full_name?.trim() || `${p.first_name || ''} ${p.family_name || ''}`.trim() || 'Pèlerin Inconnu';
+            return {
+                profile: p,
+                detail: detail || {},
+                fullName,
+                familyHeadId: detail?.family_head_id || null
+            };
+        });
+
+        // Map des noms par ID
+        const pilgrimNamesById = new Map<string, string>();
+        for (const tp of tempPilgrims) {
+            pilgrimNamesById.set(tp.profile.id, tp.fullName);
+        }
+
+        // Regroupement par famille : racine = familyHeadId si présent, sinon id propre
+        const familyClusters = new Map<string, TempPilgrim[]>();
+        for (const tp of tempPilgrims) {
+            const clusterRoot = tp.familyHeadId || tp.profile.id;
+            const existing = familyClusters.get(clusterRoot) || [];
+            existing.push(tp);
+            familyClusters.set(clusterRoot, existing);
+        }
+
+        // 6. Deuxième passe : construction des enregistrements exportables normalisés
+        const exportRecords: PilgrimExportRecord[] = tempPilgrims.map((tp) => {
+            const p = tp.profile;
+            const d = tp.detail;
+            const groupId = d.group_id || null;
+            const group = groupId ? groupsMap.get(groupId) : null;
+            const groupLogistics = groupId ? groupLogisticsMap.get(groupId) : null;
+
+            // Détermination des vols aller et retour
+            const depFlight = groupLogistics?.flight_departure_id ? flightsMap.get(groupLogistics.flight_departure_id) : null;
+            const retFlight = groupLogistics?.flight_return_id ? flightsMap.get(groupLogistics.flight_return_id) : null;
+
+            // Dates et aéroports
+            let departureDate = group?.departure_date || '';
+            let returnDate = '';
+            let departureAirport = depFlight?.departure_airport || '';
+
+            if (depFlight?.departure_time) {
+                if (!departureDate) {
+                    departureDate = depFlight.departure_time.split('T')[0] || depFlight.departure_time;
+                }
+            }
+            if (retFlight?.departure_time) {
+                returnDate = retFlight.departure_time.split('T')[0] || retFlight.departure_time;
+            }
+
+            // Fallback si vols individuels personnalisés
+            if (d.individual_flight_info) {
+                try {
+                    const indFlights = typeof d.individual_flight_info === 'string' 
+                        ? JSON.parse(d.individual_flight_info) 
+                        : d.individual_flight_info;
+                    if (Array.isArray(indFlights) && indFlights.length > 0) {
+                        const firstFlight = indFlights[0];
+                        if (firstFlight.departure_time && !departureDate) {
+                            departureDate = firstFlight.departure_time.split('T')[0] || firstFlight.departure_time;
+                        }
+                        if (firstFlight.departure_airport && !departureAirport) {
+                            departureAirport = firstFlight.departure_airport;
+                        }
+                        const lastFlight = indFlights[indFlights.length - 1];
+                        if (lastFlight.arrival_time && !returnDate) {
+                            returnDate = lastFlight.arrival_time.split('T')[0] || lastFlight.arrival_time;
+                        }
+                    }
+                } catch {
+                    // Ignorer erreur de parsing du JSON individuel
+                }
+            }
+
+            // Résolution des liens familiaux
+            const clusterRoot = tp.familyHeadId || p.id;
+            const cluster = familyClusters.get(clusterRoot) || [tp];
+            const familyHeadName = pilgrimNamesById.get(clusterRoot) || tp.fullName;
+            const familyMembersNames = cluster.map(m => m.fullName);
+            const familySize = cluster.length;
+
+            const isHead = !tp.familyHeadId && familySize > 1;
+            let familyRole: 'Chef de famille' | 'Accompagnateur / Membre rattaché' | 'Individuel (sans famille)' = 'Individuel (sans famille)';
+            if (isHead) {
+                familyRole = 'Chef de famille';
+            } else if (tp.familyHeadId) {
+                familyRole = 'Accompagnateur / Membre rattaché';
+            } else if (familySize > 1) {
+                familyRole = 'Chef de famille';
+            }
+
+            // Normalisation du genre
+            let normalizedGender: 'Homme' | 'Femme' | 'Non renseigné' = 'Non renseigné';
+            if (p.gender === 'M' || p.gender === 'HOMME') normalizedGender = 'Homme';
+            else if (p.gender === 'F' || p.gender === 'FEMME') normalizedGender = 'Femme';
+
+            return {
+                id: p.id,
+                full_name: tp.fullName,
+                first_name: p.first_name || p.full_name?.split(' ')[0] || '',
+                family_name: p.family_name || p.full_name?.split(' ').slice(1).join(' ') || '',
+                gender: normalizedGender,
+                email: p.email || '',
+                phone: p.phone || '',
+                address: p.address || '',
+                postal_code: p.postal_code || '',
+                city: p.city || '',
+                group_id: groupId,
+                group_name: group?.name || 'Non assigné',
+                group_status: group?.status || 'Aucun statut',
+                departure_date: departureDate || 'Non fixée',
+                return_date: returnDate || 'Non fixée',
+                departure_airport: departureAirport || 'Non renseigné',
+                is_family_head: isHead,
+                family_role: familyRole,
+                family_head_name: familyHeadName,
+                family_members: familyMembersNames,
+                family_size: familySize,
+                requested_room_type: d.requested_room_type || 'DOUBLE',
+                has_breakfast: !!d.has_breakfast,
+                package_price: d.package_price !== null && d.package_price !== undefined ? Number(d.package_price) : 2500,
+                invoice_number: p.invoice_number || '',
+                visa_status: p.visa_status || 'PENDING',
+                checkin_done: !!p.checkin_done,
+                created_at: p.created_at || ''
+            };
+        });
+
+        return {
+            success: true,
+            export_timestamp: new Date().toISOString(),
+            total_count: exportRecords.length,
+            pilgrims: exportRecords
+        };
+    } catch (e: any) {
+        console.error("Error in exportAllPilgrimsDataAction:", e);
+        return { success: false, error: e.message || "Erreur interne lors de l'exportation des données." };
+    }
+}
+

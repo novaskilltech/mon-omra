@@ -6,7 +6,8 @@ import {
     FileCheck, ShieldAlert, ArrowRight, Loader2, 
     CheckCircle, XCircle, Clock, CheckCircle2, Check, FileText,
     DollarSign, BookOpen, Plane, Upload, Brain, Edit, Hotel, Trash2, Eye,
-    Mail, Phone, MessageCircle, Key, Copy, Sparkles, MapPin, Receipt
+    Mail, Phone, MessageCircle, Key, Copy, Sparkles, MapPin, Receipt,
+    FileCode, FileSpreadsheet, Download
 } from 'lucide-react';
 import { 
     getPilgrimsList, createPilgrim, updateVisaStatus, uploadVisaDocument,
@@ -16,7 +17,8 @@ import {
     getRegistrationRequests, approveRegistrationRequest, rejectRegistrationRequest,
     extractFlightTicketOCR, extractFlightTicketFromText, saveIndividualFlightInfo, updatePilgrimPackagePrice,
     linkFamilyMember, unlinkFamilyMember, updatePilgrimAction,
-    getAvailableFlightsAndHotels, saveIndividualHotelInfo
+    getAvailableFlightsAndHotels, saveIndividualHotelInfo,
+    exportAllPilgrimsDataAction
 } from '@/lib/actions/concierge';
 import { getAdminOnboardingPasscodeAction } from '@/lib/actions/onboarding';
 import { updateAgencyOnboardingPasscode } from '@/lib/actions/agency';
@@ -79,6 +81,7 @@ export default function ConciergeDashboard() {
     const [isSavingPasscode, setIsSavingPasscode] = useState(false);
     const [copiedLink, setCopiedLink] = useState(false);
     const [quickAssignGroupId, setQuickAssignGroupId] = useState('');
+    const [exportingType, setExportingType] = useState<'json' | 'csv' | null>(null);
 
     // Filters
     const [search, setSearch] = useState('');
@@ -386,6 +389,127 @@ export default function ConciergeDashboard() {
         navigator.clipboard.writeText(fullUrl);
         setCopiedLink(true);
         setTimeout(() => setCopiedLink(false), 2500);
+    };
+
+    const handleExportJson = async () => {
+        try {
+            setExportingType('json');
+            const res = await exportAllPilgrimsDataAction();
+            if (!res.success || !res.pilgrims) {
+                alert(res.error || "Erreur lors de l'exportation des données au format JSON.");
+                return;
+            }
+
+            const jsonString = JSON.stringify(res, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const downloadAnchor = document.createElement('a');
+            const today = new Date().toISOString().split('T')[0];
+            downloadAnchor.setAttribute("href", url);
+            downloadAnchor.setAttribute("download", `mon-omra-pelerins-ia-${today}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            URL.revokeObjectURL(url);
+        } catch (err: any) {
+            console.error("Erreur lors du téléchargement JSON:", err);
+            alert("Erreur lors de la génération du fichier JSON pour IA.");
+        } finally {
+            setExportingType(null);
+        }
+    };
+
+    const handleExportCsv = async () => {
+        try {
+            setExportingType('csv');
+            const res = await exportAllPilgrimsDataAction();
+            if (!res.success || !res.pilgrims) {
+                alert(res.error || "Erreur lors de l'exportation des données au format CSV/Excel.");
+                return;
+            }
+
+            const headers = [
+                "ID Pèlerin",
+                "Nom Complet",
+                "Prénom",
+                "Nom de Famille",
+                "Genre",
+                "Téléphone",
+                "Email",
+                "Adresse",
+                "Code Postal",
+                "Ville",
+                "Groupe",
+                "Date Départ",
+                "Date Retour",
+                "Aéroport Départ",
+                "Statut Groupe",
+                "Rôle Familial",
+                "Chef de Famille",
+                "Taille Famille",
+                "Membres de la Famille",
+                "Type Chambre",
+                "Petit-Déjeuner",
+                "Prix Forfait",
+                "N° Facture",
+                "Statut Visa",
+                "Enregistrement Fait",
+                "Date Inscription"
+            ];
+
+            const escapeCsv = (val: any) => {
+                if (val === null || val === undefined) return '""';
+                const str = String(val).replace(/"/g, '""');
+                return `"${str}"`;
+            };
+
+            const rows = res.pilgrims.map(p => [
+                escapeCsv(p.id),
+                escapeCsv(p.full_name),
+                escapeCsv(p.first_name),
+                escapeCsv(p.family_name),
+                escapeCsv(p.gender),
+                escapeCsv(p.phone),
+                escapeCsv(p.email),
+                escapeCsv(p.address),
+                escapeCsv(p.postal_code),
+                escapeCsv(p.city),
+                escapeCsv(p.group_name),
+                escapeCsv(p.departure_date),
+                escapeCsv(p.return_date),
+                escapeCsv(p.departure_airport),
+                escapeCsv(p.group_status),
+                escapeCsv(p.family_role),
+                escapeCsv(p.family_head_name),
+                escapeCsv(p.family_size),
+                escapeCsv(p.family_members.join(', ')),
+                escapeCsv(p.requested_room_type),
+                escapeCsv(p.has_breakfast ? "Oui" : "Non"),
+                escapeCsv(p.package_price),
+                escapeCsv(p.invoice_number),
+                escapeCsv(p.visa_status),
+                escapeCsv(p.checkin_done ? "Oui" : "Non"),
+                escapeCsv(p.created_at)
+            ].join(';'));
+
+            // BOM UTF-8 (\uFEFF) pour compatibilité totale Microsoft Excel avec accents
+            const csvContent = "\uFEFF" + [headers.join(';'), ...rows].join('\r\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const downloadAnchor = document.createElement('a');
+            const today = new Date().toISOString().split('T')[0];
+            downloadAnchor.setAttribute("href", url);
+            downloadAnchor.setAttribute("download", `mon-omra-pelerins-excel-${today}.csv`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            URL.revokeObjectURL(url);
+        } catch (err: any) {
+            console.error("Erreur lors du téléchargement CSV/Excel:", err);
+            alert("Erreur lors de la génération du fichier CSV/Excel.");
+        } finally {
+            setExportingType(null);
+        }
     };
 
     const handleQuickAssignGroup = async () => {
@@ -981,17 +1105,52 @@ export default function ConciergeDashboard() {
     return (
         <div className="space-y-8 font-inter pb-12">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <div>
                     <h1 className="text-4xl font-black uppercase tracking-tighter text-main">Espace <span className="text-emerald-500">Conciergerie</span></h1>
                     <p className="text-dim text-sm mt-1 italic">Administration, validation des visas et encaissements pèlerins.</p>
                 </div>
-                <button 
-                    onClick={() => setShowAddModal(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 text-white dark:text-[#050605] rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95"
-                >
-                    <Plus className="w-4 h-4" /> Ajouter un Pèlerin
-                </button>
+                <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    {/* Bouton Export JSON IA */}
+                    <button 
+                        type="button"
+                        onClick={handleExportJson}
+                        disabled={exportingType !== null}
+                        title="Télécharger l'ensemble des données au format JSON structuré pour traitement IA / LLM"
+                        className="flex items-center gap-2 px-4 py-3 bg-slate-900/80 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-500/60 text-emerald-400 rounded-2xl font-black uppercase tracking-wider text-[10px] transition-all shadow-md active:scale-95 disabled:opacity-50"
+                    >
+                        {exportingType === 'json' ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                        ) : (
+                            <FileCode className="w-4 h-4 text-emerald-400" />
+                        )}
+                        <span>Exporter JSON (IA)</span>
+                    </button>
+
+                    {/* Bouton Export Excel / CSV */}
+                    <button 
+                        type="button"
+                        onClick={handleExportCsv}
+                        disabled={exportingType !== null}
+                        title="Télécharger l'ensemble des données au format CSV / Excel avec colonnes et accents préservés"
+                        className="flex items-center gap-2 px-4 py-3 bg-slate-900/80 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-500/60 text-emerald-400 rounded-2xl font-black uppercase tracking-wider text-[10px] transition-all shadow-md active:scale-95 disabled:opacity-50"
+                    >
+                        {exportingType === 'csv' ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                        ) : (
+                            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                        )}
+                        <span>Exporter Excel / CSV</span>
+                    </button>
+
+                    {/* Bouton Ajouter un Pèlerin */}
+                    <button 
+                        onClick={() => setShowAddModal(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 text-white dark:text-[#050605] rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" /> Ajouter un Pèlerin
+                    </button>
+                </div>
             </header>
 
             {/* Portail d'Auto-Enrôlement Pèlerins */}
