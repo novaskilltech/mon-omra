@@ -28,8 +28,14 @@ const COUNTRIES_AIRPORTS: CountryGroup[] = [
             { name: "Paris", code: "PARIS", description: "CDG / ORY / BVA" },
             { name: "Marseille", code: "MARSEILLE", description: "MRS" },
             { name: "Lyon", code: "LYON", description: "LYS" },
+            { name: "Mulhouse", code: "MULHOUSE", description: "EAP / BSL / MLH" },
             { name: "Nice", code: "NICE", description: "NCE" },
-            { name: "Mulhouse", code: "MULHOUSE", description: "EAP / BSL / MLH" }
+            { name: "Toulouse", code: "TOULOUSE", description: "TLS" },
+            { name: "Nantes", code: "NANTES", description: "NTE" },
+            { name: "Bordeaux", code: "BORDEAUX", description: "BOD" },
+            { name: "Lille", code: "LILLE", description: "LIL" },
+            { name: "Strasbourg", code: "STRASBOURG", description: "SXB" },
+            { name: "Montpellier", code: "MONTPELLIER", description: "MPL" }
         ]
     },
     {
@@ -42,6 +48,44 @@ const COUNTRIES_AIRPORTS: CountryGroup[] = [
         ]
     },
     {
+        country: "Allemagne",
+        flag: "🇩🇪",
+        code: "de",
+        airports: [
+            { name: "Francfort", code: "FRANCFORT", description: "FRA" },
+            { name: "Munich", code: "MUNICH", description: "MUC" },
+            { name: "Berlin", code: "BERLIN", description: "BER" },
+            { name: "Düsseldorf", code: "DUSSELDORF", description: "DUS" },
+            { name: "Cologne", code: "COLOGNE", description: "CGN" },
+            { name: "Stuttgart", code: "STUTTGART", description: "STR" },
+            { name: "Hambourg", code: "HAMBOURG", description: "HAM" }
+        ]
+    },
+    {
+        country: "Italie",
+        flag: "🇮🇹",
+        code: "it",
+        airports: [
+            { name: "Rome", code: "ROME", description: "FCO" },
+            { name: "Milan", code: "MILAN", description: "MXP / BGY" },
+            { name: "Venise", code: "VENISE", description: "VCE" },
+            { name: "Bologne", code: "BOLOGNE", description: "BLQ" },
+            { name: "Naples", code: "NAPLES", description: "NAP" }
+        ]
+    },
+    {
+        country: "Espagne",
+        flag: "🇪🇸",
+        code: "es",
+        airports: [
+            { name: "Madrid", code: "MADRID", description: "MAD" },
+            { name: "Barcelone", code: "BARCELONE", description: "BCN" },
+            { name: "Malaga", code: "MALAGA", description: "AGP" },
+            { name: "Valence", code: "VALENCE", description: "VLC" },
+            { name: "Séville", code: "SEVILLE", description: "SVQ" }
+        ]
+    },
+    {
         country: "Suisse",
         flag: "🇨🇭",
         code: "ch",
@@ -51,38 +95,23 @@ const COUNTRIES_AIRPORTS: CountryGroup[] = [
         ]
     },
     {
-        country: "Espagne",
-        flag: "🇪🇸",
-        code: "es",
-        airports: [
-            { name: "Barcelone", code: "BARCELONE", description: "BCN" },
-            { name: "Madrid", code: "MADRID", description: "MAD" },
-            { name: "Malaga", code: "MALAGA", description: "AGP" }
-        ]
-    },
-    {
-        country: "Italie",
-        flag: "🇮🇹",
-        code: "it",
-        airports: [
-            { name: "Milan", code: "MILAN", description: "MXP" },
-            { name: "Rome", code: "ROME", description: "FCO" }
-        ]
-    },
-    {
-        country: "Allemagne",
-        flag: "🇩🇪",
-        code: "de",
-        airports: [
-            { name: "Cologne", code: "COLOGNE", description: "CGN" }
-        ]
-    },
-    {
         country: "Maroc",
         flag: "🇲🇦",
         code: "ma",
         airports: [
-            { name: "Casablanca", code: "CASABLANCA", description: "CMN" }
+            { name: "Casablanca", code: "CASABLANCA", description: "CMN" },
+            { name: "Rabat", code: "RABAT", description: "RBA" },
+            { name: "Marrakech", code: "MARRAKECH", description: "RAK" }
+        ]
+    },
+    {
+        country: "Algérie",
+        flag: "🇩🇿",
+        code: "dz",
+        airports: [
+            { name: "Alger", code: "ALGER", description: "ALG" },
+            { name: "Oran", code: "ORAN", description: "ORN" },
+            { name: "Constantine", code: "CONSTANTINE", description: "CZL" }
         ]
     },
     {
@@ -91,14 +120,6 @@ const COUNTRIES_AIRPORTS: CountryGroup[] = [
         code: "tn",
         airports: [
             { name: "Tunis", code: "TUNIS", description: "TUN" }
-        ]
-    },
-    {
-        country: "Algérie",
-        flag: "🇩🇿",
-        code: "dz",
-        airports: [
-            { name: "Alger", code: "ALGER", description: "ALG" }
         ]
     },
     {
@@ -126,10 +147,28 @@ export default function DepartPage() {
                     res.groups.forEach((g: any) => {
                         let airport = "PARIS";
                         const lowerName = g.name.toLowerCase();
-                        if (lowerName.includes("lyon") || lowerName.includes("lys")) {
+                        if (lowerName.includes("paris") || lowerName.includes("cdg") || lowerName.includes("ory") || lowerName.includes("bva")) {
+                            airport = "PARIS";
+                        } else if (lowerName.includes("lyon") || lowerName.includes("lys")) {
                             airport = "LYON";
                         } else if (lowerName.includes("marseille") || lowerName.includes("mrs")) {
                             airport = "MARSEILLE";
+                        } else if (lowerName.includes("mulhouse") || lowerName.includes("mlh") || lowerName.includes("bsl") || lowerName.includes("eap") || lowerName.includes("bale") || lowerName.includes("bâle")) {
+                            airport = "MULHOUSE";
+                        } else if (lowerName.includes("nice") || lowerName.includes("nce")) {
+                            airport = "NICE";
+                        } else if (lowerName.includes("toulouse") || lowerName.includes("tls")) {
+                            airport = "TOULOUSE";
+                        } else if (lowerName.includes("nantes") || lowerName.includes("nte")) {
+                            airport = "NANTES";
+                        } else if (lowerName.includes("bordeaux") || lowerName.includes("bod")) {
+                            airport = "BORDEAUX";
+                        } else if (lowerName.includes("lille") || lowerName.includes("lil")) {
+                            airport = "LILLE";
+                        } else if (lowerName.includes("strasbourg") || lowerName.includes("sxb")) {
+                            airport = "STRASBOURG";
+                        } else if (lowerName.includes("montpellier") || lowerName.includes("mpl")) {
+                            airport = "MONTPELLIER";
                         } else if (lowerName.includes("bruxelles") || lowerName.includes("bru") || lowerName.includes("brussels")) {
                             airport = "BRUXELLES";
                         } else if (lowerName.includes("charleroi") || lowerName.includes("crl")) {
@@ -138,34 +177,56 @@ export default function DepartPage() {
                             airport = "BARCELONE";
                         } else if (lowerName.includes("madrid") || lowerName.includes("mad")) {
                             airport = "MADRID";
-                        } else if (lowerName.includes("milan") || lowerName.includes("mxp")) {
+                        } else if (lowerName.includes("malaga") || lowerName.includes("agp")) {
+                            airport = "MALAGA";
+                        } else if (lowerName.includes("valence") || lowerName.includes("vlc")) {
+                            airport = "VALENCE";
+                        } else if (lowerName.includes("seville") || lowerName.includes("séville") || lowerName.includes("svq")) {
+                            airport = "SEVILLE";
+                        } else if (lowerName.includes("milan") || lowerName.includes("mxp") || lowerName.includes("bgy")) {
                             airport = "MILAN";
                         } else if (lowerName.includes("rome") || lowerName.includes("fco")) {
                             airport = "ROME";
+                        } else if (lowerName.includes("venise") || lowerName.includes("vce")) {
+                            airport = "VENISE";
+                        } else if (lowerName.includes("bologne") || lowerName.includes("blq")) {
+                            airport = "BOLOGNE";
+                        } else if (lowerName.includes("naples") || lowerName.includes("nap")) {
+                            airport = "NAPLES";
+                        } else if (lowerName.includes("francfort") || lowerName.includes("fra") || lowerName.includes("frankfurt")) {
+                            airport = "FRANCFORT";
+                        } else if (lowerName.includes("munich") || lowerName.includes("muc")) {
+                            airport = "MUNICH";
+                        } else if (lowerName.includes("berlin") || lowerName.includes("ber")) {
+                            airport = "BERLIN";
+                        } else if (lowerName.includes("dusseldorf") || lowerName.includes("düsseldorf") || lowerName.includes("dus")) {
+                            airport = "DUSSELDORF";
                         } else if (lowerName.includes("cologne") || lowerName.includes("cgn")) {
                             airport = "COLOGNE";
-                        } else if (lowerName.includes("malaga") || lowerName.includes("agp")) {
-                            airport = "MALAGA";
-                        } else if (lowerName.includes("nice") || lowerName.includes("nce")) {
-                            airport = "NICE";
-                        } else if (lowerName.includes("casablanca") || lowerName.includes("cmn")) {
-                            airport = "CASABLANCA";
-                        } else if (lowerName.includes("tunis") || lowerName.includes("tun")) {
-                            airport = "TUNIS";
-                        } else if (lowerName.includes("alger") || lowerName.includes("alg")) {
-                            airport = "ALGER";
-                        } else if (lowerName.includes("caire") || lowerName.includes("cai") || lowerName.includes("cairo")) {
-                            airport = "LE CAIRE";
+                        } else if (lowerName.includes("stuttgart") || lowerName.includes("str")) {
+                            airport = "STUTTGART";
+                        } else if (lowerName.includes("hambourg") || lowerName.includes("ham")) {
+                            airport = "HAMBOURG";
+                        } else if (lowerName.includes("geneve") || lowerName.includes("genève") || lowerName.includes("gva")) {
+                            airport = "GENEVE";
                         } else if (lowerName.includes("zurich") || lowerName.includes("zrh")) {
                             airport = "ZURICH";
-                        } else if (lowerName.includes("genève") || lowerName.includes("geneve") || lowerName.includes("gva")) {
-                            airport = "GENEVE";
-                        } else if (lowerName.includes("mulhouse") || lowerName.includes("mlh") || lowerName.includes("bsl") || lowerName.includes("eap")) {
-                            airport = "MULHOUSE";
-                        } else if (lowerName.includes("toulouse") || lowerName.includes("tls")) {
-                            airport = "TOULOUSE";
-                        } else if (lowerName.includes("cdg") || lowerName.includes("ory") || lowerName.includes("bva") || lowerName.includes("paris")) {
-                            airport = "PARIS";
+                        } else if (lowerName.includes("casablanca") || lowerName.includes("cmn")) {
+                            airport = "CASABLANCA";
+                        } else if (lowerName.includes("rabat") || lowerName.includes("rba")) {
+                            airport = "RABAT";
+                        } else if (lowerName.includes("marrakech") || lowerName.includes("rak")) {
+                            airport = "MARRAKECH";
+                        } else if (lowerName.includes("alger") || lowerName.includes("alg")) {
+                            airport = "ALGER";
+                        } else if (lowerName.includes("oran") || lowerName.includes("orn")) {
+                            airport = "ORAN";
+                        } else if (lowerName.includes("constantine") || lowerName.includes("czl")) {
+                            airport = "CONSTANTINE";
+                        } else if (lowerName.includes("tunis") || lowerName.includes("tun")) {
+                            airport = "TUNIS";
+                        } else if (lowerName.includes("caire") || lowerName.includes("cai") || lowerName.includes("cairo")) {
+                            airport = "LE CAIRE";
                         }
 
                         // Filter by date

@@ -153,11 +153,32 @@ export async function checkOnboardingUnlockedAction(): Promise<boolean> {
     return val === 'true';
 }
 
+export const DEFAULT_INTERNATIONAL_AIRPORTS = [
+    // France
+    'PARIS', 'LYON', 'MARSEILLE', 'MULHOUSE', 'NICE', 'TOULOUSE', 'NANTES', 'BORDEAUX', 'LILLE', 'STRASBOURG', 'MONTPELLIER',
+    // Belgique
+    'BRUXELLES', 'CHARLEROI',
+    // Allemagne
+    'FRANCFORT', 'MUNICH', 'BERLIN', 'DUSSELDORF', 'COLOGNE', 'STUTTGART', 'HAMBOURG',
+    // Italie
+    'ROME', 'MILAN', 'VENISE', 'BOLOGNE', 'NAPLES',
+    // Espagne
+    'MADRID', 'BARCELONE', 'MALAGA', 'VALENCE', 'SEVILLE',
+    // Suisse
+    'GENEVE', 'ZURICH',
+    // Maroc
+    'CASABLANCA', 'RABAT', 'MARRAKECH',
+    // Algérie
+    'ALGER', 'ORAN', 'CONSTANTINE',
+    // Tunisie
+    'TUNIS'
+];
+
 /**
  * Récupère les aéroports disponibles sur la plateforme
  */
 export async function getAvailableAirportsAction(): Promise<string[]> {
-    const defaultAirports = ['PARIS', 'LYON', 'MARSEILLE', 'TOULOUSE', 'NICE', 'NANTES', 'BRUXELLES', 'CHARLEROI', 'GENEVE'];
+    const defaultAirports = DEFAULT_INTERNATIONAL_AIRPORTS;
     try {
         const supabase = createClient();
         const { data: groups } = await supabase
@@ -175,9 +196,9 @@ export async function getAvailableAirportsAction(): Promise<string[]> {
                 }
             });
         }
-        return Array.from(detectedAirports).sort();
+        return Array.from(detectedAirports);
     } catch {
-        return defaultAirports.sort();
+        return defaultAirports;
     }
 }
 
@@ -260,10 +281,11 @@ export async function submitPilgrimSelfOnboardingAction(rawInput: PilgrimSelfOnb
         // 5. Recherche d'un groupe correspondant ou conservation à null si non créé
         let targetGroupId = data.groupId || null;
         if (!targetGroupId) {
+            const cityKeyword = data.departureAirport.split('(')[0].split('/')[0].trim();
             const { data: matchedGroups } = await supabaseAdmin
                 .from('groups')
                 .select('id, name, departure_date')
-                .ilike('name', `%${data.departureAirport}%`)
+                .ilike('name', `%${cityKeyword}%`)
                 .limit(1);
 
             if (matchedGroups && matchedGroups.length > 0) {

@@ -189,11 +189,51 @@ describe('submitPilgrimSelfOnboardingAction', () => {
 });
 
 describe('getAvailableAirportsAction', () => {
-    it('should return list of unique airports', async () => {
+    it('should return list of unique airports including Mulhouse and requested international hubs', async () => {
         const airports = await getAvailableAirportsAction();
         expect(Array.isArray(airports)).toBe(true);
+        // France & Mulhouse
         expect(airports).toContain('PARIS');
         expect(airports).toContain('LYON');
         expect(airports).toContain('MARSEILLE');
+        expect(airports).toContain('MULHOUSE');
+        // Belgique
+        expect(airports).toContain('BRUXELLES');
+        expect(airports).toContain('CHARLEROI');
+        // Allemagne
+        expect(airports).toContain('FRANCFORT');
+        expect(airports).toContain('MUNICH');
+        // Italie
+        expect(airports).toContain('ROME');
+        expect(airports).toContain('MILAN');
+        // Espagne
+        expect(airports).toContain('MADRID');
+        expect(airports).toContain('BARCELONE');
+        // Maghreb
+        expect(airports).toContain('CASABLANCA');
+        expect(airports).toContain('ALGER');
+        expect(airports).toContain('TUNIS');
+    });
+
+    it('should successfully submit onboarding with Mulhouse airport', async () => {
+        const res = await submitPilgrimSelfOnboardingAction({
+            passcode: 'TEST-SECRET-123',
+            gender: 'M',
+            familyName: 'Schneider',
+            firstName: 'Yassine',
+            invoiceNumber: 'FAC-MLH-001',
+            email: 'yassine.mlh@example.com',
+            phone: '0688776655',
+            address: '5 rue de Bâle',
+            postalCode: '68100',
+            city: 'Mulhouse',
+            departureAirport: 'MULHOUSE',
+            travelDates: '15 au 30 Octobre 2026'
+        });
+
+        expect(res.success).toBe(true);
+        expect(res.invoiceNumber).toBe('FAC-MLH-001');
+        expect(res.fullName).toBe('Yassine Schneider');
     });
 });
+

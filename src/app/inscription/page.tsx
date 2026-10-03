@@ -14,6 +14,122 @@ import {
     submitPilgrimSelfOnboardingAction 
 } from '@/lib/actions/onboarding';
 
+interface AirportOption {
+    code: string;
+    label: string;
+}
+
+interface AirportCategory {
+    country: string;
+    flag: string;
+    airports: AirportOption[];
+}
+
+const INTERNATIONAL_AIRPORTS_CATALOG: AirportCategory[] = [
+    {
+        country: "France",
+        flag: "🇫🇷",
+        airports: [
+            { code: "PARIS", label: "Paris (CDG / ORY / BVA)" },
+            { code: "LYON", label: "Lyon Saint-Exupéry (LYS)" },
+            { code: "MARSEILLE", label: "Marseille Provence (MRS)" },
+            { code: "MULHOUSE", label: "Mulhouse / Bâle (EuroAirport - MLH / BSL / EAP)" },
+            { code: "NICE", label: "Nice Côte d'Azur (NCE)" },
+            { code: "TOULOUSE", label: "Toulouse-Blagnac (TLS)" },
+            { code: "NANTES", label: "Nantes Atlantique (NTE)" },
+            { code: "BORDEAUX", label: "Bordeaux-Mérignac (BOD)" },
+            { code: "LILLE", label: "Lille-Lesquin (LIL)" },
+            { code: "STRASBOURG", label: "Strasbourg-Entzheim (SXB)" },
+            { code: "MONTPELLIER", label: "Montpellier Méditerranée (MPL)" }
+        ]
+    },
+    {
+        country: "Belgique",
+        flag: "🇧🇪",
+        airports: [
+            { code: "BRUXELLES", label: "Bruxelles National (BRU)" },
+            { code: "CHARLEROI", label: "Bruxelles Sud Charleroi (CRL)" }
+        ]
+    },
+    {
+        country: "Allemagne",
+        flag: "🇩🇪",
+        airports: [
+            { code: "FRANCFORT", label: "Francfort-sur-le-Main (FRA)" },
+            { code: "MUNICH", label: "Munich Franz-Josef-Strauss (MUC)" },
+            { code: "BERLIN", label: "Berlin Brandebourg (BER)" },
+            { code: "DUSSELDORF", label: "Düsseldorf (DUS)" },
+            { code: "COLOGNE", label: "Cologne / Bonn (CGN)" },
+            { code: "STUTTGART", label: "Stuttgart (STR)" },
+            { code: "HAMBOURG", label: "Hambourg (HAM)" }
+        ]
+    },
+    {
+        country: "Italie",
+        flag: "🇮🇹",
+        airports: [
+            { code: "ROME", label: "Rome Fiumicino (FCO)" },
+            { code: "MILAN", label: "Milan Malpensa / Bergame (MXP / BGY)" },
+            { code: "VENISE", label: "Venise Marco Polo (VCE)" },
+            { code: "BOLOGNE", label: "Bologne Borgo Panigale (BLQ)" },
+            { code: "NAPLES", label: "Naples-Capodichino (NAP)" }
+        ]
+    },
+    {
+        country: "Espagne",
+        flag: "🇪🇸",
+        airports: [
+            { code: "MADRID", label: "Madrid-Barajas (MAD)" },
+            { code: "BARCELONE", label: "Barcelone-El Prat (BCN)" },
+            { code: "MALAGA", label: "Malaga-Costa del Sol (AGP)" },
+            { code: "VALENCE", label: "Valence (VLC)" },
+            { code: "SEVILLE", label: "Séville (SVQ)" }
+        ]
+    },
+    {
+        country: "Suisse",
+        flag: "🇨🇭",
+        airports: [
+            { code: "GENEVE", label: "Genève-Cointrin (GVA)" },
+            { code: "ZURICH", label: "Zurich Kloten (ZRH)" }
+        ]
+    },
+    {
+        country: "Maroc",
+        flag: "🇲🇦",
+        airports: [
+            { code: "CASABLANCA", label: "Casablanca Mohammed V (CMN)" },
+            { code: "RABAT", label: "Rabat-Salé (RBA)" },
+            { code: "MARRAKECH", label: "Marrakech-Ménara (RAK)" }
+        ]
+    },
+    {
+        country: "Algérie",
+        flag: "🇩🇿",
+        airports: [
+            { code: "ALGER", label: "Alger Houari Boumédiène (ALG)" },
+            { code: "ORAN", label: "Oran Ahmed Ben Bella (ORN)" },
+            { code: "CONSTANTINE", label: "Constantine Mohamed Boudiaf (CZL)" }
+        ]
+    },
+    {
+        country: "Tunisie",
+        flag: "🇹🇳",
+        airports: [
+            { code: "TUNIS", label: "Tunis-Carthage (TUN)" }
+        ]
+    }
+];
+
+function getAirportDisplayLabel(code: string): string {
+    if (!code) return '';
+    for (const group of INTERNATIONAL_AIRPORTS_CATALOG) {
+        const found = group.airports.find(a => a.code.toUpperCase() === code.toUpperCase());
+        if (found) return `${group.flag} ${found.label}`;
+    }
+    return code;
+}
+
 export default function InscriptionPage() {
     // État du flux
     const [isUnlocked, setIsUnlocked] = useState(false);
@@ -44,13 +160,17 @@ export default function InscriptionPage() {
         address: '',
         postalCode: '',
         city: '',
-        departureAirport: '',
+        departureAirport: 'PARIS',
         travelDates: '',
         requestedRoomType: 'DOUBLE' as 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'QUADRUPLE' | 'QUINTUPLE'
     });
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState('');
+
+    // Aéroports supplémentaires détectés depuis la BDD (hors catalogue standard)
+    const catalogCodes = new Set(INTERNATIONAL_AIRPORTS_CATALOG.flatMap(g => g.airports.map(a => a.code.toUpperCase())));
+    const extraAirports = airports.filter(a => !catalogCodes.has(a.toUpperCase()));
 
     // Initialisation : Vérifier si déjà déverrouillé et charger les aéroports
     useEffect(() => {
@@ -61,7 +181,10 @@ export default function InscriptionPage() {
                 const apList = await getAvailableAirportsAction();
                 setAirports(apList);
                 if (apList.length > 0) {
-                    setFormData(prev => ({ ...prev, departureAirport: apList[0] }));
+                    setFormData(prev => ({ 
+                        ...prev, 
+                        departureAirport: prev.departureAirport || apList[0] 
+                    }));
                 }
             } catch (err) {
                 console.error("Erreur init inscription:", err);
@@ -230,7 +353,7 @@ export default function InscriptionPage() {
                             </div>
                             <div className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
                                 <span className="text-slate-400">Aéroport de départ :</span>
-                                <span className="font-semibold text-white">{successData.airport}</span>
+                                <span className="font-semibold text-white">{getAirportDisplayLabel(successData.airport)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-slate-400">Dates du séjour :</span>
@@ -584,13 +707,26 @@ export default function InscriptionPage() {
                                         <select
                                             value={formData.departureAirport}
                                             onChange={(e) => setFormData({ ...formData, departureAirport: e.target.value })}
-                                            className="w-full bg-slate-950 border border-white/15 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500"
+                                            className="w-full bg-slate-950 border border-white/15 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 font-medium"
                                         >
-                                            {airports.map((ap) => (
-                                                <option key={ap} value={ap}>
-                                                    {ap}
-                                                </option>
+                                            {INTERNATIONAL_AIRPORTS_CATALOG.map((group) => (
+                                                <optgroup key={group.country} label={`${group.flag} ${group.country}`} className="bg-slate-900 text-amber-400 font-bold">
+                                                    {group.airports.map((ap) => (
+                                                        <option key={ap.code} value={ap.code} className="bg-slate-950 text-white font-normal">
+                                                            {ap.label}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
                                             ))}
+                                            {extraAirports.length > 0 && (
+                                                <optgroup label="🌐 Autres Aéroports" className="bg-slate-900 text-amber-400 font-bold">
+                                                    {extraAirports.map((ap) => (
+                                                        <option key={ap} value={ap} className="bg-slate-950 text-white font-normal">
+                                                            {ap}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            )}
                                         </select>
                                     </div>
 

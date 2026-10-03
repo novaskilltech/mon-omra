@@ -588,3 +588,34 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
 
 
 
+
+---
+
+## 47. Extension Internationale des Aéroports de Départ (Mulhouse EuroAirport, Hubs Européens et Maghreb) & Sélecteur Catégorisé sur le Portail Pèlerin
+*   **Décision** :
+    1. **Catalogue International Normalisé (`src/lib/actions/onboarding.ts`)** :
+        *   Intégration de l'aéroport international de **Mulhouse** (EuroAirport BSL / MLH / EAP) et extension complète selon les exigences utilisateur :
+            *   🇫🇷 **France** : Paris (CDG / ORY / BVA), Lyon (LYS), Marseille (MRS), Mulhouse (EAP / BSL / MLH), Nice (NCE), Toulouse (TLS), Nantes (NTE), Bordeaux (BOD), Lille (LIL), Strasbourg (SXB), Montpellier (MPL).
+            *   🇧🇪 **Belgique** : Bruxelles National (BRU), Bruxelles Sud Charleroi (CRL).
+            *   🇩🇪 **Allemagne** : Francfort (FRA), Munich (MUC), Berlin (BER), Düsseldorf (DUS), Cologne / Bonn (CGN), Stuttgart (STR), Hambourg (HAM).
+            *   🇮🇹 **Italie** : Rome (FCO), Milan (MXP / BGY), Venise (VCE), Bologne (BLQ), Naples (NAP).
+            *   🇪🇸 **Espagne** : Madrid (MAD), Barcelone (BCN), Malaga (AGP), Valence (VLC), Séville (SVQ).
+            *   🇨🇭 **Suisse** : Genève (GVA), Zurich (ZRH).
+            *   🇲🇦 **Maroc** : Casablanca (CMN), Rabat (RBA), Marrakech (RAK).
+            *   🇩🇿 **Algérie** : Alger (ALG), Oran (ORN), Constantine (CZL).
+            *   🇹🇳 **Tunisie** : Tunis-Carthage (TUN).
+        *   Mise à jour de `getAvailableAirportsAction()` pour retourner l'ensemble de ces aéroports combinés aux aéroports personnalisés déclarés dans les groupes en base de données.
+    2. **Expérience Utilisateur Catégorisée sur le Portail Pèlerin (`src/app/inscription/page.tsx`)** :
+        *   Remplacement de la liste brute déroulante par un menu `<select>` structuré avec des `<optgroup>` distincts par pays (avec drapeaux emoji et sous-titres aéroportuaires).
+        *   Gestion sécurisée des aéroports personnalisés (`extraAirports`) dans un groupe dédié *"🌐 Autres Aéroports"* pour garantir qu'aucun aéroport personnalisé créé par l'agence ne soit omis.
+        *   Affichage enrichi avec drapeau et intitulé précis sur la carte récapitulative de confirmation (`Alhamdulillah ! Votre dossier est bien transmis`).
+    3. **Rattachement Automatique & Détection Cohérente sur l'ensemble du SaaS** :
+        *   `submitPilgrimSelfOnboardingAction` : extraction automatique du préfixe de ville assaini (`split('(')[0].split('/')[0].trim()`) garantissant un rattachement fiable aux groupes de voyage via requête SQL `.ilike('name', ...)`.
+        *   Synchronisation de la détection d'aéroports dans `BentoLandingHub.tsx`, `/depart` et `/depart/[airport]` pour reconnaître automatiquement Mulhouse, Casablanca, Alger, Tunis et les grands hubs européens dans les noms de groupes.
+    4. **Tests de Non-Régression & Fiabilité** :
+        *   Ajout de tests unitaires et d'intégration validant la présence de Mulhouse et des aéroports internationaux demandés, ainsi que la soumission complète d'un pèlerin partant de Mulhouse.
+*   **Justification** : Répond précisément à la demande utilisateur d'enrichir le formulaire d'inscription en ligne avec Mulhouse, les hubs internationaux de France, Belgique, Allemagne, Italie, Espagne, ainsi que Casablanca (Maroc), Alger (Algérie) et Tunis (Tunisie).
+*   **Impacts** :
+    *   Fichiers modifiés : `src/lib/actions/onboarding.ts`, `src/app/inscription/page.tsx`, `src/components/BentoLandingHub.tsx`, `src/app/depart/page.tsx`, `src/app/depart/[airport]/page.tsx`, `src/lib/actions/__tests__/onboarding.test.ts`.
+    *   Tests : 62/62 tests Vitest réussis (100% de réussite), compilation TypeScript `tsc --noEmit` à 0 erreur.
+*   **Version** : v1.28.0
