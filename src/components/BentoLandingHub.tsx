@@ -642,6 +642,108 @@ export default function BentoLandingHub() {
                 </div>
             )}
 
+            {/* SECTION VEDETTE HAJJ — PROVIDER OFFICIEL AGRÉÉ YUSR AL MASHAER */}
+            <div 
+                className="mb-10 w-full max-w-5xl mx-auto relative group/hajj-spotlight"
+                style={{ perspective: '1200px' }}
+            >
+                <div 
+                    onClick={handleOpenHajjModal}
+                    className="glass p-8 sm:p-10 rounded-[3rem] border-2 border-amber-400/60 bg-gradient-to-br from-amber-500/25 via-amber-950/20 to-stone-950/90 cursor-pointer group relative overflow-hidden shadow-[0_25px_60px_-15px_rgba(216,170,77,0.35)] hover:border-amber-300 transition-all text-left select-none"
+                >
+                    {/* Ambient Glows */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-amber-400/20 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-400/30 transition-all" />
+                    <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none" />
+
+                    {/* Top Badges */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-6 relative z-10">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/30 via-amber-400/20 to-transparent border border-amber-300/60 text-[#F2CE79] text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-amber-500/20">
+                                <span className="text-base leading-none">🕋</span>
+                                <span>PROVIDER AGRÉÉ HAJJ • YUSR AL MASHAER</span>
+                            </div>
+                            <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] sm:text-[10px] font-black uppercase px-3 py-1.5 rounded-full tracking-wider shadow-sm flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                Partenaire Officiel Nusuk
+                            </span>
+                        </div>
+
+                        <span className="bg-amber-400/15 text-amber-200 border border-amber-400/40 text-[9px] sm:text-[10px] font-extrabold uppercase px-3.5 py-1.5 rounded-full tracking-wider flex items-center gap-2 font-mono">
+                            <span className="text-xs">🇸🇦</span>
+                            <span>شركة يسر المشاعر لخدمة الحجاج</span>
+                        </span>
+                    </div>
+
+                    {/* Title & Description */}
+                    <div className="relative z-10 max-w-3xl">
+                        <div className="inline-block mb-2">
+                            <span className="text-[11px] font-black tracking-widest uppercase bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent">
+                                GRAND PÈLERINAGE • SESSIONS OFFICIELLES DÈS 2027
+                            </span>
+                        </div>
+                        <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white group-hover:text-amber-300 transition-colors leading-none">
+                            ACCOMPAGNEMENT GARANTI AVEC <span className="text-[#F2CE79] underline decoration-amber-400/40 underline-offset-8">YUSR AL MASHAER</span>
+                        </h2>
+                        <p className="text-xs sm:text-sm text-slate-200/90 font-medium mt-4 leading-relaxed max-w-2xl">
+                            Notre agence est fière de vous annoncer son partenariat officiel avec le provider saoudien accrédité <strong className="text-amber-300">Yusr Al Mashaer</strong> sur la plateforme gouvernementale Nusuk Hajj. Bénéficiez d&apos;un accès prioritaire aux quotas, d&apos;un encadrement francophone continu et de campements de haut standing aux Mashaer (Mina, Arafat, Muzdalifah).
+                        </p>
+                    </div>
+
+                    {/* 4 Trust Highlights Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 my-7 relative z-10">
+                        <div className="p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
+                            <div className="text-lg mb-1">🛡️</div>
+                            <div className="text-[11px] font-black uppercase tracking-wide text-white">Quotas Nusuk Sécurisés</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Liaison directe avec le provider saoudien</div>
+                        </div>
+                        <div className="p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
+                            <div className="text-lg mb-1">⛺</div>
+                            <div className="text-[11px] font-black uppercase tracking-wide text-white">Mina & Arafat Premium</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Campements climatisés & pension complète</div>
+                        </div>
+                        <div className="p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
+                            <div className="text-lg mb-1">👥</div>
+                            <div className="text-[11px] font-black uppercase tracking-wide text-white">Encadrement Francophone</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Accompagnateurs & guides dédiés 24/7</div>
+                        </div>
+                        <div className="p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
+                            <div className="text-lg mb-1">⚡</div>
+                            <div className="text-[11px] font-black uppercase tracking-wide text-white">Audit Nusuk Prioritaire</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Assistance personnalisée pour votre profil</div>
+                        </div>
+                    </div>
+
+                    {/* CTA Footer */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-amber-400/20 relative z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold">
+                                🌟
+                            </div>
+                            <div>
+                                <span className="text-[11px] font-black uppercase tracking-wider text-white block">
+                                    Places Strictement Contingentées
+                                </span>
+                                <span className="text-[10px] text-amber-300/80">
+                                    Traitement des dossiers par ordre de pré-inscription
+                                </span>
+                            </div>
+                        </div>
+
+                        <button 
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenHajjModal();
+                            }}
+                            className="btn-3d-gold px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 text-amber-950 font-black text-xs uppercase tracking-wider shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                        >
+                            <span>Déposer ma pré-inscription Hajj</span>
+                            <ArrowRight className="w-4 h-4 text-amber-950" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* BENTO GRID (Tout visible d'un coup de d'œil) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 
@@ -692,10 +794,10 @@ export default function BentoLandingHub() {
 
                             <div className="flex flex-col text-left">
                                 <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-950 flex items-center gap-1 leading-none">
-                                    🚨 SIGNAL D&apos;ALERTE : HAJJ 2027+
+                                    🕋 PROVIDER AGRÉÉ : YUSR AL MASHAER
                                 </span>
                                 <span className="text-[8.5px] font-extrabold text-amber-900/90 tracking-wide uppercase mt-0.5">
-                                    Inscriptions Ouvertes — Cliquez ici
+                                    Pré-Inscriptions Ouvertes — Cliquez ici
                                 </span>
                             </div>
 
@@ -711,18 +813,18 @@ export default function BentoLandingHub() {
                     {/* Bento 2 Card */}
                     <div 
                         onClick={handleOpenHajjModal}
-                        className="glass p-8 pt-9 rounded-[2.5rem] border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent hover:border-amber-400 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-[0_0_35px_rgba(216,170,77,0.2)] hover:shadow-[0_0_55px_rgba(216,170,77,0.35)] flex-1"
+                        className="glass p-8 pt-9 rounded-[2.5rem] border-2 border-amber-400/50 bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent hover:border-amber-300 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-[0_0_40px_rgba(216,170,77,0.25)] hover:shadow-[0_0_60px_rgba(216,170,77,0.4)] flex-1"
                     >
-                        <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/15 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/25 transition-all" />
+                        <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/20 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/30 transition-all" />
                         <div>
                             <div className="flex justify-between items-start mb-4">
-                                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-[#D8AA4D] group-hover:scale-110 transition-transform shadow-[0_4px_12px_rgba(216,170,77,0.2)]">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-500/25 border border-amber-400/50 flex items-center justify-center text-[#D8AA4D] group-hover:scale-110 transition-transform shadow-[0_4px_12px_rgba(216,170,77,0.25)]">
                                     <Compass className="w-6 h-6" />
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <span className="bg-amber-500/20 text-[#F2CE79] border border-amber-500/40 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider shadow-sm flex items-center gap-1.5">
+                                    <span className="bg-amber-500/25 text-[#F2CE79] border border-amber-400/50 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider shadow-sm flex items-center gap-1.5">
                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                                        Hajj 2027 / 2028+
+                                        Yusr Al Mashaer • 2027+
                                     </span>
                                 </div>
                             </div>
@@ -730,7 +832,7 @@ export default function BentoLandingHub() {
                                 Grand HAJJ
                             </h2>
                             <p className="text-xs text-dim font-medium mt-2 leading-relaxed">
-                                Pré-inscrivez-vous en priorité pour les prochaines sessions officielles du Hajj (dès 2027). Places contingentées.
+                                Pré-inscrivez-vous en priorité avec notre provider agréé <strong className="text-amber-300">Yusr Al Mashaer</strong> (Nusuk Hajj dès 2027). Quotas & forfaits sécurisés.
                             </p>
                         </div>
 
@@ -1267,11 +1369,15 @@ export default function BentoLandingHub() {
                     <div className="glass w-full max-w-2xl rounded-[2.5rem] border border-amber-500/25 overflow-hidden flex flex-col max-h-[90vh]">
                         <header className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-[#050a08]/30 shrink-0">
                             <div className="text-left">
-                                <h3 className="text-lg font-black uppercase tracking-tighter text-main">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-[#F2CE79] text-[9px] font-black uppercase tracking-widest mb-1.5">
+                                    <span>🕋 Provider Agréé : Yusr Al Mashaer (يسر المشاعر)</span>
+                                </div>
+                                <h3 className="text-lg sm:text-xl font-black uppercase tracking-tighter text-main">
                                     Pré-Inscription Grand HAJJ
                                 </h3>
-                                <p className="text-[9px] font-black uppercase tracking-wider text-[#D8AA4D] mt-1">
-                                    Sessions 2027, 2028, 2029 & 2030+
+                                <p className="text-[9px] font-black uppercase tracking-wider text-emerald-400 mt-0.5 flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                                    Sessions Officielles Nusuk Hajj Dès 2027
                                 </p>
                             </div>
                             <button onClick={() => setIsHajjModalOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
@@ -1287,7 +1393,7 @@ export default function BentoLandingHub() {
                                 <div className="space-y-2">
                                     <h4 className="text-xl font-black uppercase tracking-tighter text-main">Demande Hajj Enregistrée !</h4>
                                     <p className="text-xs text-dim leading-relaxed max-w-md mx-auto">
-                                        Votre pré-inscription pour le Hajj {hajjForm.hajjYear} ({hajjForm.peopleCount} pers.) a bien été enregistrée. Notre conciergerie vous contactera en priorité dès l'ouverture des quotas.
+                                        Votre pré-inscription pour le Hajj {hajjForm.hajjYear} ({hajjForm.peopleCount} pers.) a bien été enregistrée sous le contingent de notre provider agréé <strong className="text-amber-300">Yusr Al Mashaer</strong>. Notre conciergerie vous contactera en priorité pour auditer votre profil Nusuk dès l&apos;ouverture des quotas.
                                     </p>
                                 </div>
                                 <button onClick={() => setIsHajjModalOpen(false)} className="w-full max-w-xs mx-auto bg-[#D8AA4D] text-[#050605] py-4 rounded-xl font-black uppercase tracking-widest text-[10px]">
@@ -1302,6 +1408,22 @@ export default function BentoLandingHub() {
                                         <span>{hajjError}</span>
                                     </div>
                                 )}
+
+                                {/* Reassurance Banner Yusr Al Mashaer */}
+                                <div className="bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border border-amber-400/30 rounded-2xl p-4 flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shrink-0 font-bold text-lg">
+                                        🕋
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-2">
+                                            <span>Provider Officiel : Yusr Al Mashaer (شركة يسر المشاعر)</span>
+                                            <span className="text-[8px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">Accrédité</span>
+                                        </div>
+                                        <p className="text-[10px] text-slate-300/80 mt-0.5 leading-relaxed">
+                                            Votre dossier sera traité en priorité auprès du provider saoudien pour sécuriser votre quota et vos forfaits aux Mashaer (Mina, Arafat, Muzdalifah) sur la plateforme officielle Nusuk.
+                                        </p>
+                                    </div>
+                                </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1">

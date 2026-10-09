@@ -30,6 +30,9 @@ export async function createHajjRequestAction(data: HajjRequestInput) {
         const year = data.hajjYear && data.hajjYear >= 2027 ? Number(data.hajjYear) : 2027;
         const count = data.peopleCount && data.peopleCount > 0 ? Number(data.peopleCount) : 1;
 
+        const defaultProviderTag = '[Provider: Yusr Al Mashaer]';
+        const finalAdminNotes = data.adminNotes ? `${defaultProviderTag} ${data.adminNotes}` : defaultProviderTag;
+
         const { error } = await supabase
             .from('hajj_requests')
             .insert({
@@ -45,7 +48,7 @@ export async function createHajjRequestAction(data: HajjRequestInput) {
                 nusuk_account_year: data.nusukAccountYear || 'NON_APPLICABLE',
                 nusuk_account_status: data.nusukAccountStatus || 'NON_VERIFIE',
                 availability_slots: data.availabilitySlots || '',
-                admin_notes: data.adminNotes || '',
+                admin_notes: finalAdminNotes,
                 status: 'PENDING'
             });
 

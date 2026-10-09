@@ -45,6 +45,26 @@ describe('Hajj Server Actions', () => {
         expect(result).toEqual({ success: true });
     });
 
+    it('should tag hajj request with Yusr Al Mashaer provider in admin_notes', async () => {
+        const supabase = createClient();
+        await createHajjRequestAction({
+            firstName: 'Amina',
+            familyName: 'Mansouri',
+            nationality: 'Française',
+            phone: '0612345678',
+            email: 'amina@example.com',
+            address: '5 rue de Lyon',
+            peopleCount: 1,
+            hajjYear: 2027
+        });
+
+        expect(supabase.from().insert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                admin_notes: expect.stringContaining('Yusr Al Mashaer')
+            })
+        );
+    });
+
     it('should reject submission with missing required fields', async () => {
         const result = await createHajjRequestAction({
             firstName: '',

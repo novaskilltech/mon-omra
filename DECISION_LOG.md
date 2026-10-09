@@ -619,3 +619,27 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Fichiers modifiés : `src/lib/actions/onboarding.ts`, `src/app/inscription/page.tsx`, `src/components/BentoLandingHub.tsx`, `src/app/depart/page.tsx`, `src/app/depart/[airport]/page.tsx`, `src/lib/actions/__tests__/onboarding.test.ts`.
     *   Tests : 62/62 tests Vitest réussis (100% de réussite), compilation TypeScript `tsc --noEmit` à 0 erreur.
 *   **Version** : v1.28.0
+
+---
+
+## 48. Mise en Vedette du Grand Hajj avec le Provider Officiel Agréé Yusr Al Mashaer (Nusuk Hajj)
+*   **Décision** :
+    1. **Showcase Vedette Hajj Prestige sur la Landing Page (`src/components/BentoLandingHub.tsx`)** :
+        *   Création d'un bloc vedette majestueux 3D or et noir Kaaba positionné stratégiquement sur la page d'accueil.
+        *   Mise en avant de l'accréditation officielle avec le provider saoudien agréé **Yusr Al Mashaer** (شركة يسر المشاعر لخدمة حجاج الخارج) sous l'égide du Ministère du Hajj et de la plateforme Nusuk Hajj.
+        *   Affichage des 4 piliers d'engagement et de réassurance pèlerin : Quotas Nusuk Sécurisés, Campements Mashaer Premium (Mina & Arafat), Encadrement Francophone 24/7 et Audit Nusuk Prioritaire.
+        *   Bouton d'action directe en relief 3D doré ouvrant la modale de pré-inscription prioritaire.
+    2. **Actualisation de la Case Bento Hajj (Bento 2)** :
+        *   Enrichissement du badge d'alerte et de la carte avec la mention du provider : *"🕋 PROVIDER AGRÉÉ : YUSR AL MASHAER"* et *"Yusr Al Mashaer • 2027+"*, bordure luminescente or et shadow ambré.
+    3. **Enrichissement de la Modale de Pré-Inscription & Traçabilité Serveur** :
+        *   Bannière d'en-tête officielle rappelant le partenariat direct avec Yusr Al Mashaer et l'enregistrement prioritaire sous leur contingent.
+        *   Tag automatique du provider `[Provider: Yusr Al Mashaer]` dans `admin_notes` lors de l'enregistrement en base de données (`src/lib/actions/hajj.ts`).
+        *   Mise à jour des composants backoffice (`src/app/backoffice/hajj/page.tsx`) avec badges visuels Yusr Al Mashaer dans la liste des demandes et la modale d'audit.
+    4. **Composant Autonome & Tests** :
+        *   Actualisation du composant `HajjInquirySection.tsx`.
+        *   Ajout de tests unitaires dédiés dans `src/lib/actions/__tests__/hajj.test.ts` validant le bon marquage du provider.
+*   **Justification** : Répond à la confirmation de l'agence de disposer désormais d'un provider officiel accrédité pour le Hajj (Yusr Al Mashaer), offrant un levier d'acquisition et de réassurance maximal auprès des pèlerins pour les prochaines sessions officielles du Hajj.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/components/BentoLandingHub.tsx`, `src/components/HajjInquirySection.tsx`, `src/lib/actions/hajj.ts`, `src/lib/actions/__tests__/hajj.test.ts`, `src/app/backoffice/hajj/page.tsx`, `DECISION_LOG.md`.
+    *   Tests : 63/63 tests Vitest réussis (100% de réussite), compilation TypeScript `tsc --noEmit` à 0 erreur.
+*   **Version** : v1.29.0

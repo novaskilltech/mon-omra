@@ -56,9 +56,14 @@ export default function HajjInquirySection() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/10 blur-[140px] rounded-full pointer-events-none" />
 
                 <div className="max-w-3xl mx-auto text-center space-y-6 mb-14">
-                    <div className="inline-flex items-center gap-2 bg-[#D8AA4D]/15 text-[#F2CE79] border border-[#D8AA4D]/30 text-[10px] font-black uppercase px-4 py-1.5 rounded-full tracking-[0.2em]">
-                        <Compass className="w-3.5 h-3.5" />
-                        Voyage d'une Vie — Le Grand Pèlerinage
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                        <div className="inline-flex items-center gap-2 bg-[#D8AA4D]/15 text-[#F2CE79] border border-[#D8AA4D]/30 text-[10px] font-black uppercase px-4 py-1.5 rounded-full tracking-[0.2em]">
+                            <Compass className="w-3.5 h-3.5" />
+                            Voyage d'une Vie — Le Grand Pèlerinage
+                        </div>
+                        <div className="inline-flex items-center gap-1.5 bg-amber-400/10 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase px-3 py-1.5 rounded-full tracking-wider">
+                            <span>🕋 Provider Agréé : Yusr Al Mashaer</span>
+                        </div>
                     </div>
 
                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-main leading-tight">
@@ -66,7 +71,7 @@ export default function HajjInquirySection() {
                     </h2>
 
                     <p className="text-sub text-xs md:text-sm leading-relaxed max-w-2xl mx-auto font-medium opacity-80">
-                        Anticipez votre départ pour le Hajj. Remplissez ce formulaire d'intention pour être accompagné en priorité par nos experts concierges dès l'ouverture des quotas officiels.
+                        Anticipez votre départ pour le Hajj avec notre provider officiel agréé <strong className="text-amber-300">Yusr Al Mashaer</strong>. Remplissez ce formulaire d&apos;intention pour être accompagné en priorité par nos experts concierges dès l&apos;ouverture des quotas officiels Nusuk.
                     </p>
                 </div>
 

@@ -425,6 +425,11 @@ contact@omrayanair.com`;
                                                 <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-emerald-400" /> Hajj {req.hajj_year}</span>
                                                 <span>•</span>
                                                 <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5 text-blue-400" /> {req.people_count} personne(s)</span>
+                                                <span>•</span>
+                                                <span className="bg-amber-400/10 text-amber-300 border border-amber-400/30 text-[9px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                    <span>🕋</span>
+                                                    <span>Yusr Al Mashaer</span>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -606,9 +611,14 @@ contact@omrayanair.com`;
                     <div className="glass w-full max-w-3xl rounded-[2.5rem] border border-amber-500/30 overflow-hidden flex flex-col max-h-[92vh]">
                         <header className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-[#050a08]/40 shrink-0">
                             <div className="text-left">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
-                                    <ShieldCheck className="w-3.5 h-3.5" />
-                                    Fiche d'Audit Nusuk Hajj
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                                        <ShieldCheck className="w-3.5 h-3.5" />
+                                        Fiche d'Audit Nusuk Hajj
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                                        <span>🕋 Provider : Yusr Al Mashaer</span>
+                                    </div>
                                 </div>
                                 <h3 className="text-xl font-black uppercase tracking-tight text-main">
                                     {selectedRequest.first_name} {selectedRequest.family_name}
