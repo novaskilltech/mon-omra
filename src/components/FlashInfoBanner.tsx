@@ -198,10 +198,7 @@ export default function FlashInfoBanner() {
                                         <strong>Inutile de saturer les standards :</strong> Notre équipe conciergerie contacte personnellement chaque pèlerin et chef de famille par ordre chronologique de départ.
                                     </li>
                                     <li>
-                                        <strong>Aucun surcoût imprévu :</strong> Toutes les démarches de modification et de réaffectation sur d&apos;autres compagnies sont prises en charge.
-                                    </li>
-                                    <li>
-                                        <strong>Accompagnement continu :</strong> Votre hôtel et vos réservations sur place en Terre Sainte sont synchronisés automatiquement avec votre nouveau plan de vol.
+                                        <strong>Accompagnement continu :</strong> Votre hôtel et vos réservations sur place en Terre Sainte sont synchronisés avec votre nouveau plan de vol.
                                     </li>
                                 </ul>
                             </div>

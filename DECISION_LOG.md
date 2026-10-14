@@ -655,7 +655,7 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
         *   Mise en valeur explicite des deux jalons de traitement opérationnel :
             *   ✅ **Vols d'Octobre (16 au 31 oct.)** : 100% traités, modifiés et sécurisés. L'ensemble des pèlerins ont d'ores et déjà leurs solutions de vol de repli confirmées.
             *   ⏳ **Vols de Novembre (01 au 09 nov.)** : Cellule de crise conciergerie active, modifications et réacheminements en cours d'exécution.
-        *   Consignes claires anti-panique : l'équipe contacte personnellement chaque pèlerin dans l'ordre chronologique des départs, aucun surcoût imprévu pour les pèlerins, hôtels et logistiques synchronisés.
+        *   Consignes claires anti-panique : l'équipe contacte personnellement chaque pèlerin dans l'ordre chronologique des départs, hôtels et logistiques synchronisés.
     3. **Outils d'Assistance Directe & Expérience Utilisateur** :
         *   Intégration d'un lien WhatsApp d'urgence pré-rempli vers la ligne conciergerie (`07 52 28 08 90` via `getTransaviaAlertWhatsAppUrl()`).
         *   Modale interactive détaillée *"Détails & FAQ"* expliquant le protocole de prise en charge et le périmètre des perturbations.
