@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { formatPhoneForWhatsApp, getWhatsAppUrl, getWhatsAppWebUrl, formatDisplayPhone, getGroupInquiryWhatsAppUrl, AGENCY_WHATSAPP_PHONE } from '../phone';
+import { 
+    formatPhoneForWhatsApp, 
+    getWhatsAppUrl, 
+    getWhatsAppWebUrl, 
+    formatDisplayPhone, 
+    getGroupInquiryWhatsAppUrl, 
+    getTransaviaAlertWhatsAppUrl,
+    AGENCY_WHATSAPP_PHONE 
+} from '../phone';
 
 describe('Phone formatting utilities for WhatsApp', () => {
     it('converts French 10-digit mobile numbers (06/07) to international E.164', () => {
@@ -38,4 +46,19 @@ describe('Phone formatting utilities for WhatsApp', () => {
         expect(url).toContain('LYON%20DU%2008%2F12%20AU%2015%2F12');
         expect(url).toContain("pouvez-vous%20m'en%20dire%20plus");
     });
+
+    it('generates correct WhatsApp URL for Transavia cancellation Flash Info with relevant keywords', () => {
+        const url = getTransaviaAlertWhatsAppUrl();
+        expect(url).toContain('api.whatsapp.com/send?phone=33752280890');
+        // Check keywords
+        const decoded = decodeURIComponent(url);
+        expect(decoded).toContain('Transavia');
+        expect(decoded).toContain('Lyon');
+        expect(decoded).toContain('Marseille');
+        expect(decoded).toContain('Paris-Orly');
+        expect(decoded).toContain('16 oct.');
+        expect(decoded).toContain('9 nov.');
+    });
 });
+
+

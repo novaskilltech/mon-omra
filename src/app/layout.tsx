@@ -40,6 +40,7 @@ export const metadata: Metadata = {
 };
 
 import { ToastProvider } from "@/components/ui/Toast";
+import FlashInfoBanner from "@/components/FlashInfoBanner";
 
 export default function RootLayout({
   children,
@@ -62,6 +63,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ToastProvider>
+          <FlashInfoBanner />
           {children}
         </ToastProvider>
       </body>

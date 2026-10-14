@@ -643,3 +643,28 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Fichiers modifiés : `src/components/BentoLandingHub.tsx`, `src/components/HajjInquirySection.tsx`, `src/lib/actions/hajj.ts`, `src/lib/actions/__tests__/hajj.test.ts`, `src/app/backoffice/hajj/page.tsx`, `DECISION_LOG.md`.
     *   Tests : 63/63 tests Vitest réussis (100% de réussite), compilation TypeScript `tsc --noEmit` à 0 erreur.
 *   **Version** : v1.29.0
+
+---
+
+## 49. Déploiement du Flash Info d'Urgence : Annulation des Vols Transavia (16 Octobre au 9 Novembre inclus)
+*   **Décision** :
+    1. **Bandeau d'Alerte & Visibilité Globale (`src/components/FlashInfoBanner.tsx` & `src/app/layout.tsx`)** :
+        *   Mise en place d'un bandeau d'alerte rouge/ambré en relief avec pulsation lumineuse en haut de toutes les pages du SaaS.
+        *   Notification immédiate de l'annulation subie de l'ensemble des vols Transavia du 16 octobre au 9 novembre inclus au départ de **Lyon (LYS)**, **Marseille (MRS)** et **Paris-Orly (ORY)**.
+    2. **Stratégie de Réassurance Différenciée & Sérénité des Pèlerins** :
+        *   Mise en valeur explicite des deux jalons de traitement opérationnel :
+            *   ✅ **Vols d'Octobre (16 au 31 oct.)** : 100% traités, modifiés et sécurisés. L'ensemble des pèlerins ont d'ores et déjà leurs solutions de vol de repli confirmées.
+            *   ⏳ **Vols de Novembre (01 au 09 nov.)** : Cellule de crise conciergerie active, modifications et réacheminements en cours d'exécution.
+        *   Consignes claires anti-panique : l'équipe contacte personnellement chaque pèlerin dans l'ordre chronologique des départs, aucun surcoût imprévu pour les pèlerins, hôtels et logistiques synchronisés.
+    3. **Outils d'Assistance Directe & Expérience Utilisateur** :
+        *   Intégration d'un lien WhatsApp d'urgence pré-rempli vers la ligne conciergerie (`07 52 28 08 90` via `getTransaviaAlertWhatsAppUrl()`).
+        *   Modale interactive détaillée *"Détails & FAQ"* expliquant le protocole de prise en charge et le périmètre des perturbations.
+        *   Bouton de fermeture avec persistance en `sessionStorage` et pastille flottante discrète de réouverture à tout moment.
+    4. **Tests & Contrôles** :
+        *   Tests unitaires ajoutés dans `src/lib/utils/__tests__/phone.test.ts` validant le lien WhatsApp, les numéros et les mots-clés obligatoires.
+*   **Justification** : Répond à la notification urgente de l'agence informant de l'annulation par Transavia des vols sur Lyon, Marseille et Orly du 16/10 au 09/11, afin d'assurer une transparence totale et de rassurer les pèlerins sur la prise en charge immédiate.
+*   **Impacts** :
+    *   Fichiers créés/modifiés : `src/components/FlashInfoBanner.tsx`, `src/app/layout.tsx`, `src/lib/utils/phone.ts`, `src/lib/utils/__tests__/phone.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 64/64 tests Vitest réussis (100% de réussite), TypeScript vérifié à 0 erreur.
+*   **Version** : v1.30.0
+
