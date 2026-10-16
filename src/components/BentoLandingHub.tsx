@@ -12,8 +12,13 @@ import {
 } from 'lucide-react';
 import { getPublicActiveGroups, getFeaturedGroupAction, requestRegistration } from '@/lib/actions/concierge';
 import { createHajjRequestAction } from '@/lib/actions/hajj';
+import CubeFlyerCarousel from '@/components/CubeFlyerCarousel';
+import { getPublicFlyers, FlyerOffer, SEED_FLYERS } from '@/lib/actions/flyers';
 
 export default function BentoLandingHub() {
+    // Flyers Carousel 3D state
+    const [flyers, setFlyers] = useState<FlyerOffer[]>(SEED_FLYERS);
+
     // Modal states
     const [isOmraModalOpen, setIsOmraModalOpen] = useState(false);
     const [isHajjModalOpen, setIsHajjModalOpen] = useState(false);
@@ -23,6 +28,7 @@ export default function BentoLandingHub() {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
     const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
 
     // Omra Form Data
     const [groups, setGroups] = useState<any[]>([]);
@@ -80,9 +86,25 @@ export default function BentoLandingHub() {
         }
     };
 
+    // Load public promotional flyers for 3D Cube
+    useEffect(() => {
+        async function loadFlyers() {
+            try {
+                const list = await getPublicFlyers();
+                if (list && list.length > 0) {
+                    setFlyers(list);
+                }
+            } catch (err) {
+                console.error("Error loading flyers for 3D carousel:", err);
+            }
+        }
+        loadFlyers();
+    }, []);
+
     // Load active Omra groups and featured spotlight group
     useEffect(() => {
         async function loadGroups() {
+
             try {
                 const res = await getPublicActiveGroups();
                 if (res.success && res.groups) {
@@ -432,8 +454,12 @@ export default function BentoLandingHub() {
                 </p>
             </header>
 
+            {/* SECTION CARROUSEL 3D CUBIQUE DES FLYERS 9:16 (FORMAT STORIES / TIKTOK) */}
+            <CubeFlyerCarousel initialFlyers={flyers} />
+
             {/* SECTION BENTO 3D PYRAMIDAL : CARROUSEL DES FORMULES VEDETTES */}
-            {activeFeaturedGroup && (
+            {false && activeFeaturedGroup && (
+
                 <div 
                     className="mb-10 w-full max-w-5xl mx-auto relative group/carousel" 
                     style={{ perspective: '1200px' }}

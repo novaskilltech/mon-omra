@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <linearGradient id="bgParis" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1128" />
+      <stop offset="50%" stop-color="#121b3d" />
+      <stop offset="100%" stop-color="#050814" />
+    </linearGradient>
+    <linearGradient id="goldParis" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2D6" />
+      <stop offset="50%" stop-color="#E5B25D" />
+      <stop offset="100%" stop-color="#A8741A" />
+    </linearGradient>
+    <linearGradient id="cardGlowParis" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1920" fill="url(#bgParis)" />
+
+  <!-- Geometric Arabesque Patterns -->
+  <g opacity="0.08" stroke="#E5B25D" stroke-width="2" fill="none">
+    <circle cx="540" cy="960" r="480" />
+    <circle cx="540" cy="960" r="320" />
+    <polygon points="540,420 920,680 920,1180 540,1440 160,1180 160,680" />
+  </g>
+
+  <!-- Gold Frame Border -->
+  <rect x="50" y="50" width="980" height="1820" rx="36" fill="none" stroke="url(#goldParis)" stroke-width="6" opacity="0.85" />
+  <rect x="66" y="66" width="948" height="1788" rx="24" fill="none" stroke="#60A5FA" stroke-width="2" opacity="0.4" />
+
+  <!-- Top Agency Brand -->
+  <g transform="translate(540, 160)" text-anchor="middle">
+    <text font-family="'Inter', sans-serif" font-weight="900" font-size="38" letter-spacing="8" fill="#3B82F6">
+      OMRA<tspan fill="#E5B25D">YANAIR</tspan>
+    </text>
+    <text y="42" font-family="'Inter', sans-serif" font-weight="700" font-size="18" letter-spacing="6" fill="#BFDBFE" opacity="0.8">
+      EXPÉRIENCE PREMIUM EN TERRE SAINTE
+    </text>
+  </g>
+
+  <!-- Badge -->
+  <g transform="translate(540, 310)">
+    <rect x="-200" y="-30" width="400" height="60" rx="30" fill="#E5B25D" opacity="0.25" stroke="#E5B25D" stroke-width="2" />
+    <text text-anchor="middle" y="9" font-family="'Inter', sans-serif" font-weight="900" font-size="22" letter-spacing="4" fill="#FFF2D6">
+      ★ SÉLECTION PRIVILÈGE ★
+    </text>
+  </g>
+
+  <!-- Main Title -->
+  <g transform="translate(540, 480)" text-anchor="middle">
+    <text font-family="'Inter', sans-serif" font-weight="900" font-size="60" letter-spacing="2" fill="#FFFFFF">
+      OMRA FIN D&apos;ANNÉE
+    </text>
+    <text y="70" font-family="'Inter', sans-serif" font-weight="800" font-size="44" letter-spacing="4" fill="url(#goldParis)">
+      VACANCES SCOLAIRES
+    </text>
+  </g>
+
+  <!-- Central Visual / Medina Minarets & Crescent -->
+  <g transform="translate(540, 830)">
+    <circle cx="0" cy="0" r="230" fill="url(#cardGlowParis)" stroke="#E5B25D" stroke-width="3" stroke-dasharray="8 6" />
+    <!-- Crescent & Star -->
+    <path d="M-20,-80 A60,60 0 1,0 60,30 A75,75 0 1,1 -20,-80 Z" fill="url(#goldParis)" />
+    <!-- Mosque Silhouette -->
+    <path d="M-120,130 L-120,60 L-100,20 L-80,60 L-80,130 Z" fill="url(#goldParis)" opacity="0.9" />
+    <path d="M80,130 L80,60 L100,20 L120,60 L120,130 Z" fill="url(#goldParis)" opacity="0.9" />
+    <path d="M-70,130 L-70,30 Q0,-40 70,30 L70,130 Z" fill="#0E1726" stroke="url(#goldParis)" stroke-width="4" />
+  </g>
+
+  <!-- Key Specs / Badges -->
+  <g transform="translate(540, 1170)" text-anchor="middle">
+    <!-- Airport -->
+    <rect x="-380" y="-35" width="760" height="70" rx="20" fill="#0C1938" stroke="#3B82F6" stroke-width="2" />
+    <text y="10" font-family="'Inter', sans-serif" font-weight="800" font-size="28" fill="#FFFFFF">
+      ✈ DÉPART : <tspan fill="#60A5FA">PARIS-ORLY (ORY)</tspan>
+    </text>
+
+    <!-- Dates -->
+    <rect x="-380" y="55" width="760" height="70" rx="20" fill="#0C1938" stroke="#E5B25D" stroke-width="2" />
+    <text y="100" font-family="'Inter', sans-serif" font-weight="800" font-size="28" fill="#FFFFFF">
+      📅 DATES : <tspan fill="#FFF2D6">22 AU 30 DÉCEMBRE 2026</tspan>
+    </text>
+  </g>
+
+  <!-- Included Inclusions -->
+  <g transform="translate(540, 1370)" text-anchor="middle" font-family="'Inter', sans-serif" font-size="22" font-weight="600" fill="#DBEAFE">
+    <text y="0">✔ Vols Réguliers &amp; 2 Bagages en Soute Inclus</text>
+    <text y="42">✔ Hôtels 5★ Front Haram (Makkah &amp; Madinah)</text>
+    <text y="84">✔ Petit-déjeuner buffet &amp; Navettes dédiées</text>
+    <text y="126">✔ Séminaires &amp; Cours préparatoires aux Rites</text>
+  </g>
+
+  <!-- Price Pill -->
+  <g transform="translate(540, 1610)">
+    <rect x="-320" y="-60" width="640" height="120" rx="60" fill="url(#goldParis)" />
+    <text text-anchor="middle" y="-12" font-family="'Inter', sans-serif" font-weight="900" font-size="20" letter-spacing="4" fill="#0a1128">
+      TARIF FORMULE TOUT COMPRIS
+    </text>
+    <text text-anchor="middle" y="38" font-family="'Inter', sans-serif" font-weight="900" font-size="52" fill="#0a1128">
+      1 450 €
+    </text>
+  </g>
+
+  <!-- CTA Banner Bottom -->
+  <g transform="translate(540, 1780)" text-anchor="middle">
+    <text font-family="'Inter', sans-serif" font-weight="900" font-size="26" letter-spacing="2" fill="#60A5FA">
+      CLIQUEZ POUR RÉSERVER DIRECTEMENT SUR WHATSAPP
+    </text>
+    <text y="36" font-family="'Inter', sans-serif" font-weight="600" font-size="18" fill="#9CA3AF">
+      Assistance conciergerie immédiate : 07 52 28 08 90
+    </text>
+  </g>
+</svg>

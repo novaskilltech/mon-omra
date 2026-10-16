@@ -668,3 +668,33 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 64/64 tests Vitest réussis (100% de réussite), TypeScript vérifié à 0 erreur.
 *   **Version** : v1.30.0
 
+---
+
+## 50. Carrousel 3D Cubique de Flyers 9:16 (Format Stories/TikTok/WhatsApp) avec Extraction IA Assistée des Données & Conversion WhatsApp Meta-Style Preview
+*   **Décision** :
+    1. **Moteur de Rendu 3D Cubique 9:16 (`src/components/CubeFlyerCarousel.tsx`)** :
+        *   Remplacement du carrousel de tête par un cube 3D rotatif infini en CSS 3D (`perspective: 1400px`, `transform-style: preserve-3d`), calibré rigoureusement sur le ratio vertical **9:16** (format Stories, WhatsApp status et TikTok).
+        *   Support fluide de la rotation continue à N faces : chaque rotation de 90° fait apparaître le flyer suivant avec profondeur 3D et ombre au sol ambrée.
+        *   Contrôles complets : glisser/déposer tactile (swipe mobile), flèches latérales, rotation automatique temporisée (pause au survol) et modale plein écran haute définition.
+    2. **Conversion WhatsApp Immédiate avec Aperçu Miniature Meta Ads** :
+        *   Bouton direct d'action *"Réserver via WhatsApp"* pré-remplissant le message de demande avec :
+            *   Titre de l'offre
+            *   Aéroport de départ (Lyon, Paris, Marseille...)
+            *   Dates de séjour
+            *   Tarif indicatif par personne
+            *   Lien profond vers la page officielle de l'offre (`https://omrayanair.novaskill.tech/offres/[id]`).
+        *   Création de la route publique dynamique `/offres/[id]` avec balises complètes **OpenGraph** et **Twitter Card** (`og:image`, `og:title`, `og:description`), permettant à WhatsApp d'afficher automatiquement la **vignette visuelle du flyer** dans la bulle de discussion du conseiller.
+    3. **Module Back-Office & Assistant d'Extraction IA Assistée (`/backoffice/flyers`)** :
+        *   Interface d'administration complète permettant de visualiser les flyers, d'activer/masquer les offres et de publier de nouveaux visuels 9:16.
+        *   Intégration d'un assistant d'extraction IA (`extractFlyerInfoFromText`) analysant le texte d'un flyer ou d'une annonce pour extraire automatiquement l'Aéroport, les Dates, le Tarif et le Titre en 1 clic.
+        *   Ajout du raccourci *"Flyers 3D"* dans les barres de navigation desktop et mobile du back-office (`src/app/backoffice/layout.tsx`).
+    4. **Visuels 9:16 Initiaux & Tests de Non-Régression** :
+        *   Initialisation avec 3 flyers vectoriels haute définition en 9:16 (`flyer-lyon-decembre.svg`, `flyer-paris-noel.svg`, `flyer-marseille-fevrier.svg`).
+        *   Création de la suite de tests unitaires `src/lib/actions/__tests__/flyers.test.ts` validant la récupération, l'extraction de métadonnées et la génération des URLs WhatsApp.
+*   **Justification** : Répond à la demande de l'agence de pouvoir exposer ses flyers d'offres dans un carrousel 3D cubique au format vertical WhatsApp/TikTok (9:16), avec extraction intelligente des données et génération d'un aperçu miniature visuel dans WhatsApp lors de la prise de contact pèlerin.
+*   **Impacts** :
+    *   Fichiers créés/modifiés : `src/components/CubeFlyerCarousel.tsx`, `src/lib/actions/flyers.ts`, `src/lib/actions/__tests__/flyers.test.ts`, `src/app/offres/[id]/page.tsx`, `src/app/backoffice/flyers/page.tsx`, `src/app/backoffice/layout.tsx`, `src/components/BentoLandingHub.tsx`, `src/lib/utils/phone.ts`, `DECISION_LOG.md`, `public/flyers/*`.
+    *   Tests : 69/69 tests Vitest réussis (100% de réussite), compilation TypeScript à 0 erreur.
+*   **Version** : v1.31.0
+
+

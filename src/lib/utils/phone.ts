@@ -104,3 +104,28 @@ export function getTransaviaAlertWhatsAppUrl(): string {
     return getWhatsAppUrl(AGENCY_WHATSAPP_PHONE, msg, 'france');
 }
 
+/**
+ * Génère le lien WhatsApp pour un flyer avec métadonnées extraites et URL pour affichage de la miniature (style Meta Card)
+ */
+export function getFlyerWhatsAppUrl(flyer: {
+    id: string;
+    title: string;
+    airport?: string;
+    dates?: string;
+    price?: string;
+}): string {
+    const baseUrl = 'https://omrayanair.novaskill.tech';
+    const offerUrl = `${baseUrl}/offres/${flyer.id}`;
+    
+    const details = [
+        `🕋 Offre : ${flyer.title}`,
+        flyer.airport ? `📍 Aéroport : ${flyer.airport}` : '',
+        flyer.dates ? `📅 Dates : ${flyer.dates}` : '',
+        flyer.price ? `💰 Tarif : ${flyer.price}` : '',
+    ].filter(Boolean).join('\n');
+
+    const msg = `Bonjour, j'aimerais me renseigner sur cette offre :\n\n${details}\n\n👉 Flyer : ${offerUrl}`;
+    return getWhatsAppUrl(AGENCY_WHATSAPP_PHONE, msg, 'france');
+}
+
+

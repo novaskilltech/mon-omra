@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Users, Plane, Hotel, LayoutDashboard, Settings, Bell, LogOut, Menu, X, Star, Route, Compass } from 'lucide-react';
+import { Users, Plane, Hotel, LayoutDashboard, Settings, Bell, LogOut, Menu, X, Star, Route, Compass, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { logoutAdmin } from '@/lib/actions/auth';
@@ -29,6 +29,7 @@ export default function BackofficeLayout({
                 <nav className="space-y-2">
                     {[
                         { icon: LayoutDashboard, label: 'Dashboard', href: '/backoffice' },
+                        { icon: Sparkles, label: 'Flyers 3D', href: '/backoffice/flyers' },
                         { icon: Compass, label: 'Demandes Hajj', href: '/backoffice/hajj' },
                         { icon: Users, label: 'Conciergerie', href: '/backoffice/concierge' },
                         { icon: Users, label: 'Groupes', href: '/backoffice/groups' },
@@ -39,6 +40,7 @@ export default function BackofficeLayout({
                         { icon: Bell, label: 'Notifications', href: '/backoffice/notifications' },
                         { icon: Settings, label: 'Paramètres', href: '/backoffice/settings' },
                     ].map((item) => (
+
                         <Link
                             key={item.href}
                             href={item.href}
@@ -74,6 +76,7 @@ export default function BackofficeLayout({
                             <nav className="space-y-2">
                                 {[
                                     { icon: LayoutDashboard, label: 'Dashboard', href: '/backoffice' },
+                                    { icon: Sparkles, label: 'Flyers 3D', href: '/backoffice/flyers' },
                                     { icon: Compass, label: 'Demandes Hajj', href: '/backoffice/hajj' },
                                     { icon: Users, label: 'Conciergerie', href: '/backoffice/concierge' },
                                     { icon: Users, label: 'Groupes', href: '/backoffice/groups' },
