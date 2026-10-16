@@ -1,11 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { 
     getPublicFlyers, 
-    getFlyerById, 
-    extractFlyerInfoFromText, 
-    SEED_FLYERS 
+    getFlyerById
 } from '../flyers';
+
+import { extractFlyerInfoFromText, SEED_FLYERS } from '@/lib/utils/flyers';
 import { getFlyerWhatsAppUrl, AGENCY_WHATSAPP_PHONE } from '@/lib/utils/phone';
+
 
 // Mock Supabase to test memory fallback cleanly
 vi.mock('@/utils/supabase/server', () => ({

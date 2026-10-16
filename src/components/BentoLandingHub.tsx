@@ -13,7 +13,9 @@ import {
 import { getPublicActiveGroups, getFeaturedGroupAction, requestRegistration } from '@/lib/actions/concierge';
 import { createHajjRequestAction } from '@/lib/actions/hajj';
 import CubeFlyerCarousel from '@/components/CubeFlyerCarousel';
-import { getPublicFlyers, FlyerOffer, SEED_FLYERS } from '@/lib/actions/flyers';
+import { getPublicFlyers } from '@/lib/actions/flyers';
+import { FlyerOffer, SEED_FLYERS } from '@/lib/utils/flyers';
+
 
 export default function BentoLandingHub() {
     // Flyers Carousel 3D state

@@ -7,10 +7,10 @@ import {
     getAllFlyersAdmin, 
     createFlyerAction, 
     toggleFlyerActiveAction, 
-    deleteFlyerAction, 
-    extractFlyerInfoFromText,
-    FlyerOffer 
+    deleteFlyerAction
 } from '@/lib/actions/flyers';
+import { extractFlyerInfoFromText, FlyerOffer } from '@/lib/utils/flyers';
+
 import { getFlyerWhatsAppUrl } from '@/lib/utils/phone';
 import { 
     Sparkles, 

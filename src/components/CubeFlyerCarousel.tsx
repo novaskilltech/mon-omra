@@ -17,7 +17,8 @@ import {
     Volume2,
     VolumeX
 } from 'lucide-react';
-import { FlyerOffer } from '@/lib/actions/flyers';
+import { FlyerOffer } from '@/lib/utils/flyers';
+
 import { getFlyerWhatsAppUrl } from '@/lib/utils/phone';
 
 interface CubeFlyerCarouselProps {
