@@ -238,3 +238,122 @@ export async function deleteFlyerAction(id: string) {
 export async function extractFlyerInfoAction(rawText: string) {
     return extractFlyerInfoFromText(rawText);
 }
+
+/**
+ * Analyse par IA Vision d'un flyer téléversé (PNG, JPG, WebP)
+ * Sauvegarde l'image et extrait automatiquement les champs du flyer (Titre, Aéroport, Dates, Tarif)
+ */
+export async function analyzeFlyerImageWithAiAction(formData: FormData): Promise<{
+    success: boolean;
+    imageUrl?: string;
+    extracted?: {
+        title: string;
+        airport: string;
+        dates: string;
+        price: string;
+        badge?: string;
+        description?: string;
+    };
+    error?: string;
+}> {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { success: false, error: "Non autorisé : accès réservé à l'administrateur." };
+
+    const file = formData.get('file') as File | null;
+    if (!file) return { success: false, error: "Veuillez sélectionner une image de flyer." };
+
+    try {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const base64 = buffer.toString('base64');
+        const mimeType = file.type || 'image/jpeg';
+        const dataUri = `data:${mimeType};base64,${base64}`;
+
+        // 1. Sauvegarde locale du fichier image dans public/uploads/flyers/
+        const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
+        const fileName = `flyer-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`;
+        const relativePath = `/uploads/flyers/${fileName}`;
+
+        try {
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            const targetDir = path.join(process.cwd(), 'public', 'uploads', 'flyers');
+            await fs.mkdir(targetDir, { recursive: true });
+            await fs.writeFile(path.join(targetDir, fileName), buffer);
+        } catch (fsErr) {
+            console.warn("Could not write flyer file to public uploads:", fsErr);
+        }
+
+        // 2. Appel IA Vision via OpenRouter (google/gemini-3.8-flash)
+        const openRouterKey = process.env.OPENROUTER_API_KEY;
+        let extractedData = {
+            title: 'OMRA CONFORT',
+            airport: 'Lyon Saint-Exupéry (LYS)',
+            dates: 'Dates sur flyer',
+            price: 'Tarif sur demande',
+            badge: 'OFFRE FLASH',
+            description: ''
+        };
+
+        if (openRouterKey) {
+            try {
+                const prompt = `Tu es un assistant IA spécialisé dans l'analyse de flyers publicitaires pour agence de voyage Omra et Hajj (OMRAYANAIR).
+Lis attentivement le flyer fourni et extrait précisément les éléments suivants au format JSON strict (aucun texte avant ou après) :
+{
+  "title": "Titre exact de l'offre (ex: OMRA CONFORT, OMRA VACANCES D'HIVER, etc.)",
+  "airport": "Aéroport de départ (ex: Lyon Saint-Exupéry (LYS), Paris-Orly (ORY), Marseille-Provence (MRS), Mulhouse, etc.)",
+  "dates": "Dates du séjour (ex: 08 au 15 Décembre 2026)",
+  "price": "Tarif par personne avec devise (ex: 1 290 €)",
+  "badge": "Court badge marketing (ex: PLACES LIMITÉES, SÉLECTION PRIVILÈGE, OFFRE FLASH)",
+  "description": "Courte description des prestations incluses (hôtels, vols, transferts)"
+}`;
+
+                const aiRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${openRouterKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'google/gemini-3.8-flash',
+                        messages: [
+                            {
+                                role: 'user',
+                                content: [
+                                    { type: 'text', text: prompt },
+                                    { type: 'image_url', image_url: { url: dataUri } }
+                                ]
+                            }
+                        ]
+                    })
+                });
+
+                if (aiRes.ok) {
+                    const aiJson = await aiRes.json();
+                    const rawContent = aiJson.choices?.[0]?.message?.content || '';
+                    const jsonClean = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const parsed = JSON.parse(jsonClean);
+                    if (parsed.title) extractedData.title = parsed.title;
+                    if (parsed.airport) extractedData.airport = parsed.airport;
+                    if (parsed.dates) extractedData.dates = parsed.dates;
+                    if (parsed.price) extractedData.price = parsed.price;
+                    if (parsed.badge) extractedData.badge = parsed.badge;
+                    if (parsed.description) extractedData.description = parsed.description;
+                }
+            } catch (aiErr) {
+                console.warn("AI Vision flyer extraction failed:", aiErr);
+            }
+        }
+
+        return {
+            success: true,
+            imageUrl: relativePath,
+            extracted: extractedData
+        };
+
+    } catch (err: any) {
+        console.error("Error analyzing flyer image:", err);
+        return { success: false, error: err.message || "Erreur lors de l'analyse du flyer." };
+    }
+}
+

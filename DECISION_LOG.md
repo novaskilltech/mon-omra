@@ -697,4 +697,33 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 69/69 tests Vitest réussis (100% de réussite), compilation TypeScript à 0 erreur.
 *   **Version** : v1.31.0
 
+---
+
+## 51. Téléversement Direct de Flyers 9:16 avec Analyse IA Vision Multimodale (Gemini 3.8 Flash OCR) dans le Back-Office
+*   **Décision** :
+    1. **Zone de Dépôt / Sélecteur Direct de Fichiers Images (`src/app/backoffice/flyers/page.tsx`)** :
+        *   Remplacement de la saisie textuelle brute par une zone de glisser-déposer (Dropzone) et un sélecteur de fichiers dédié aux images de flyers déjà finalisées (`PNG`, `JPG`, `JPEG`, `WebP`) au ratio vertical 9:16.
+        *   Génération instantanée d'un aperçu visuel en haute définition au format 9:16 dès la sélection du fichier par l'administrateur.
+    2. **Moteur d'Extraction Multimodal IA Vision (`analyzeFlyerImageWithAiAction` dans `src/lib/actions/flyers.ts`)** :
+        *   Sauvegarde de l'image téléversée dans `public/uploads/flyers/`.
+        *   Interrogation de l'IA Vision multimodale via l'API OpenRouter avec le modèle `google/gemini-3.8-flash`.
+        *   Lecture et extraction automatique stricte au format JSON des informations clés du flyer :
+            *   Titre de la formule (ex: OMRA CONFORT, OMRA VACANCES D'HIVER)
+            *   Aéroport de départ (ex: Lyon Saint-Exupéry, Paris-Orly, Marseille-Provence, Mulhouse)
+            *   Dates précises du séjour
+            *   Tarif indicatif par personne avec devise
+            *   Badge marketing d'accroche (ex: OFFRE FLASH, PLACES LIMITÉES)
+            *   Descriptif synthétique des prestations
+    3. **UX Studio d'Édition 2 Colonnes & Publication en 1 Clic** :
+        *   Colonne gauche : Flyer 9:16 avec animation de balayage scanner lumineux (`Laser Beam` ambré) pendant le traitement IA Vision, badge de confirmation vert après analyse et possibilité de remplacer l'image.
+        *   Colonne droite : Formulaire automatiquement pré-rempli avec les données extraites, modifiables à tout moment avant confirmation.
+        *   Validation et injection directe dans le Carrousel 3D Cubique de la page d'accueil et génération de la carte OpenGraph pour WhatsApp.
+    4. **Tests & Contrôles Qualité** :
+        *   Couverture de tests unitaires étendue dans `src/lib/actions/__tests__/flyers.test.ts` (70/70 tests réussis).
+*   **Justification** : Répond à l'exigence explicite de l'agence : *"Quand je te dis flyer, je te partage un flyer qui est déjà fait et l'IA extrait les données du flyer. C'est pas que je te partage le texte et toi tu crées un flyer."* L'agence dépose son visuel graphique, et le système effectue l'intégralité du travail de détection, saisie et intégration au carrousel 3D.
+*   **Impacts** :
+    *   Fichiers créés/modifiés : `src/app/backoffice/flyers/page.tsx`, `src/lib/actions/flyers.ts`, `src/lib/actions/__tests__/flyers.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 70/70 tests Vitest validés, compilation TypeScript à 0 erreur.
+*   **Version** : v1.32.0
+
 

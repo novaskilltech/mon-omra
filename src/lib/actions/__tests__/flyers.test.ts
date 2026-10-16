@@ -1,11 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { 
     getPublicFlyers, 
-    getFlyerById
+    getFlyerById,
+    analyzeFlyerImageWithAiAction
 } from '../flyers';
 
 import { extractFlyerInfoFromText, SEED_FLYERS } from '@/lib/utils/flyers';
 import { getFlyerWhatsAppUrl, AGENCY_WHATSAPP_PHONE } from '@/lib/utils/phone';
+
+vi.mock('../auth', () => ({
+    isAdminAuthenticated: vi.fn(() => Promise.resolve(true))
+}));
 
 
 // Mock Supabase to test memory fallback cleanly
@@ -84,5 +89,12 @@ describe('3D Promotional Flyers & AI Extraction Tests', () => {
         const res = extractFlyerInfoFromText(mulhouseText);
         expect(res.airport).toBe('Mulhouse EuroAirport (MLH/BSL)');
         expect(res.price).toBe('1450 EUR');
+    });
+
+    it('returns error if no file provided to analyzeFlyerImageWithAiAction', async () => {
+        const formData = new FormData();
+        const res = await analyzeFlyerImageWithAiAction(formData);
+        expect(res.success).toBe(false);
+        expect(res.error).toContain('sélectionner une image');
     });
 });
