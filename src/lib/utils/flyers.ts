@@ -5,6 +5,7 @@ export interface FlyerOffer {
     dates: string;
     price: string;
     imageUrl: string;
+    aspectRatio?: number;
     badge?: string;
     isActive: boolean;
     createdAt: string;

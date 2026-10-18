@@ -34,12 +34,12 @@ import {
 } from 'lucide-react';
 
 /**
- * Optimise et redimensionne l'image côté client (max 1080x1920, JPEG 90%)
- * pour garantir un envoi ultra-rapide (< 400 Ko) sans jamais dépasser la limite Vercel Serverless (4.5 Mo).
+ * Optimise l'image côté client tout en conservant 100% de ses proportions d'origine (max 1600px, JPEG 90%)
+ * et retourne son ratio exact (largeur / hauteur) pour que le cube 3D s'adapte au format du flyer.
  */
-async function optimizeFlyerImageClient(file: File): Promise<File> {
+async function optimizeFlyerImageClient(file: File): Promise<{ file: File; aspectRatio: number }> {
     if (typeof window === 'undefined' || file.type === 'image/svg+xml') {
-        return file;
+        return { file, aspectRatio: 0.75 };
     }
 
     return new Promise((resolve) => {
@@ -49,12 +49,12 @@ async function optimizeFlyerImageClient(file: File): Promise<File> {
         img.onload = () => {
             URL.revokeObjectURL(objectUrl);
             try {
-                const maxWidth = 1080;
-                const maxHeight = 1920;
                 let { width, height } = img;
+                const aspectRatio = width && height ? Number((width / height).toFixed(4)) : 0.75;
+                const maxDim = 1600;
 
-                if (width > maxWidth || height > maxHeight) {
-                    const ratio = Math.min(maxWidth / width, maxHeight / height);
+                if (width > maxDim || height > maxDim) {
+                    const ratio = Math.min(maxDim / width, maxDim / height);
                     width = Math.round(width * ratio);
                     height = Math.round(height * ratio);
                 }
@@ -64,7 +64,7 @@ async function optimizeFlyerImageClient(file: File): Promise<File> {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 if (!ctx) {
-                    resolve(file);
+                    resolve({ file, aspectRatio });
                     return;
                 }
 
@@ -72,7 +72,7 @@ async function optimizeFlyerImageClient(file: File): Promise<File> {
                 canvas.toBlob(
                     (blob) => {
                         if (!blob) {
-                            resolve(file);
+                            resolve({ file, aspectRatio });
                             return;
                         }
                         const safeName = file.name.replace(/\.[^/.]+$/, '') + '.jpg';
@@ -80,19 +80,19 @@ async function optimizeFlyerImageClient(file: File): Promise<File> {
                             type: 'image/jpeg',
                             lastModified: Date.now()
                         });
-                        resolve(optimizedFile);
+                        resolve({ file: optimizedFile, aspectRatio });
                     },
                     'image/jpeg',
                     0.90
                 );
             } catch {
-                resolve(file);
+                resolve({ file, aspectRatio: 0.75 });
             }
         };
 
         img.onerror = () => {
             URL.revokeObjectURL(objectUrl);
-            resolve(file);
+            resolve({ file, aspectRatio: 0.75 });
         };
 
         img.src = objectUrl;
@@ -109,6 +109,7 @@ export default function BackofficeFlyersPage() {
 
     // AI Vision Upload & Analysis
     const [filePreview, setFilePreview] = useState<string | null>(null);
+    const [previewRatio, setPreviewRatio] = useState<number>(0.75);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isAiExtracted, setIsAiExtracted] = useState(false);
     const [dragActive, setDragActive] = useState(false);
@@ -121,6 +122,7 @@ export default function BackofficeFlyersPage() {
         dates: '',
         price: '',
         imageUrl: '',
+        aspectRatio: 0.75,
         badge: 'OFFRE FLASH',
         description: ''
     });
@@ -150,17 +152,19 @@ export default function BackofficeFlyersPage() {
             dates: '',
             price: '',
             imageUrl: '',
+            aspectRatio: 0.75,
             badge: 'OFFRE FLASH',
             description: ''
         });
         setFilePreview(null);
+        setPreviewRatio(0.75);
         setIsAnalyzing(false);
         setIsAiExtracted(false);
         setErrorMsg(null);
         setIsCreateModalOpen(true);
     };
 
-    // Traitement du fichier image sélectionné (Compression 9:16 + Upload Supabase + IA Vision)
+    // Traitement du fichier image sélectionné (Détection du format exact + Upload Supabase + IA Vision)
     const handleFileSelected = async (file: File) => {
         if (!file) return;
         if (!file.type.startsWith('image/')) {
@@ -175,8 +179,9 @@ export default function BackofficeFlyersPage() {
         setErrorMsg(null);
 
         try {
-            // Optimisation 1080x1920 JPEG pour un upload instantané et sans erreur 413 sur Vercel
-            const optimizedFile = await optimizeFlyerImageClient(file);
+            const { file: optimizedFile, aspectRatio } = await optimizeFlyerImageClient(file);
+            setPreviewRatio(aspectRatio);
+
             const uploadData = new FormData();
             uploadData.append('file', optimizedFile);
             
@@ -187,6 +192,7 @@ export default function BackofficeFlyersPage() {
                 setFormData(prev => ({
                     ...prev,
                     imageUrl: res.imageUrl!,
+                    aspectRatio,
                     title: res.extracted?.title || prev.title,
                     airport: res.extracted?.airport || prev.airport,
                     dates: res.extracted?.dates || prev.dates,
@@ -272,14 +278,15 @@ export default function BackofficeFlyersPage() {
         try {
             const res = await createFlyerAction({
                 ...formData,
-                imageUrl: formData.imageUrl
+                imageUrl: formData.imageUrl,
+                aspectRatio: formData.aspectRatio || previewRatio
             });
 
             if (res.error) {
                 setErrorMsg(res.error);
             } else if (res.flyer) {
                 setFlyers(prev => [res.flyer!, ...prev]);
-                setSuccessMsg("Flyer publié avec succès ! Il est désormais visible sur le Carrousel 3D du site.");
+                setSuccessMsg("Flyer publié avec succès ! Le Cube 3D s'est adapté automatiquement au format de votre flyer.");
                 setIsCreateModalOpen(false);
             }
         } catch (err: any) {
@@ -298,7 +305,7 @@ export default function BackofficeFlyersPage() {
                     <div className="flex items-center gap-2">
                         <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-black uppercase tracking-wider border border-amber-500/30 flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5" />
-                            Format Stories / TikTok 9:16
+                            Format 3D Auto-Adaptatif
                         </span>
                         <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-500/30">
                             Stockage Cloud &amp; IA Vision
@@ -308,7 +315,7 @@ export default function BackofficeFlyersPage() {
                         Gestion des Flyers 3D &amp; Offres
                     </h1>
                     <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
-                        Importez vos flyers publicitaires 9:16 (réalisés sur Canva ou Photoshop). L&apos;IA Vision en extrait automatiquement l&apos;aéroport, les dates et le prix pour le carrousel 3D et WhatsApp.
+                        Importez vos flyers dans n&apos;importe quel format (carré, portrait, A4, story). Le Cube 3D du site s&apos;adapte automatiquement aux dimensions exactes de votre flyer et l&apos;IA Vision en extrait les informations.
                     </p>
                 </div>
 
@@ -357,7 +364,7 @@ export default function BackofficeFlyersPage() {
                     <Layers className="w-10 h-10 text-amber-400/60 mx-auto" />
                     <div className="space-y-1">
                         <p className="text-sm font-bold text-zinc-200">Aucun flyer publié pour le moment.</p>
-                        <p className="text-xs text-zinc-500">Cliquez sur &laquo; Ajouter un Flyer &raquo; pour téléverser votre premier visuel 9:16 dans le Carrousel 3D.</p>
+                        <p className="text-xs text-zinc-500">Cliquez sur &laquo; Ajouter un Flyer &raquo; pour téléverser votre premier visuel dans le Carrousel 3D.</p>
                     </div>
                     <button
                         onClick={handleOpenCreateModal}
@@ -419,15 +426,18 @@ export default function BackofficeFlyersPage() {
                                         </div>
                                     </div>
 
-                                    {/* Miniature Ratio 9:16 */}
+                                    {/* Miniature respectant le format d'origine du flyer */}
                                     <div className="flex gap-4 items-center">
-                                        <div className="relative w-24 h-40 rounded-2xl overflow-hidden border border-white/15 bg-black shrink-0">
+                                        <div 
+                                            className="relative w-28 rounded-2xl overflow-hidden border border-white/15 bg-black shrink-0"
+                                            style={{ aspectRatio: flyer.aspectRatio || 0.75 }}
+                                        >
                                             <Image
                                                 src={flyer.imageUrl}
                                                 alt={flyer.title}
                                                 fill
                                                 unoptimized
-                                                className="object-cover"
+                                                className="object-contain"
                                             />
                                         </div>
 
@@ -480,7 +490,7 @@ export default function BackofficeFlyersPage() {
                 </div>
             )}
 
-            {/* MODALE AJOUT FLYER : UPLOAD DIRECT + EXTRACTION IA VISION */}
+            {/* MODALE AJOUT FLYER : UPLOAD DIRECT + FORMAT ADAPTATIF + EXTRACTION IA VISION */}
             {isCreateModalOpen && (
                 <div 
                     role="dialog"
@@ -500,13 +510,13 @@ export default function BackofficeFlyersPage() {
                         <div className="space-y-1 mb-6">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400 flex items-center gap-1.5">
                                 <Sparkles className="w-3.5 h-3.5" />
-                                Format 9:16 Story / TikTok / WhatsApp
+                                Cube 3D Auto-Adaptatif au Format de votre Flyer
                             </span>
                             <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
                                 Importer un Flyer &amp; Extraction IA Multimodale
                             </h2>
                             <p className="text-xs text-zinc-400">
-                                Téléversez le flyer déjà conçu (Canva, Photoshop). Notre IA Vision lit le visuel et pré-remplit les critères de réservation.
+                                Téléversez votre flyer tel quel : le Cube 3D prendra automatiquement ses proportions exactes et notre IA Vision pré-remplira les informations.
                             </p>
                         </div>
 
@@ -530,13 +540,13 @@ export default function BackofficeFlyersPage() {
                             }}
                         />
 
-                        {/* CORPS DE LA MODALE : 2 COLONNES (GAUCHE : PREVIEW 9:16 / DROITE : CHAMPS AUTO-REMPLIS) */}
+                        {/* CORPS DE LA MODALE : 2 COLONNES (GAUCHE : PREVIEW ADAPTATIVE / DROITE : CHAMPS AUTO-REMPLIS) */}
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                             
-                            {/* COLONNE GAUCHE (5/12) : ZONE DE DROP / APERÇU 9:16 */}
+                            {/* COLONNE GAUCHE (5/12) : ZONE DE DROP / APERÇU AU FORMAT DU FLYER */}
                             <div className="md:col-span-5 space-y-3">
                                 <div className="flex items-center justify-between text-xs font-bold text-zinc-300">
-                                    <span>Visuel du Flyer</span>
+                                    <span>Visuel du Flyer (Proportions réelles)</span>
                                     {filePreview && (
                                         <button
                                             type="button"
@@ -557,7 +567,7 @@ export default function BackofficeFlyersPage() {
                                         onDragLeave={handleDrag}
                                         onDragOver={handleDrag}
                                         onDrop={handleDrop}
-                                        className={`w-full aspect-[9/16] rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center p-6 text-center cursor-pointer ${
+                                        className={`w-full min-h-[340px] rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center p-6 text-center cursor-pointer ${
                                             dragActive
                                                 ? 'border-amber-400 bg-amber-500/10 scale-[1.01]'
                                                 : 'border-white/20 bg-zinc-900/60 hover:border-amber-400/60 hover:bg-zinc-900'
@@ -573,18 +583,21 @@ export default function BackofficeFlyersPage() {
                                             ou cliquez pour parcourir
                                         </span>
                                         <div className="px-2.5 py-1 rounded-full bg-black/50 border border-white/10 text-[9px] font-mono text-zinc-400 uppercase tracking-wider">
-                                            Ratio 9:16 (PNG, JPG, WebP)
+                                            Tous formats acceptés (PNG, JPG, WebP)
                                         </div>
                                     </div>
                                 ) : (
-                                    /* APERÇU FLYER 9:16 AVEC SCANNER IA EN COURS */
-                                    <div className="relative w-full aspect-[9/16] rounded-2xl overflow-hidden border-2 border-amber-400/50 bg-black shadow-2xl">
+                                    /* APERÇU FLYER AU FORMAT EXACT AVEC SCANNER IA EN COURS */
+                                    <div 
+                                        className="relative w-full rounded-2xl overflow-hidden border-2 border-amber-400/50 bg-black shadow-2xl transition-all duration-300"
+                                        style={{ aspectRatio: previewRatio || 0.75 }}
+                                    >
                                         <Image
                                             src={filePreview}
                                             alt="Flyer téléversé"
                                             fill
                                             unoptimized
-                                            className="object-cover"
+                                            className="object-contain"
                                         />
 
                                         {/* OVERLAY SCANNER IA PENDANT L'ANALYSE */}
@@ -599,7 +612,7 @@ export default function BackofficeFlyersPage() {
                                                         Hébergement &amp; Analyse IA Vision
                                                     </span>
                                                     <p className="text-[11px] text-zinc-300 max-w-[200px] leading-relaxed">
-                                                        Enregistrement cloud et lecture automatique du départ, des dates, du tarif et du titre...
+                                                        Calibrage du format 3D et lecture automatique du départ, des dates, du tarif et du titre...
                                                     </p>
                                                 </div>
                                             </div>
@@ -609,7 +622,7 @@ export default function BackofficeFlyersPage() {
                                         {!isAnalyzing && isAiExtracted && (
                                             <div className="absolute top-3 inset-x-3 p-2 rounded-xl bg-emerald-950/90 border border-emerald-500/60 text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg animate-fade-in backdrop-blur-sm">
                                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                                <span>Flyer analysé &amp; hébergé !</span>
+                                                <span>Flyer analysé &amp; format détecté !</span>
                                             </div>
                                         )}
                                     </div>

@@ -746,5 +746,24 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 69/69 tests Vitest réussis, compilation TypeScript à 0 erreur.
 *   **Version** : v1.32.1
 
+---
+
+## 53. Géométrie 3D Auto-Adaptative du Carrousel Cubique selon le Format Réel du Flyer Envoyé
+*   **Décision** :
+    1. **Détection & Sauvegarde du Format Réel (`aspectRatio`)** :
+        *   Ajout de la propriété `aspectRatio` (`largeur / hauteur`) dans l'interface `FlyerOffer` (`src/lib/utils/flyers.ts`) et dans `createFlyerAction` (`src/lib/actions/flyers.ts`).
+        *   Lors de l'import dans `/backoffice/flyers`, `optimizeFlyerImageClient` conserve 100% des proportions d'origine du flyer (sans forcer un format 9:16) et calcule son ratio exact.
+    2. **Adaptation Dynamique du Cube 3D (`src/components/CubeFlyerCarousel.tsx`)** :
+        *   Calcul dynamique de `cubeWidth`, `cubeHeight` et `halfWidth` (`translateZ`) en fonction du ratio du flyer actif (via `flyer.aspectRatio` ainsi que par détection `naturalWidth / naturalHeight` au chargement de l'image pour les flyers déjà publiés).
+        *   Affichage intégral du visuel (`object-contain`) sans aucun recadrage ni masquage par un bloc superposé : la barre d'action WhatsApp est positionnée juste sous le cube 3D, et un clic direct sur la face avant du flyer ouvre également WhatsApp.
+    3. **Harmonisation Back-Office & Page Offre (`/offres/[id]`)** :
+        *   Les aperçus dans `/backoffice/flyers` et `/offres/[id]` s'adaptent désormais automatiquement aux proportions natives de chaque flyer (carré 1:1, portrait 4:5, A4, paysage ou story).
+*   **Justification** : Répond à la demande de l'agence : *"On va changer le format du cube en 3D. Ce sera plus du 9/16e, mais le format s'adaptera au format du flyer que j'envoie."*
+*   **Impacts** :
+    *   Fichiers modifiés : `src/components/CubeFlyerCarousel.tsx`, `src/app/backoffice/flyers/page.tsx`, `src/app/offres/[id]/page.tsx`, `src/lib/actions/flyers.ts`, `src/lib/utils/flyers.ts`, `DECISION_LOG.md`.
+    *   Tests : 69/69 tests Vitest réussis, compilation TypeScript à 0 erreur.
+*   **Version** : v1.33.0
+
+
 
 

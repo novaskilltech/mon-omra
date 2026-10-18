@@ -94,16 +94,14 @@ export default async function OffreDetailPage({ params }: OffrePageProps) {
                 {/* Main Offer Container (Two-column on desktop: Flyer 9:16 + Detail Box) */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start pt-4">
                     
-                    {/* Left: 9:16 Flyer Artwork Preview */}
+                    {/* Left: Adaptive Flyer Artwork Preview */}
                     <div className="md:col-span-6 flex justify-center">
-                        <div className="relative w-full max-w-[340px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-amber-400/60 shadow-[0_25px_60px_-15px_rgba(216,170,77,0.35)] bg-zinc-950">
-                            <Image
+                        <div className="relative w-full max-w-[420px] rounded-3xl overflow-hidden border-2 border-amber-400/60 shadow-[0_25px_60px_-15px_rgba(216,170,77,0.35)] bg-zinc-950">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
                                 src={flyer.imageUrl}
                                 alt={flyer.title}
-                                fill
-                                unoptimized
-                                priority
-                                className="object-cover w-full h-full"
+                                className="w-full h-auto object-contain block"
                             />
                         </div>
                     </div>

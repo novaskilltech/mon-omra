@@ -156,6 +156,7 @@ export async function createFlyerAction(data: {
     dates: string;
     price: string;
     imageUrl: string;
+    aspectRatio?: number;
     badge?: string;
     description?: string;
 }) {
@@ -174,6 +175,7 @@ export async function createFlyerAction(data: {
         dates: data.dates.trim(),
         price: data.price.trim(),
         imageUrl: data.imageUrl.trim(),
+        aspectRatio: data.aspectRatio && data.aspectRatio > 0 ? Number(data.aspectRatio.toFixed(4)) : undefined,
         badge: data.badge ? data.badge.trim() : 'NOUVELLE OFFRE',
         isActive: true,
         createdAt: new Date().toISOString(),
