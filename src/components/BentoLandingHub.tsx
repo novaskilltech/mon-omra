@@ -14,12 +14,12 @@ import { getPublicActiveGroups, getFeaturedGroupAction, requestRegistration } fr
 import { createHajjRequestAction } from '@/lib/actions/hajj';
 import CubeFlyerCarousel from '@/components/CubeFlyerCarousel';
 import { getPublicFlyers } from '@/lib/actions/flyers';
-import { FlyerOffer, SEED_FLYERS } from '@/lib/utils/flyers';
+import { FlyerOffer } from '@/lib/utils/flyers';
 
 
 export default function BentoLandingHub() {
-    // Flyers Carousel 3D state
-    const [flyers, setFlyers] = useState<FlyerOffer[]>(SEED_FLYERS);
+    // Flyers Carousel 3D state (uniquement les flyers publiés par l'agence)
+    const [flyers, setFlyers] = useState<FlyerOffer[]>([]);
 
     // Modal states
     const [isOmraModalOpen, setIsOmraModalOpen] = useState(false);
@@ -93,9 +93,7 @@ export default function BentoLandingHub() {
         async function loadFlyers() {
             try {
                 const list = await getPublicFlyers();
-                if (list && list.length > 0) {
-                    setFlyers(list);
-                }
+                setFlyers(Array.isArray(list) ? list : []);
             } catch (err) {
                 console.error("Error loading flyers for 3D carousel:", err);
             }

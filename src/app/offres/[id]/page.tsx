@@ -53,6 +53,8 @@ export async function generateMetadata({ params }: OffrePageProps): Promise<Meta
     };
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function OffreDetailPage({ params }: OffrePageProps) {
     const flyer = await getFlyerById(params.id);
 
@@ -99,6 +101,7 @@ export default async function OffreDetailPage({ params }: OffrePageProps) {
                                 src={flyer.imageUrl}
                                 alt={flyer.title}
                                 fill
+                                unoptimized
                                 priority
                                 className="object-cover w-full h-full"
                             />

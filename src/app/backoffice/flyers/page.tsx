@@ -29,10 +29,75 @@ import {
     Loader2,
     Layers,
     UploadCloud,
-    Image as ImageIcon,
     RefreshCw,
     CheckCircle2
 } from 'lucide-react';
+
+/**
+ * Optimise et redimensionne l'image côté client (max 1080x1920, JPEG 90%)
+ * pour garantir un envoi ultra-rapide (< 400 Ko) sans jamais dépasser la limite Vercel Serverless (4.5 Mo).
+ */
+async function optimizeFlyerImageClient(file: File): Promise<File> {
+    if (typeof window === 'undefined' || file.type === 'image/svg+xml') {
+        return file;
+    }
+
+    return new Promise((resolve) => {
+        const img = new window.Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            try {
+                const maxWidth = 1080;
+                const maxHeight = 1920;
+                let { width, height } = img;
+
+                if (width > maxWidth || height > maxHeight) {
+                    const ratio = Math.min(maxWidth / width, maxHeight / height);
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    resolve(file);
+                    return;
+                }
+
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            resolve(file);
+                            return;
+                        }
+                        const safeName = file.name.replace(/\.[^/.]+$/, '') + '.jpg';
+                        const optimizedFile = new File([blob], safeName, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        resolve(optimizedFile);
+                    },
+                    'image/jpeg',
+                    0.90
+                );
+            } catch {
+                resolve(file);
+            }
+        };
+
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            resolve(file);
+        };
+
+        img.src = objectUrl;
+    });
+}
 
 export default function BackofficeFlyersPage() {
     const [flyers, setFlyers] = useState<FlyerOffer[]>([]);
@@ -95,7 +160,7 @@ export default function BackofficeFlyersPage() {
         setIsCreateModalOpen(true);
     };
 
-    // Traitement du fichier image sélectionné (Upload + IA Vision Gemini 3.8 Flash)
+    // Traitement du fichier image sélectionné (Compression 9:16 + Upload Supabase + IA Vision)
     const handleFileSelected = async (file: File) => {
         if (!file) return;
         if (!file.type.startsWith('image/')) {
@@ -110,16 +175,18 @@ export default function BackofficeFlyersPage() {
         setErrorMsg(null);
 
         try {
+            // Optimisation 1080x1920 JPEG pour un upload instantané et sans erreur 413 sur Vercel
+            const optimizedFile = await optimizeFlyerImageClient(file);
             const uploadData = new FormData();
-            uploadData.append('file', file);
+            uploadData.append('file', optimizedFile);
             
-            // Appel Server Action IA Vision
+            // Appel Server Action : Upload Supabase Storage + IA Vision
             const res = await analyzeFlyerImageWithAiAction(uploadData);
 
-            if (res.success && res.extracted) {
+            if (res.success && res.imageUrl) {
                 setFormData(prev => ({
                     ...prev,
-                    imageUrl: res.imageUrl || prev.imageUrl || previewUrl,
+                    imageUrl: res.imageUrl!,
                     title: res.extracted?.title || prev.title,
                     airport: res.extracted?.airport || prev.airport,
                     dates: res.extracted?.dates || prev.dates,
@@ -134,7 +201,7 @@ export default function BackofficeFlyersPage() {
             }
         } catch (err: any) {
             console.error("Erreur d'analyse vision IA:", err);
-            setErrorMsg("L'analyse IA de l'image a rencontré un problème. Vous pouvez compléter les champs manuellement.");
+            setErrorMsg("Erreur lors du téléversement de l'image vers le serveur. Veuillez réessayer.");
         } finally {
             setIsAnalyzing(false);
         }
@@ -173,11 +240,12 @@ export default function BackofficeFlyersPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Êtes-vous certain de vouloir supprimer ce flyer ?")) return;
+        if (!confirm("Êtes-vous certain de vouloir supprimer définitivement ce flyer ?")) return;
         setActionLoading(true);
         try {
             await deleteFlyerAction(id);
             setFlyers(prev => prev.filter(f => f.id !== id));
+            setSuccessMsg("Flyer supprimé définitivement.");
         } catch (err: any) {
             alert(err.message || "Erreur lors de la suppression");
         } finally {
@@ -190,9 +258,13 @@ export default function BackofficeFlyersPage() {
         setErrorMsg(null);
         setSuccessMsg(null);
 
-        const targetImageUrl = formData.imageUrl || filePreview;
-        if (!formData.title || !formData.airport || !formData.dates || !formData.price || !targetImageUrl) {
-            setErrorMsg("Veuillez téléverser un flyer et renseigner les champs obligatoires (Titre, Aéroport, Dates, Tarif).");
+        if (!formData.imageUrl || formData.imageUrl.startsWith('blob:')) {
+            setErrorMsg("L'image du flyer n'a pas encore été enregistrée sur le serveur. Veuillez sélectionner à nouveau votre image.");
+            return;
+        }
+
+        if (!formData.title || !formData.airport || !formData.dates || !formData.price) {
+            setErrorMsg("Veuillez renseigner tous les champs obligatoires (Titre, Aéroport, Dates, Tarif).");
             return;
         }
 
@@ -200,14 +272,14 @@ export default function BackofficeFlyersPage() {
         try {
             const res = await createFlyerAction({
                 ...formData,
-                imageUrl: targetImageUrl
+                imageUrl: formData.imageUrl
             });
 
             if (res.error) {
                 setErrorMsg(res.error);
             } else if (res.flyer) {
                 setFlyers(prev => [res.flyer!, ...prev]);
-                setSuccessMsg("Flyer publié avec succès dans le Carrousel 3D !");
+                setSuccessMsg("Flyer publié avec succès ! Il est désormais visible sur le Carrousel 3D du site.");
                 setIsCreateModalOpen(false);
             }
         } catch (err: any) {
@@ -229,7 +301,7 @@ export default function BackofficeFlyersPage() {
                             Format Stories / TikTok 9:16
                         </span>
                         <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-500/30">
-                            Vision IA Gemini 3.8 Flash
+                            Stockage Cloud &amp; IA Vision
                         </span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white mt-2">
@@ -281,10 +353,19 @@ export default function BackofficeFlyersPage() {
                     <span className="text-xs font-bold uppercase tracking-wider">Chargement des flyers...</span>
                 </div>
             ) : flyers.length === 0 ? (
-                <div className="p-12 text-center rounded-3xl bg-zinc-900/40 border border-white/5 space-y-3">
-                    <Layers className="w-10 h-10 text-zinc-600 mx-auto" />
-                    <p className="text-sm font-bold text-zinc-300">Aucun flyer promotionnel actif.</p>
-                    <p className="text-xs text-zinc-500">Ajoutez un premier flyer au format 9:16 pour alimenter votre carrousel 3D.</p>
+                <div className="p-12 text-center rounded-3xl bg-zinc-900/40 border border-white/5 space-y-4">
+                    <Layers className="w-10 h-10 text-amber-400/60 mx-auto" />
+                    <div className="space-y-1">
+                        <p className="text-sm font-bold text-zinc-200">Aucun flyer publié pour le moment.</p>
+                        <p className="text-xs text-zinc-500">Cliquez sur &laquo; Ajouter un Flyer &raquo; pour téléverser votre premier visuel 9:16 dans le Carrousel 3D.</p>
+                    </div>
+                    <button
+                        onClick={handleOpenCreateModal}
+                        className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>Importer mon premier Flyer</span>
+                    </button>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -345,6 +426,7 @@ export default function BackofficeFlyersPage() {
                                                 src={flyer.imageUrl}
                                                 alt={flyer.title}
                                                 fill
+                                                unoptimized
                                                 className="object-cover"
                                             />
                                         </div>
@@ -428,6 +510,13 @@ export default function BackofficeFlyersPage() {
                             </p>
                         </div>
 
+                        {errorMsg && (
+                            <div className="mb-4 p-3.5 rounded-2xl bg-red-950/70 border border-red-500/50 text-red-200 text-xs font-bold flex items-center gap-2">
+                                <X className="w-4 h-4 text-red-400 shrink-0" />
+                                <span>{errorMsg}</span>
+                            </div>
+                        )}
+
                         {/* INPUT FILE CACHÉ */}
                         <input
                             ref={fileInputRef}
@@ -494,6 +583,7 @@ export default function BackofficeFlyersPage() {
                                             src={filePreview}
                                             alt="Flyer téléversé"
                                             fill
+                                            unoptimized
                                             className="object-cover"
                                         />
 
@@ -506,10 +596,10 @@ export default function BackofficeFlyersPage() {
                                                 <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
                                                 <div className="space-y-1">
                                                     <span className="text-xs font-black uppercase tracking-wider text-amber-300 block">
-                                                        Vision IA Gemini 3.8 Flash
+                                                        Hébergement &amp; Analyse IA Vision
                                                     </span>
                                                     <p className="text-[11px] text-zinc-300 max-w-[200px] leading-relaxed">
-                                                        Lecture du visuel, extraction du départ, des dates, du tarif et du titre...
+                                                        Enregistrement cloud et lecture automatique du départ, des dates, du tarif et du titre...
                                                     </p>
                                                 </div>
                                             </div>
@@ -519,7 +609,7 @@ export default function BackofficeFlyersPage() {
                                         {!isAnalyzing && isAiExtracted && (
                                             <div className="absolute top-3 inset-x-3 p-2 rounded-xl bg-emerald-950/90 border border-emerald-500/60 text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg animate-fade-in backdrop-blur-sm">
                                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                                <span>Flyer analysé avec succès !</span>
+                                                <span>Flyer analysé &amp; hébergé !</span>
                                             </div>
                                         )}
                                     </div>
@@ -624,17 +714,26 @@ export default function BackofficeFlyersPage() {
                                         />
                                     </div>
 
-                                    {/* URL IMAGE (Masquable ou lecture seule) */}
+                                    {/* URL IMAGE CLOUD */}
                                     <div className="space-y-1 pt-1">
                                         <label className="font-bold text-zinc-400 block text-[11px]">
-                                            Fichier image associé
+                                            Statut de l&apos;hébergement du visuel
                                         </label>
                                         <input
                                             type="text"
                                             readOnly
-                                            value={formData.imageUrl || (filePreview ? "Image téléversée en attente" : "")}
-                                            placeholder="Téléversez un flyer via la zone à gauche"
-                                            className="w-full px-3 py-1.5 rounded-xl bg-black/40 border border-white/5 text-zinc-400 text-[11px] font-mono select-all focus:outline-none"
+                                            value={
+                                                isAnalyzing
+                                                    ? "Téléversement en cours sur le cloud..."
+                                                    : formData.imageUrl
+                                                        ? `✓ Hébergé : ${formData.imageUrl}`
+                                                        : "En attente d'une image de flyer (zone à gauche)"
+                                            }
+                                            className={`w-full px-3 py-1.5 rounded-xl bg-black/40 border text-[11px] font-mono select-all focus:outline-none ${
+                                                formData.imageUrl
+                                                    ? 'border-emerald-500/40 text-emerald-400'
+                                                    : 'border-white/5 text-zinc-500'
+                                            }`}
                                         />
                                     </div>
 
@@ -650,7 +749,7 @@ export default function BackofficeFlyersPage() {
 
                                         <button
                                             type="submit"
-                                            disabled={actionLoading || isAnalyzing || (!formData.imageUrl && !filePreview)}
+                                            disabled={actionLoading || isAnalyzing || !formData.imageUrl}
                                             className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 hover:scale-[1.02] active:scale-95"
                                         >
                                             {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}

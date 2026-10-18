@@ -183,6 +183,7 @@ export default function CubeFlyerCarousel({ initialFlyers }: CubeFlyerCarouselPr
                                         src={flyer.imageUrl}
                                         alt={flyer.title}
                                         fill
+                                        unoptimized
                                         priority={isCurrentFront}
                                         sizes="(max-width: 640px) 320px, 340px"
                                         className="object-cover w-full h-full select-none"
@@ -330,6 +331,7 @@ export default function CubeFlyerCarousel({ initialFlyers }: CubeFlyerCarouselPr
                             src={zoomedFlyer.imageUrl}
                             alt={zoomedFlyer.title}
                             fill
+                            unoptimized
                             className="object-contain w-full h-full"
                         />
 

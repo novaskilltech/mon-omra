@@ -1,5 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+    ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '15mb',
+    },
+  },
   // Force browser to never cache pages or assets during development and production to prevent 404 staleness
   async headers() {
     return [

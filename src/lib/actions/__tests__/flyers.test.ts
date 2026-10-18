@@ -2,48 +2,57 @@ import { describe, it, expect, vi } from 'vitest';
 import { 
     getPublicFlyers, 
     getFlyerById,
+    createFlyerAction,
+    deleteFlyerAction,
     analyzeFlyerImageWithAiAction
 } from '../flyers';
 
-import { extractFlyerInfoFromText, SEED_FLYERS } from '@/lib/utils/flyers';
+import { extractFlyerInfoFromText } from '@/lib/utils/flyers';
 import { getFlyerWhatsAppUrl, AGENCY_WHATSAPP_PHONE } from '@/lib/utils/phone';
+
+vi.mock('next/cache', () => ({
+    revalidatePath: vi.fn()
+}));
 
 vi.mock('../auth', () => ({
     isAdminAuthenticated: vi.fn(() => Promise.resolve(true))
 }));
 
-
-// Mock Supabase to test memory fallback cleanly
+// Mock Supabase Admin Client without storage so unit tests verify the clean store lifecycle
 vi.mock('@/utils/supabase/server', () => ({
-    createClient: () => ({
-        from: () => ({
-            select: () => ({
-                eq: () => ({
-                    order: () => Promise.resolve({ data: null, error: new Error('Mock table') }),
-                    single: () => Promise.resolve({ data: null, error: new Error('Mock table') })
-                })
-            })
-        })
-    })
+    createAdminClient: () => ({}),
+    createClient: () => ({})
 }));
 
-describe('3D Promotional Flyers & AI Extraction Tests', () => {
-    it('returns seed flyers with complete 9:16 attributes', async () => {
-        const flyers = await getPublicFlyers();
-        expect(flyers.length).toBeGreaterThanOrEqual(3);
+describe('3D Promotional Flyers & Persistent Cloud Storage Tests', () => {
+    it('starts with zero fake flyers and persists created agency flyers', async () => {
+        const initial = await getPublicFlyers();
+        expect(initial.length).toBe(0);
 
-        const lyonFlyer = flyers.find(f => f.id === 'flyer-lyon-decembre');
-        expect(lyonFlyer).toBeDefined();
-        expect(lyonFlyer?.airport).toContain('Lyon');
-        expect(lyonFlyer?.price).toContain('1 290');
-        expect(lyonFlyer?.imageUrl).toBe('/flyers/flyer-lyon-decembre.svg');
-    });
+        const created = await createFlyerAction({
+            title: 'OMRA CONFORT 4★ DÉCEMBRE',
+            airport: 'Lyon Saint-Exupéry (LYS)',
+            dates: '08 au 15 Décembre 2026',
+            price: '1 290 €',
+            imageUrl: 'https://tqbcmcddnohnqmcxvgut.supabase.co/storage/v1/object/public/public-flyers/images/flyer-test.jpg',
+            badge: 'OFFRE FLASH'
+        });
 
-    it('retrieves specific flyer by ID', async () => {
-        const parisFlyer = await getFlyerById('flyer-paris-noel');
-        expect(parisFlyer).not.toBeNull();
-        expect(parisFlyer?.title).toContain('FIN D\'ANNÉE');
-        expect(parisFlyer?.airport).toContain('Paris');
+        expect(created.success).toBe(true);
+        expect(created.flyer).toBeDefined();
+
+        const afterCreate = await getPublicFlyers();
+        expect(afterCreate.length).toBe(1);
+        expect(afterCreate[0].title).toBe('OMRA CONFORT 4★ DÉCEMBRE');
+
+        const fetchedById = await getFlyerById(created.flyer!.id);
+        expect(fetchedById).not.toBeNull();
+        expect(fetchedById?.airport).toContain('Lyon');
+
+        // Delete the flyer and ensure it never comes back
+        await deleteFlyerAction(created.flyer!.id);
+        const afterDelete = await getPublicFlyers();
+        expect(afterDelete.length).toBe(0);
     });
 
     it('generates rich WhatsApp URL with offer parameters and deep-link for OpenGraph preview', () => {
@@ -53,7 +62,7 @@ describe('3D Promotional Flyers & AI Extraction Tests', () => {
             airport: 'Lyon Saint-Exupéry (LYS)',
             dates: '08 au 15 Décembre 2026',
             price: '1 290 €',
-            imageUrl: '/flyers/flyer-lyon-decembre.svg'
+            imageUrl: 'https://tqbcmcddnohnqmcxvgut.supabase.co/storage/v1/object/public/public-flyers/images/flyer-lyon.jpg'
         };
 
         const url = getFlyerWhatsAppUrl(sampleFlyer);

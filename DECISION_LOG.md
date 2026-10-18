@@ -726,4 +726,25 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 70/70 tests Vitest validés, compilation TypeScript à 0 erreur.
 *   **Version** : v1.32.0
 
+---
+
+## 52. Persistance Cloud Définitive des Flyers (Supabase Storage `public-flyers`) & Suppression Totale des Flyers Fictifs (`SEED_FLYERS`)
+*   **Décision** :
+    1. **Suppression Définitive des Flyers Fictifs (`SEED_FLYERS`)** :
+        *   Retrait de toute initialisation et de tout fallback sur `SEED_FLYERS` dans `src/lib/actions/flyers.ts` et `src/components/BentoLandingHub.tsx`.
+        *   Les 3 flyers fictifs de démonstration ne sont plus jamais réinjectés : la suppression d'un flyer est désormais 100% permanente.
+    2. **Stockage Cloud Persistant dans Supabase Storage (`public-flyers`)** :
+        *   Création et utilisation du bucket public `public-flyers` via `createAdminClient()`.
+        *   Hébergement permanent des images de flyers téléversées dans `public-flyers/images/` (remplaçant l'écriture locale `fs.writeFile` non persistante sur l'environnement serverless Vercel).
+        *   Persistance de l'état des flyers via des snapshots JSON horodatés immuables (`public-flyers/snapshots/state-<timestamp>.json`) garantissant une cohérence immédiate en lecture-après-écriture sans cache Cloudflare CDN.
+    3. **Optimisation Client 9:16 & Compatibilité Next.js Image** :
+        *   Compression/redimensionnement automatique côté navigateur (`optimizeFlyerImageClient` max 1080x1920 JPEG 90%) avant l'envoi à la Server Action afin d'éviter toute erreur `413 Payload Too Large` sur Vercel avec des fichiers Canva/Photoshop volumineux.
+        *   Autorisation du domaine `**.supabase.co` et `bodySizeLimit: '15mb'` dans `next.config.js`, et activation de `unoptimized` sur les composants `<Image>` du carrousel 3D et des pages d'offres.
+*   **Justification** : Sur Vercel (architecture Serverless), le stockage en mémoire (`localFlyersStore`) et sur disque local (`public/uploads/flyers`) était réinitialisé à chaque invocation, ce qui faisait réapparaître les flyers fictifs supprimés et empêchait l'affichage des flyers ajoutés par l'administrateur.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/lib/actions/flyers.ts`, `src/components/BentoLandingHub.tsx`, `src/components/CubeFlyerCarousel.tsx`, `src/app/backoffice/flyers/page.tsx`, `src/app/offres/[id]/page.tsx`, `next.config.js`, `src/lib/actions/__tests__/flyers.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 69/69 tests Vitest réussis, compilation TypeScript à 0 erreur.
+*   **Version** : v1.32.1
+
+
 
