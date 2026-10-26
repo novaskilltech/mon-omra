@@ -54,7 +54,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                const savedTheme = localStorage.getItem('theme-choice') || 'theme-2';
+                const savedTheme = localStorage.getItem('theme-choice-v2') || 'theme-haramain';
                 document.documentElement.setAttribute('data-theme', savedTheme);
               })();
             `,

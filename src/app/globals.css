@@ -2,7 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-:root, html[data-theme="theme-2"] {
+:root, html[data-theme="theme-haramain"] {
+  --foreground-rgb: 255, 253, 247;
+  --background-start-rgb: 7, 59, 32; /* #073B20 Vert Dôme de Médine */
+  --background-end-rgb: 3, 26, 14;   /* #031A0E Vert Nuit Haramain */
+  --accent-emerald: #FFB800;         /* Or Solaire 3D des badges "2 Joumoua / 2 Omra" */
+  --accent-emerald-400: #FFD54F;     /* Or Clair Lumineux */
+  --accent-emerald-600: #F59E0B;     /* Ambre Doré */
+  --accent-emerald-700: #D97706;     /* Or Profond */
+  --accent-text: #052914;            /* Vert Sombre Haramain sur ruban/bouton Or */
+  --accent-shadow: rgba(255, 184, 0, 0.35);
+  --accent-gold: #FFB800;
+  --glass-bg: rgba(9, 64, 34, 0.62);
+  --glass-border: rgba(255, 184, 0, 0.38);
+  --card-shadow: 0 14px 35px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 224, 102, 0.22);
+  --text-primary: #FFFDF7;           /* Blanc Crème Sticker */
+  --text-secondary: rgba(254, 243, 199, 0.9); /* Parchemin Doré Clair */
+  --text-muted: rgba(253, 230, 138, 0.68);
+}
+
+html[data-theme="theme-2"] {
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 0, 70, 67; /* #004643 */
   --background-end-rgb: 0, 30, 28;
@@ -118,6 +137,36 @@ body {
       rgb(var(--background-end-rgb)));
   font-family: 'Inter', sans-serif;
   min-height: 100vh;
+}
+
+html[data-theme="theme-haramain"] body {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 15% 25%, rgba(255, 184, 0, 0.14) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.18) 0%, transparent 45%),
+    linear-gradient(180deg, #084423 0%, #052B16 55%, #031A0E 100%);
+}
+
+/* Charte graphique Haramain (inspirée des badges officiels 2 Joumoua & 2 Omra) */
+.haramain-pill {
+  background: linear-gradient(180deg, #0B4F28 0%, #062E17 100%);
+  border: 2px solid #FFB800;
+  color: #FFFDF7;
+  box-shadow: 0 4px 0 #03180C, 0 6px 18px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.haramain-ribbon {
+  background: linear-gradient(90deg, #F59E0B 0%, #FDE68A 20%, #FFF7CC 50%, #FDE68A 80%, #F59E0B 100%);
+  color: #06371B;
+  border: 2px solid #78350F;
+  box-shadow: 0 5px 0 #041F0F, 0 10px 25px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.haramain-title-3d {
+  background: linear-gradient(180deg, #FFF7AE 0%, #FFD03B 45%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 3px 0 #031D0E) drop-shadow(0 6px 15px rgba(255, 184, 0, 0.3));
 }
 
 @layer utilities {

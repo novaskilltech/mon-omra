@@ -764,6 +764,26 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 69/69 tests Vitest réussis, compilation TypeScript à 0 erreur.
 *   **Version** : v1.33.0
 
+---
+
+## 54. Nouveau Thème par Défaut « Haramain Or & Émeraude » (`theme-haramain`) & Intégration de la Charte Graphique Officielle (« 2 Joumoua » & « 2 Omra »)
+*   **Décision** :
+    1. **Charte Graphique « Haramain Or & Émeraude » (`src/app/globals.css`)** :
+        *   Création du thème `:root, html[data-theme="theme-haramain"]` fidèle à la palette des visuels officiels fournis :
+            *   Fond profond **Vert Dôme de Médine** (`#073B20` → `#031A0E`) rehaussé de halos **Bleu Azur Céleste** (`rgba(56, 189, 248, 0.16)`) et **Or Solaire** (`#FFB800`).
+            *   Accents **Or Solaire 3D** (`#FFB800` / `#FFD54F` / `#F59E0B`) avec contraste texte **Vert Sombre Haramain** (`#052914`).
+            *   Classes utilitaires de charte graphique : `.haramain-pill` (cartouches `[🕋 MAKKAH] ➔ [🕌 MÉDINE] ➔ [🕋 MAKKAH]` bordés d'or), `.haramain-ribbon` (ruban parchemin doré) et `.haramain-title-3d` (titrage 3D jaune-or avec ombrage profond).
+    2. **Activation en Thème par Défaut (`src/app/layout.tsx` & `src/components/ThemeSelector.tsx`)** :
+        *   Définition de `theme-haramain` comme 1er choix et thème par défaut pour tous les visiteurs (clé `theme-choice-v2` assurant le basculement immédiat même pour les navigateurs ayant déjà visité le site).
+    3. **Intégration des 2 Emblèmes Officiels sur la Page d'Accueil (`src/components/BentoLandingHub.tsx` & `public/theme-haramain/`)** :
+        *   Hébergement statique haute définition de `/theme-haramain/badge-2-joumoua.jpg` (*2 Joumoua pendant le séjour — 1 à Makkah et 1 à Médine*) et `/theme-haramain/badge-2-omra.jpg` (*2 Omra pendant le séjour — Notre programme Makkah, Médine, Makkah*).
+        *   Mise en scène dans le Hero de la page d'accueil sous forme de vitrine interactive menant directement à la réservation Omra.
+*   **Justification** : Répond à la demande de l'agence : *"utilise ces images pour creer un nouveau theme qui sera le theme par defaut utilise la meme charte graphique"*.
+*   **Impacts** :
+    *   Fichiers créés/modifiés : `public/theme-haramain/badge-2-joumoua.jpg`, `public/theme-haramain/badge-2-omra.jpg`, `src/app/globals.css`, `src/app/layout.tsx`, `src/components/ThemeSelector.tsx`, `src/components/BentoLandingHub.tsx`, `DECISION_LOG.md`.
+    *   Tests : 69/69 tests Vitest réussis, compilation TypeScript à 0 erreur.
+*   **Version** : v1.34.0
+
 
 
 
