@@ -5,7 +5,7 @@ import {
     Users, Calendar, Search, Filter, Phone, Mail, Globe, Home, 
     CheckCircle, Clock, XCircle, Trash2, MessageSquare, Compass, Loader2, 
     AlertCircle, RefreshCw, ShieldCheck, Copy, Check, ExternalLink, Edit3, 
-    FileText, Sparkles, X, ShieldAlert
+    FileText, Sparkles, X, ShieldAlert, Download, FileSpreadsheet, FileCode, ChevronDown
 } from 'lucide-react';
 import { 
     getHajjRequestsAction, 
@@ -19,6 +19,11 @@ import {
     getWhatsAppWebUrl, 
     formatDisplayPhone 
 } from '@/lib/utils/phone';
+import { 
+    generateHajjCsv, 
+    generateHajjJson, 
+    triggerFileDownload 
+} from '@/lib/utils/hajjExport';
 
 export default function BackofficeHajjPage() {
     const [requests, setRequests] = useState<any[]>([]);
@@ -44,6 +49,7 @@ export default function BackofficeHajjPage() {
     });
     const [savingAudit, setSavingAudit] = useState(false);
     const [copiedType, setCopiedType] = useState<'whatsapp' | 'email' | null>(null);
+    const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
 
     const loadRequests = async () => {
         setLoading(true);
@@ -216,6 +222,35 @@ contact@omrayanair.com`;
         setTimeout(() => setCopiedType(null), 2500);
     };
 
+    // Exports Hajj (CSV & JSON)
+    const handleExportCsv = () => {
+        if (filteredRequests.length === 0) {
+            alert("Aucun pèlerin à exporter.");
+            return;
+        }
+        const csvContent = generateHajjCsv(filteredRequests);
+        const dateStr = new Date().toISOString().split('T')[0];
+        triggerFileDownload(csvContent, `pelerins-hajj-${dateStr}.csv`, 'text/csv;charset=utf-8;');
+        setIsExportMenuOpen(false);
+    };
+
+    const handleExportJson = () => {
+        if (filteredRequests.length === 0) {
+            alert("Aucun pèlerin à exporter.");
+            return;
+        }
+        const jsonContent = generateHajjJson(filteredRequests);
+        const dateStr = new Date().toISOString().split('T')[0];
+        triggerFileDownload(jsonContent, `pelerins-hajj-${dateStr}.json`, 'application/json;charset=utf-8;');
+        setIsExportMenuOpen(false);
+    };
+
+    const handleExportSingleJson = (req: any) => {
+        const jsonContent = generateHajjJson([req]);
+        const cleanName = `${req.first_name || 'pelerin'}-${req.family_name || 'hajj'}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        triggerFileDownload(jsonContent, `pelerin-hajj-${cleanName}.json`, 'application/json;charset=utf-8;');
+    };
+
     // Derived statistics
     const totalRequests = requests.length;
     const totalPeople = requests.reduce((sum, r) => sum + (r.people_count || 1), 0);
@@ -273,14 +308,73 @@ contact@omrayanair.com`;
                     </p>
                 </div>
 
-                <button
-                    onClick={loadRequests}
-                    disabled={loading}
-                    className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold transition-all border bg-white/5 border-white/10 text-main hover:bg-white/10 active:scale-95 text-xs"
-                >
-                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    <span>Actualiser</span>
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={loadRequests}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold transition-all border bg-white/5 border-white/10 text-main hover:bg-white/10 active:scale-95 text-xs"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        <span>Actualiser</span>
+                    </button>
+
+                    {/* Menu Déroulant Export (CSV & JSON) */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                            disabled={loading || requests.length === 0}
+                            className="flex items-center gap-2.5 px-5 py-3 rounded-2xl font-black transition-all border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-amber-500/15 text-amber-300 hover:text-white hover:border-amber-400 active:scale-95 text-xs shadow-lg shadow-amber-500/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Exporter les informations des pèlerins pour application externe"
+                        >
+                            <Download className="w-4 h-4 text-amber-400" />
+                            <span>Exporter ({filteredRequests.length})</span>
+                            <ChevronDown className={`w-3.5 h-3.5 text-amber-400 transition-transform ${isExportMenuOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isExportMenuOpen && (
+                            <>
+                                <div 
+                                    className="fixed inset-0 z-40" 
+                                    onClick={() => setIsExportMenuOpen(false)} 
+                                />
+                                <div className="absolute right-0 mt-2 w-72 rounded-2xl p-2 bg-[#0a120e] border border-amber-500/40 shadow-2xl z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+                                <div className="px-3 py-2 border-b border-white/5 mb-1 text-left">
+                                    <p className="text-[10px] font-black uppercase tracking-wider text-amber-400">Exporter pour Application Hajj</p>
+                                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                                        {filteredRequests.length} pèlerin{filteredRequests.length > 1 ? 's' : ''} {filteredRequests.length !== requests.length ? '(sélection filtrée)' : '(base complète)'}
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={handleExportCsv}
+                                    className="w-full flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 text-left transition-colors group cursor-pointer"
+                                >
+                                    <div className="p-2 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 group-hover:scale-105 transition-transform shrink-0">
+                                        <FileSpreadsheet className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-bold text-white block">Format CSV (.csv)</span>
+                                        <span className="text-[10px] text-zinc-400 leading-tight block">Excel &amp; Google Sheets (UTF-8 avec BOM)</span>
+                                    </div>
+                                </button>
+
+                                <button
+                                    onClick={handleExportJson}
+                                    className="w-full flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 text-left transition-colors group cursor-pointer mt-1"
+                                >
+                                    <div className="p-2 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 group-hover:scale-105 transition-transform shrink-0">
+                                        <FileCode className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-bold text-white block">Format JSON (.json)</span>
+                                        <span className="text-[10px] text-zinc-400 leading-tight block">Format structuré pour application dédiée Hajj</span>
+                                    </div>
+                                </button>
+                            </div>
+                            </>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* KPIs */}
@@ -586,6 +680,16 @@ contact@omrayanair.com`;
                                         >
                                             <Edit3 className="w-3.5 h-3.5 text-[#D8AA4D]" />
                                             <span>Gérer l'Audit</span>
+                                        </button>
+
+                                        {/* Bouton Export Individuel JSON */}
+                                        <button
+                                            onClick={() => handleExportSingleJson(req)}
+                                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-amber-300 border border-white/10 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                                            title="Exporter cette fiche au format JSON pour votre application Hajj dédiée"
+                                        >
+                                            <FileCode className="w-3.5 h-3.5 text-amber-400" />
+                                            <span>JSON</span>
                                         </button>
 
                                         {/* Bouton Supprimer */}

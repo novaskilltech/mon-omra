@@ -784,6 +784,25 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 69/69 tests Vitest réussis, compilation TypeScript à 0 erreur.
 *   **Version** : v1.34.0
 
+---
+
+## 55. Bouton d'Export Sécurisé des Pèlerins Hajj (CSV Excel & JSON Application Dédiée)
+*   **Décision** :
+    1. **Moteur d'Export Structuré (`src/lib/utils/hajjExport.ts`)** :
+        *   **Export CSV (.csv)** : Encodage **UTF-8 avec BOM** (`\uFEFF`) et séparateur point-virgule (`;`) garantissant l'ouverture immédiate sans corruption des accents dans Microsoft Excel et Google Sheets. Protection anti-injection CSV sur les formules (`=`, `+`, `-`, `@`).
+        *   **Export JSON (.json)** : Structure typée, hiérarchisée et standardisée (`fullName`, `provider: Yusr Al Mashaer`, bloc `nusuk` avec booléens et statuts, compteurs numériques, dates ISO) prête à être injectée dans une base de données ou consommée par une application Hajj dédiée.
+        *   Téléchargement déclenché côté client via Blob sécurisé sans latence serveur ni stockage intermédiaire.
+    2. **Expérience Utilisateur dans le Back-Office Hajj (`src/app/backoffice/hajj/page.tsx`)** :
+        *   Menu déroulant ergonomique d'export dans l'en-tête affichant dynamiquement le nombre de pèlerins ciblés : export de la base complète ou de la sélection filtrée (recherche textuelle, statut dossier, année Hajj 2027+, profil Nusuk).
+        *   Bouton d'export individuel JSON instantané sur chaque carte pèlerin pour extraire une fiche unitaire en 1 clic.
+    3. **Tests & Contrôles Qualité** :
+        *   Tests unitaires complets dans `src/lib/utils/__tests__/hajjExport.test.ts` (71/71 tests réussis sur la suite globale).
+*   **Justification** : Répond au besoin de l'agence : *"Concernant les pèlerins du hajj j'ai besoin d'un bouton pour exporter les informations que je vais utiliser dans une application dédiée pour le hajj"*, avec le choix validé des formats CSV et JSON.
+*   **Impacts** :
+    *   Fichiers créés/modifiés : `src/lib/utils/hajjExport.ts`, `src/lib/utils/__tests__/hajjExport.test.ts`, `src/app/backoffice/hajj/page.tsx`, `DECISION_LOG.md`.
+    *   Tests : 71/71 tests Vitest réussis, compilation TypeScript à 0 erreur.
+*   **Version** : v1.35.0
+
 
 
 
