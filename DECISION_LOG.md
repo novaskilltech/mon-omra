@@ -803,6 +803,27 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 71/71 tests Vitest réussis, compilation TypeScript à 0 erreur.
 *   **Version** : v1.35.0
 
+---
+
+## 56. Inclusion de la Date d'Émission du Formulaire dans l'Export JSON & CSV des Pèlerins Hajj
+*   **Décision** :
+    1. **Formatage Robuste & Multi-Alias (`src/lib/utils/hajjExport.ts`)** :
+        *   Ajout de la fonction `formatEmissionDate` traitant les horodatages `created_at` (Supabase ISO string) avec tolérance aux valeurs manquantes.
+        *   Génération automatique des clés standardisées pour intégration universelle dans toute application Hajj tierce :
+            *   `dateEmission` (ISO string standard `YYYY-MM-DDTHH:mm:ss.sssZ`)
+            *   `dateEmissionFormatee` (Format français lisible `DD/MM/YYYY HH:mm:ss`)
+            *   `dateEmissionTimestamp` (Timestamp epoch millisecondes pour requêtes et tris de bases de données)
+            *   Alias de compatibilité : `submissionDate` (date seule `YYYY-MM-DD`), `submittedAt` et `createdAt`.
+        *   Ajout des colonnes correspondantes dans le fichier CSV d'export (`Date d'émission du formulaire (FR)` et `Date d'émission (ISO)`).
+    2. **Couverture de Tests (`src/lib/utils/__tests__/hajjExport.test.ts`)** :
+        *   Validation unitaire des conversions de date, de la présence des champs dans le payload JSON exporté et dans les colonnes CSV.
+*   **Justification** : Répond à la spécification client : *"Pour le fichier JSON, il faut qu'il inclue la date de l'émission du formulaire pour chaque client."*
+*   **Impacts** :
+    *   Fichiers modifiés : `src/lib/utils/hajjExport.ts`, `src/lib/utils/__tests__/hajjExport.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 72/72 tests Vitest réussis (10 suites), compilation TypeScript à 0 erreur.
+*   **Version** : v1.35.1
+
+
 
 
 
