@@ -823,6 +823,30 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 72/72 tests Vitest réussis (10 suites), compilation TypeScript à 0 erreur.
 *   **Version** : v1.35.1
 
+---
+
+## 57. Clé API & Endpoint REST Machine-to-Machine pour Synchronisation Externe des Pèlerins Hajj
+*   **Décision** :
+    1. **Endpoint REST Sécurisé M2M (`src/app/api/v1/hajj/pilgrims/route.ts`)** :
+        *   Endpoint `GET /api/v1/hajj/pilgrims` dédié à la lecture des inscriptions Hajj par des plateformes tierces.
+        *   Authentification via Bearer token (`Authorization: Bearer <clé>`) ou en-tête `X-API-Key: <clé>`.
+        *   Vérification cryptographique en temps constant (`crypto.timingSafeEqual`) dans `src/lib/utils/hajjSyncAuth.ts` pour éliminer tout risque d'attaque temporelle (timing attacks).
+        *   Prise en charge du paramètre de synchronisation différentielle `?since=ISO_DATE` pour ne récupérer que les nouvelles inscriptions survenues depuis le dernier passage, avec pagination de sécurité `?limit=100` (max 500).
+        *   Protection de cache stricte `Cache-Control: no-store, no-cache, must-revalidate`.
+    2. **Gestionnaire & Affichage dans le Back-Office (`src/app/backoffice/hajj/page.tsx` & `src/lib/actions/hajj.ts`)** :
+        *   Ajout du bouton *« Clé API Synchro »* dans la barre d'outils du backoffice.
+        *   Modale interactive complète avec affichage/masquage de la clé, bouton de copie en 1-clic, commande cURL pré-générée prête à copier-coller, documentation des paramètres (`since`, `limit`, `status`) et bouton de test de connexion en direct (Test Live Ping avec badge de statut 200 OK).
+    3. **Tests & Contrôles Qualité** :
+        *   Tests unitaires d'authentification (`src/lib/utils/__tests__/hajjSyncAuth.test.ts`) et tests d'intégration du endpoint HTTP (`src/app/api/v1/hajj/pilgrims/__tests__/route.test.ts`).
+        *   83/83 tests Vitest réussis (12 suites complètes), TypeScript 0 erreur.
+*   **Justification** : Répond à la demande de l'agence : *"J'aimerais créer une clé API qui me permette de synchroniser cette partie avec une autre de mes plateformes... la plateforme a juste besoin de lire les nouvelles inscriptions... L'option A... Non, je n'ai pas l'adresse IP fixe. Il faut juste avoir la clé"*.
+*   **Impacts** :
+    *   Fichiers créés : `src/lib/utils/hajjSyncAuth.ts`, `src/lib/utils/__tests__/hajjSyncAuth.test.ts`, `src/app/api/v1/hajj/pilgrims/route.ts`, `src/app/api/v1/hajj/pilgrims/__tests__/route.test.ts`.
+    *   Fichiers modifiés : `src/lib/actions/hajj.ts`, `src/app/backoffice/hajj/page.tsx`, `.env.local`, `DECISION_LOG.md`.
+    *   Tests : 83/83 tests réussis.
+*   **Version** : v1.36.0
+
+
 
 
 

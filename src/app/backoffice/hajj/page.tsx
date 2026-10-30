@@ -5,13 +5,15 @@ import {
     Users, Calendar, Search, Filter, Phone, Mail, Globe, Home, 
     CheckCircle, Clock, XCircle, Trash2, MessageSquare, Compass, Loader2, 
     AlertCircle, RefreshCw, ShieldCheck, Copy, Check, ExternalLink, Edit3, 
-    FileText, Sparkles, X, ShieldAlert, Download, FileSpreadsheet, FileCode, ChevronDown
+    FileText, Sparkles, X, ShieldAlert, Download, FileSpreadsheet, FileCode, ChevronDown,
+    Key, Terminal, CheckCheck, Eye, EyeOff
 } from 'lucide-react';
 import { 
     getHajjRequestsAction, 
     updateHajjRequestStatusAction, 
     updateHajjAuditAction, 
-    deleteHajjRequestAction 
+    deleteHajjRequestAction,
+    getHajjSyncConfigAction
 } from '@/lib/actions/hajj';
 import { 
     formatPhoneForWhatsApp, 
@@ -50,6 +52,68 @@ export default function BackofficeHajjPage() {
     const [savingAudit, setSavingAudit] = useState(false);
     const [copiedType, setCopiedType] = useState<'whatsapp' | 'email' | null>(null);
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+
+    // Synchronisation API M2M State
+    const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+    const [syncConfig, setSyncConfig] = useState<any | null>(null);
+    const [loadingSyncConfig, setLoadingSyncConfig] = useState(false);
+    const [showApiKey, setShowApiKey] = useState(false);
+    const [copiedApiKey, setCopiedApiKey] = useState(false);
+    const [copiedCurl, setCopiedCurl] = useState(false);
+    const [testingApi, setTestingApi] = useState(false);
+    const [apiTestResult, setApiTestResult] = useState<any | null>(null);
+
+    const handleOpenSyncModal = async () => {
+        setIsSyncModalOpen(true);
+        if (!syncConfig) {
+            setLoadingSyncConfig(true);
+            try {
+                const res = await getHajjSyncConfigAction();
+                if (res.success) {
+                    setSyncConfig(res);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoadingSyncConfig(false);
+            }
+        }
+    };
+
+    const handleCopyApiKey = () => {
+        if (!syncConfig?.apiKey) return;
+        navigator.clipboard.writeText(syncConfig.apiKey);
+        setCopiedApiKey(true);
+        setTimeout(() => setCopiedApiKey(false), 2500);
+    };
+
+    const handleCopyCurl = () => {
+        if (!syncConfig?.apiKey) return;
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mon-omra.fr';
+        const curlCmd = `curl -X GET "${origin}/api/v1/hajj/pilgrims" \\\n  -H "Authorization: Bearer ${syncConfig.apiKey}"`;
+        navigator.clipboard.writeText(curlCmd);
+        setCopiedCurl(true);
+        setTimeout(() => setCopiedCurl(false), 2500);
+    };
+
+    const handleTestLiveApi = async () => {
+        if (!syncConfig?.apiKey) return;
+        setTestingApi(true);
+        setApiTestResult(null);
+        try {
+            const res = await fetch('/api/v1/hajj/pilgrims?limit=5', {
+                headers: {
+                    'Authorization': `Bearer ${syncConfig.apiKey}`
+                }
+            });
+            const data = await res.json();
+            setApiTestResult({ status: res.status, ok: res.ok, data });
+        } catch (err: any) {
+            setApiTestResult({ status: 500, ok: false, data: { error: err.message } });
+        } finally {
+            setTestingApi(false);
+        }
+    };
 
     const loadRequests = async () => {
         setLoading(true);
@@ -316,6 +380,17 @@ contact@omrayanair.com`;
                     >
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         <span>Actualiser</span>
+                    </button>
+
+                    {/* Bouton Clé API & Synchronisation */}
+                    <button
+                        onClick={handleOpenSyncModal}
+                        className="flex items-center gap-2 px-4 py-3 rounded-2xl font-black transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-white active:scale-95 text-xs shadow-lg shadow-emerald-500/10 cursor-pointer"
+                        title="Afficher la clé API et les instructions de synchronisation externe"
+                    >
+                        <Key className="w-4 h-4 text-emerald-400" />
+                        <span className="hidden sm:inline">Clé API Synchro</span>
+                        <span className="sm:hidden">Clé API</span>
                     </button>
 
                     {/* Menu Déroulant Export (CSV & JSON) */}
@@ -895,6 +970,165 @@ contact@omrayanair.com`;
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Synchronisation API Externe */}
+            {isSyncModalOpen && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#0b1410] border border-emerald-500/30 rounded-3xl max-w-2xl w-full p-6 md:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                        <button
+                            type="button"
+                            onClick={() => setIsSyncModalOpen(false)}
+                            className="absolute top-6 right-6 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-dim hover:text-white transition-all cursor-pointer"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="flex items-start gap-4">
+                            <div className="p-3 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                                <Key className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider mb-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    Synchronisation Machine-to-Machine
+                                </div>
+                                <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white">
+                                    Clé API &amp; Synchronisation Hajj
+                                </h3>
+                                <p className="text-xs text-zinc-400 mt-1">
+                                    Permet à n'importe quelle autre plateforme de lire automatiquement vos nouvelles inscriptions Hajj.
+                                </p>
+                            </div>
+                        </div>
+
+                        {loadingSyncConfig ? (
+                            <div className="py-12 flex flex-col items-center justify-center gap-3">
+                                <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                                <span className="text-xs text-zinc-400">Chargement de la configuration API...</span>
+                            </div>
+                        ) : (
+                            <div className="space-y-5">
+                                {/* Clé API Secrète */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-zinc-300 flex items-center justify-between">
+                                        <span>Clé Secrète API (Bearer Token)</span>
+                                        <span className="text-[10px] text-amber-400 font-normal">À conserver secrète</span>
+                                    </label>
+                                    <div className="flex items-center gap-2 bg-[#060b08] border border-white/10 rounded-2xl p-2 px-3">
+                                        <code className="text-xs font-mono text-emerald-400 flex-1 truncate select-all">
+                                            {showApiKey 
+                                                ? (syncConfig?.apiKey || 'Clé non définie') 
+                                                : (syncConfig?.apiKey ? `${syncConfig.apiKey.slice(0, 15)}••••••••••••••••••••••••••••••••` : 'Aucune clé configurée')}
+                                        </code>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowApiKey(!showApiKey)}
+                                            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                                            title={showApiKey ? 'Masquer' : 'Afficher en clair'}
+                                        >
+                                            {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleCopyApiKey}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-xs transition-colors cursor-pointer"
+                                        >
+                                            {copiedApiKey ? <CheckCheck className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                            <span>{copiedApiKey ? 'Copié !' : 'Copier'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Endpoint REST */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-zinc-300">
+                                        URL de l'Endpoint REST
+                                    </label>
+                                    <div className="bg-[#060b08] border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                                        <code className="text-xs font-mono text-amber-400 select-all truncate">
+                                            GET {typeof window !== 'undefined' ? window.location.origin : 'https://mon-omra.fr'}/api/v1/hajj/pilgrims
+                                        </code>
+                                        <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                                            JSON
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Exemple d'appel cURL */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-bold text-zinc-300 flex items-center gap-2">
+                                            <Terminal className="w-3.5 h-3.5 text-zinc-400" />
+                                            <span>Exemple de commande (cURL / HTTP)</span>
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={handleCopyCurl}
+                                            className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+                                        >
+                                            {copiedCurl ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                                            <span>{copiedCurl ? 'cURL copié' : 'Copier cURL'}</span>
+                                        </button>
+                                    </div>
+                                    <pre className="bg-[#060b08] border border-white/10 rounded-2xl p-4 text-[11px] font-mono text-zinc-300 overflow-x-auto leading-relaxed">
+{`curl -X GET "${typeof window !== 'undefined' ? window.location.origin : 'https://mon-omra.fr'}/api/v1/hajj/pilgrims" \\
+  -H "Authorization: Bearer ${syncConfig?.apiKey || '<VOTRE_CLE_API>'}"`}
+                                    </pre>
+                                </div>
+
+                                {/* Paramètres de synchronisation différentielle */}
+                                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2 text-left">
+                                    <p className="text-[11px] font-black uppercase tracking-wider text-amber-400">
+                                        Synchronisation différentielle (Uniquement les nouveaux)
+                                    </p>
+                                    <p className="text-xs text-zinc-400 leading-relaxed">
+                                        Ajoutez le paramètre <code className="text-amber-300 bg-black/40 px-1 py-0.5 rounded">?since=YYYY-MM-DDTHH:mm:ssZ</code> pour ne récupérer que les formulaires soumis depuis votre dernière synchronisation.
+                                    </p>
+                                    <p className="text-[11px] text-zinc-500">
+                                        Exemple : <code className="text-zinc-400">/api/v1/hajj/pilgrims?since=2026-10-30T00:00:00Z&amp;limit=50</code>
+                                    </p>
+                                </div>
+
+                                {/* Test en direct */}
+                                <div className="pt-2 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleTestLiveApi}
+                                        disabled={testingApi || !syncConfig?.apiKey}
+                                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                                    >
+                                        {testingApi ? <Loader2 className="w-4 h-4 animate-spin text-emerald-400" /> : <RefreshCw className="w-4 h-4 text-emerald-400" />}
+                                        <span>Tester l'API en direct</span>
+                                    </button>
+
+                                    {apiTestResult && (
+                                        <div className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                                            apiTestResult.ok ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-red-500/15 text-red-300 border border-red-500/30'
+                                        }`}>
+                                            {apiTestResult.ok ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <XCircle className="w-4 h-4 text-red-400" />}
+                                            <span>
+                                                {apiTestResult.ok 
+                                                    ? `Succès 200 OK (${apiTestResult.data?.count || 0} pèlerins détectés)` 
+                                                    : `Erreur ${apiTestResult.status}`}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="pt-2 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setIsSyncModalOpen(false)}
+                                className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-bold transition-colors cursor-pointer"
+                            >
+                                Fermer
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

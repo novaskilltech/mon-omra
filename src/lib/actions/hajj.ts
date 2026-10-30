@@ -158,3 +158,23 @@ export async function deleteHajjRequestAction(id: string) {
         return { error: e.message || "Erreur lors de la suppression." };
     }
 }
+
+/**
+ * Récupère la configuration et la clé d'API pour la synchronisation Hajj
+ * Réservé aux administrateurs authentifiés du backoffice.
+ */
+export async function getHajjSyncConfigAction() {
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) return { error: "Non autorisé" };
+
+    const apiKey = process.env.HAJJ_SYNC_API_KEY || null;
+
+    return {
+        success: true,
+        isConfigured: !!apiKey,
+        apiKey: apiKey,
+        endpointPath: '/api/v1/hajj/pilgrims',
+        curlExample: `curl -X GET "https://mon-omra.fr/api/v1/hajj/pilgrims" \\\n  -H "Authorization: Bearer ${apiKey || '<VOTRE_CLE_API>'}"`
+    };
+}
+
