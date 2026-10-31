@@ -4,6 +4,7 @@ import { createAdminClient } from '@/utils/supabase/server';
 import { isAdminAuthenticated } from './auth';
 import { revalidatePath } from 'next/cache';
 import { FlyerOffer, extractFlyerInfoFromText } from '@/lib/utils/flyers';
+import { validateUploadedFile } from '@/types/documents';
 
 export type { FlyerOffer };
 
@@ -279,15 +280,21 @@ export async function analyzeFlyerImageWithAiAction(formData: FormData): Promise
     const file = formData.get('file') as File | null;
     if (!file) return { success: false, error: "Veuillez sélectionner une image de flyer." };
 
+    // Validation hermétique de sécurité (Anti-XSS SVG/HTML)
+    const fileCheck = validateUploadedFile(file, 10 * 1024 * 1024);
+    if (!fileCheck.valid) {
+        return { success: false, error: fileCheck.error };
+    }
+
     try {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
         const base64 = buffer.toString('base64');
-        const mimeType = file.type || 'image/jpeg';
+        const mimeType = fileCheck.resolvedMime || 'image/jpeg';
         const dataUri = `data:${mimeType};base64,${base64}`;
 
         // 1. Sauvegarde persistante du fichier image dans Supabase Storage (public-flyers)
-        const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
+        const ext = fileCheck.cleanExt || 'jpg';
         const fileName = `flyer-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`;
         const storagePath = `${IMAGES_FOLDER}/${fileName}`;
         let finalImageUrl = `/uploads/flyers/${fileName}`;

@@ -3,7 +3,7 @@
 import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { UserDocumentSchema, DocumentType } from '@/types/documents';
+import { UserDocumentSchema, DocumentType, validateUploadedFile } from '@/types/documents';
 import { resolvePilgrimIdByEmail } from './logistics';
 import { isAdminAuthenticated } from './auth';
 
@@ -63,13 +63,19 @@ export async function uploadDocument(formData: FormData) {
             return { error: 'Dossier pèlerin introuvable.' };
         }
 
+        // 0. Whitelist & Security Validation (Anti-XSS, anti-SVG, extensions & MIME hermétiques)
+        const fileCheck = validateUploadedFile(file, 5 * 1024 * 1024);
+        if (!fileCheck.valid) {
+            return { error: fileCheck.error };
+        }
+
         // 1. Validate with Zod (Contract Enforcement)
         const validation = UserDocumentSchema.safeParse({
             user_id: uploadUserId,
             type: type,
             file_name: file.name,
             file_size: file.size,
-            content_type: file.type || 'application/octet-stream',
+            content_type: fileCheck.resolvedMime,
             storage_path: 'pending', // Temporary
         });
 
@@ -107,7 +113,7 @@ export async function uploadDocument(formData: FormData) {
         }
 
         // 2. Upload to Supabase Storage (Private Bucket via Admin Client)
-        const fileExt = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'pdf';
+        const fileExt = fileCheck.cleanExt || 'pdf';
         const filePath = `${uploadUserId}/${type}_${Date.now()}.${fileExt}`;
         const fileBuffer = typeof file.arrayBuffer === 'function'
             ? Buffer.from(await file.arrayBuffer())
@@ -116,7 +122,7 @@ export async function uploadDocument(formData: FormData) {
         const { error: uploadError } = await adminClient.storage
             .from('pelerin-documents')
             .upload(filePath, fileBuffer, {
-                contentType: file.type || 'application/octet-stream',
+                contentType: fileCheck.resolvedMime,
                 upsert: true
             });
 
@@ -134,7 +140,7 @@ export async function uploadDocument(formData: FormData) {
                 storage_path: filePath,
                 file_name: file.name,
                 file_size: file.size,
-                content_type: file.type,
+                content_type: fileCheck.resolvedMime,
                 verified: type === 'INVOICE', // Invoices uploaded by admin are auto-verified
             });
 

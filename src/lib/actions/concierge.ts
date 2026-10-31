@@ -9,6 +9,7 @@ import zlib from 'zlib';
 import crypto from 'crypto';
 import { encryptToken, decryptToken, hashPIN } from '../utils/crypto';
 import { purgePilgrimStorageFiles } from '../utils/storagePurge';
+import { validateUploadedFile } from '@/types/documents';
 
 export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?: string }) {
     const isAdmin = await isAdminAuthenticated();
@@ -527,9 +528,14 @@ export async function submitPilgrimPaymentProofAction(formData: FormData) {
             return { error: "Dossier pèlerin introuvable." };
         }
 
+        // 0. Validation de sécurité hermétique (Anti-XSS SVG/HTML, extensions & MIME hermétiques)
+        const fileCheck = validateUploadedFile(file, 10 * 1024 * 1024);
+        if (!fileCheck.valid) {
+            return { error: fileCheck.error };
+        }
+
         // Upload dans le bucket privé 'pelerin-documents'
-        const fileExt = file.name.split('.').pop() || 'pdf';
-        const cleanExt = fileExt.replace(/[^a-zA-Z0-9]/g, '');
+        const cleanExt = fileCheck.cleanExt || 'pdf';
         const safeFileName = `${Date.now()}_proof.${cleanExt}`;
         const filePath = `payment-proofs/${targetPilgrimId}/${safeFileName}`;
         const fileBuffer = typeof file.arrayBuffer === 'function'
@@ -539,7 +545,7 @@ export async function submitPilgrimPaymentProofAction(formData: FormData) {
         const { error: uploadError } = await supabase.storage
             .from('pelerin-documents')
             .upload(filePath, fileBuffer, {
-                contentType: file.type || 'application/octet-stream',
+                contentType: fileCheck.resolvedMime,
                 duplex: 'half'
             });
 
@@ -1605,26 +1611,22 @@ export async function uploadGroupFlyerAction(formData: FormData) {
     const file = formData.get('flyer') as File;
     if (!file) return { error: "Aucun fichier fourni" };
 
-    // Validate size and format
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-        return { error: "Format non supporté. Veuillez uploader une image ou un PDF." };
-    }
-    const maxSizeBytes = 5 * 1024 * 1024; // 5 MB
-    if (file.size > maxSizeBytes) {
-        return { error: "Fichier trop volumineux. La taille maximale est de 5 Mo." };
+    // Validate size and format via unified strict whitelist (Anti-XSS SVG/HTML)
+    const fileCheck = validateUploadedFile(file, 5 * 1024 * 1024);
+    if (!fileCheck.valid) {
+        return { error: fileCheck.error };
     }
 
     const supabase = createAdminClient();
     try {
-        const fileExt = file.name.split('.').pop();
+        const fileExt = fileCheck.cleanExt || 'pdf';
         const filePath = `flyers/flyer_${Date.now()}.${fileExt}`;
         const fileBuffer = Buffer.from(await file.arrayBuffer());
 
         const { error: uploadError } = await supabase.storage
             .from('group-flyers')
             .upload(filePath, fileBuffer, {
-                contentType: file.type,
+                contentType: fileCheck.resolvedMime,
                 duplex: 'half'
             });
 
@@ -2622,9 +2624,15 @@ export async function uploadVisaDocument(pilgrimId: string, formData: FormData) 
     const file = formData.get('file') as File;
     if (!file) return { error: "Aucun fichier fourni" };
 
+    // Validation de sécurité hermétique (Anti-XSS SVG/HTML, extensions & MIME hermétiques)
+    const fileCheck = validateUploadedFile(file, 10 * 1024 * 1024);
+    if (!fileCheck.valid) {
+        return { error: fileCheck.error };
+    }
+
     const supabase = createAdminClient();
     try {
-        const fileExt = file.name.split('.').pop();
+        const fileExt = fileCheck.cleanExt || 'pdf';
         const filePath = `visas/${pilgrimId}_visa_${Date.now()}.${fileExt}`;
         const fileBuffer = Buffer.from(await file.arrayBuffer());
 
@@ -2632,7 +2640,7 @@ export async function uploadVisaDocument(pilgrimId: string, formData: FormData) 
         const { error: uploadError } = await supabase.storage
             .from('pelerin-documents')
             .upload(filePath, fileBuffer, {
-                contentType: file.type,
+                contentType: fileCheck.resolvedMime,
                 duplex: 'half'
             });
 

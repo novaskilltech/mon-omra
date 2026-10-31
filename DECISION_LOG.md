@@ -954,6 +954,30 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 102/102 tests réussis.
 *   **Version** : v1.39.2
 
+---
+
+## 63. Durcissement Sécurité P1 : Whitelist Stricte des Fichiers Uploadés (Anti-SVG XSS, Extensions & MIME Hermétiques)
+*   **Décision** :
+    1. **Définition de Contrat de Types & Whitelist Hermétique (`src/types/documents.ts`)** :
+        *   Whitelist fermée d'extensions autorisées : `['pdf', 'jpg', 'jpeg', 'png', 'webp']`.
+        *   Whitelist fermée de types MIME autorisés : `['application/pdf', 'image/jpeg', 'image/png', 'image/webp']`.
+        *   Blacklist de blocage explicite contre les vecteurs d'attaque : `.svg`, `.html`, `.htm`, `.xml`, `.xhtml`, `.js`, `.mjs`, `.ts`, `.php`, `.exe`, etc.
+        *   Fonction de validation universelle `validateUploadedFile(file, maxSizeBytes = 5MB)` avec contrôle strict de taille maximale et normalisation de l'extension.
+        *   Mise à jour du schéma Zod `UserDocumentSchema` pour forcer `content_type` sur l'énumération stricte des types MIME autorisés.
+    2. **Sécurisation de Toutes les Actions de Téléversement (`uploadDocument`, `submitPilgrimPaymentWithProofAction`, `uploadVisaDocument`, `uploadGroupFlyerAction`, `parseFlyerWithAiAction`)** :
+        *   Application systématique de `validateUploadedFile` avant tout transfert vers Supabase Storage.
+        *   Rejet immédiat avec message explicite en cas de tentative d'envoi d'un fichier SVG, HTML ou exécutable.
+        *   Nettoyage et assainissement de l'extension pour empêcher tout contournement par double extension (`.php.jpg` ou nom malformé).
+    3. **Tests de Sécurité & Non-Régression** :
+        *   Ajout de tests unitaires dédiés dans `src/lib/actions/__tests__/documents.test.ts` vérifiant le rejet des fichiers `.svg` (anti-XSS stocké), des fichiers `.html` et des types MIME malveillants.
+        *   105/105 tests Vitest réussis (16 suites complètes), compilation TypeScript `tsc --noEmit` à 0 erreur.
+*   **Justification** : Répond à la validation du Lot P1 suite à l'audit de sécurité NovaSquad pour éliminer tout risque d'attaque par XSS stocké via SVG ou exécution de code malveillant lors de la consultation des documents par les agents ou administrateurs.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/types/documents.ts`, `src/lib/actions/documents.ts`, `src/lib/actions/concierge.ts`, `src/lib/actions/flyers.ts`, `src/lib/actions/__tests__/documents.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 105/105 tests réussis.
+*   **Version** : v1.40.0
+
+
 
 
 

@@ -107,7 +107,37 @@ describe('uploadDocument Action', () => {
         formData.append('file', bigFile);
 
         const result = await uploadDocument(formData);
-        expect(result.error).toBeDefined();
+        expect(result.error).toMatch(/trop volumineux/i);
+    });
+
+    it('should reject SVG files with Stored XSS prevention error', async () => {
+        const formData = new FormData();
+        formData.append('type', 'PASSPORT');
+        const svgFile = new File(['<svg onload="alert(1)"></svg>'], 'malicious.svg', { type: 'image/svg+xml' });
+        formData.append('file', svgFile);
+
+        const result = await uploadDocument(formData);
+        expect(result.error).toMatch(/Format de fichier non autorisé|strictement interdits/i);
+    });
+
+    it('should reject HTML files and scripts', async () => {
+        const formData = new FormData();
+        formData.append('type', 'PASSPORT');
+        const htmlFile = new File(['<script>alert("xss")</script>'], 'xss.html', { type: 'text/html' });
+        formData.append('file', htmlFile);
+
+        const result = await uploadDocument(formData);
+        expect(result.error).toMatch(/Format de fichier non autorisé|strictement interdits/i);
+    });
+
+    it('should reject files with unauthorized MIME types', async () => {
+        const formData = new FormData();
+        formData.append('type', 'PASSPORT');
+        const badMimeFile = new File(['bin'], 'document.pdf', { type: 'application/x-msdownload' });
+        formData.append('file', badMimeFile);
+
+        const result = await uploadDocument(formData);
+        expect(result.error).toMatch(/Type de contenu non autorisé|non autorisé/i);
     });
 
     it('should successfully upload document for self', async () => {
