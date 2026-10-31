@@ -38,34 +38,31 @@ export function middleware(request: NextRequest) {
     if (pathname.startsWith('/backoffice')) {
         // Ignorer la page de login elle-même pour éviter une boucle infinie
         if (pathname !== '/backoffice/login') {
-            const ADMIN_SECRET = process.env.ADMIN_AUTH_SECRET || 'nova_squad_secret_secure_key_2024';
+            const ADMIN_SECRET = process.env.ADMIN_AUTH_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
             const session = request.cookies.get('omra_admin_session')?.value;
-            if (session !== ADMIN_SECRET) {
+            if (!ADMIN_SECRET || !session || session !== ADMIN_SECRET) {
                 return NextResponse.redirect(new URL('/backoffice/login', request.url));
             }
         }
     }
 
-    // 4. LOGIQUE DE RATE LIMITING (Placeholder SIMULÉ)
-    // Dans une infra réelle, on utiliserait Upstash ou un service tiers.
-    // Ici, on marque simplement le passage.
-    const ip = request.ip || '127.0.0.1';
+    // 4. LOGIQUE DE RATE LIMITING (Headers indicateurs)
     response.headers.set('X-RateLimit-Limit', '100');
 
     return response;
 }
 
-// Configuration du matcher pour exclure les assets statiques
+// Configuration du matcher : applique la sécurité à toutes les routes y compris /api/
+// en excluant uniquement les assets statiques et images
 export const config = {
     matcher: [
         /*
-         * Match all request paths except for the ones starting with:
-         * - api (API routes)
+         * Match all request paths except for:
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
          * - .well-known (browser / devtools requests)
          */
-        '/((?!api|_next/static|_next/image|favicon.ico|.well-known).*)',
+        '/((?!_next/static|_next/image|favicon.ico|.well-known).*)',
     ],
 };

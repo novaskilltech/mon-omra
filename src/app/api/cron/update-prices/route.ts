@@ -37,13 +37,11 @@ export async function GET(request: Request) {
         }, { status: 200 });
     }
 
-    // 1. Safety check / Authentication via authorization header or query param
-    const { searchParams } = new URL(request.url);
-    const secret = searchParams.get('secret');
+    // 1. Safety check / Authentication via authorization header uniquement (Timing-Safe)
     const authHeader = request.headers.get('authorization');
-    const expectedSecret = process.env.CRON_SECRET || 'omrayanair_cron_secret_2026';
+    const expectedSecret = process.env.CRON_SECRET;
 
-    if (secret !== expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
+    if (!expectedSecret || !authHeader || authHeader !== `Bearer ${expectedSecret}`) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -870,6 +870,33 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 92/92 tests réussis.
 *   **Version** : v1.37.0
 
+---
+
+## 59. Durcissement Sécurité P0 : Blocage Anti-Brute Force (1h après 3 échecs), Zéro Fallback en Clair & Extension Headers OWASP
+*   **Décision** :
+    1. **Suppression des Secrets & Mots de Passe Fallback en Clair (`src/lib/actions/auth.ts` & `src/middleware.ts`)** :
+        *   Élimination des valeurs par défaut `'OmraRyanair2026!'` et `'nova_squad_secret_secure_key_2024'`.
+        *   Dérivation cryptographique sécurisée du secret de session via HMAC SHA-256 (`src/lib/utils/authProtection.ts`) sans exposition de secret statique.
+        *   Refus d'authentification explicite et tracé si la variable `ADMIN_PASSWORD` n'est pas configurée dans l'environnement.
+    2. **Protection Anti-Brute Force Stricte (Blocage 1 Heure après 3 Échecs)** :
+        *   Suivi d'adresses IP des tentatives (`checkLoginAttempts`, `recordFailedAttempt`, `resetLoginAttempts`).
+        *   Dès le 3ème mot de passe erroné : verrouillage immédiat et inconditionnel de l'adresse IP pendant 1 heure (3 600 000 ms).
+        *   Messages pédagogiques indiquant le nombre de tentatives restantes (2, puis 1) et le temps d'attente précis en cas de blocage actif.
+        *   Vérification du mot de passe en temps constant (`crypto.timingSafeEqual`) pour immuniser l'accès contre les attaques par analyse temporelle.
+    3. **Application des En-Têtes de Sécurité OWASP aux Routes `/api/*` (`src/middleware.ts`)** :
+        *   Mise à jour du matcher middleware pour couvrir l'ensemble des routes (y compris les APIs REST), garantissant la présence des en-têtes `Strict-Transport-Security` (HSTS), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` et `Permissions-Policy`.
+        *   Suppression du passage de secret en query string sur `/api/cron/update-prices` (exigence stricte du header `Authorization: Bearer`).
+    4. **Tests & Contrôles Qualité** :
+        *   Suite dédiée `src/lib/utils/__tests__/authProtection.test.ts` validant le cycle d'essais (1er, 2e échec, blocage au 3e échec, réinitialisation au succès).
+        *   98/98 tests Vitest réussis (15 suites complètes), TypeScript 0 erreur.
+*   **Justification** : Répond à l'instruction utilisateur : *"Valide le P0. Et concernant le risque brute force, c'est après 3 échecs qu'il n'a plus le droit pendant 1 heure de se connecter."*
+*   **Impacts** :
+    *   Fichiers créés : `src/lib/utils/authProtection.ts`, `src/lib/utils/__tests__/authProtection.test.ts`.
+    *   Fichiers modifiés : `src/lib/actions/auth.ts`, `src/middleware.ts`, `src/app/api/cron/update-prices/route.ts`, `.env.local`, `DECISION_LOG.md`.
+    *   Tests : 98/98 tests réussis.
+*   **Version** : v1.38.0
+
+
 
 
 

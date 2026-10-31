@@ -1,8 +1,16 @@
 'use server';
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createClient, createAdminClient } from '@/utils/supabase/server';
+import {
+    checkLoginAttempts,
+    recordFailedAttempt,
+    resetLoginAttempts,
+    verifyPasswordTimingSafe,
+    formatRemainingTimeFr,
+    getAdminAuthSecret
+} from '@/lib/utils/authProtection';
 
 export async function checkEmailRegistration(email: string) {
     const supabase = createClient();
@@ -18,32 +26,70 @@ export async function checkEmailRegistration(email: string) {
     return { allowed: true, role: data.role };
 }
 
-
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'OmraRyanair2026!';
 const SESSION_COOKIE = 'omra_admin_session';
 
-// Pour la démo, on utilise un secret simple. En prod, ce serait une variable d'env.
-const ADMIN_SECRET = process.env.ADMIN_AUTH_SECRET || 'nova_squad_secret_secure_key_2024';
+function getClientIp(): string {
+    const h = headers();
+    const forwarded = h.get('x-forwarded-for');
+    if (forwarded) {
+        return forwarded.split(',')[0].trim();
+    }
+    return h.get('x-real-ip') || '127.0.0.1';
+}
 
 export async function loginAdmin(formData: FormData) {
-    const password = formData.get('password');
+    const ip = getClientIp();
 
-    if (password === ADMIN_PASSWORD) {
-        // Définir un cookie de session avec une durée confortable (30 jours) et sameSite: 'lax'
-        cookies().set(SESSION_COOKIE, ADMIN_SECRET, {
+    // 1. Contrôle Anti-Brute Force : Blocage 1 heure après 3 échecs consécutifs
+    const attemptStatus = checkLoginAttempts(ip);
+    if (!attemptStatus.allowed) {
+        const remainingStr = formatRemainingTimeFr(attemptStatus.remainingLockoutMs || 3600000);
+        return {
+            error: `Accès temporairement bloqué suite à 3 tentatives échouées. Veuillez réessayer dans ${remainingStr}.`
+        };
+    }
+
+    const password = formData.get('password');
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+        console.error("Sécurité Critique : La variable d'environnement ADMIN_PASSWORD n'est pas configurée.");
+        return { error: "Erreur de configuration serveur. Veuillez définir ADMIN_PASSWORD dans l'environnement." };
+    }
+
+    // 2. Vérification du mot de passe en temps constant (Anti Timing-Attack)
+    const isPasswordValid = verifyPasswordTimingSafe(String(password || ''), adminPassword);
+
+    if (isPasswordValid) {
+        // Succès : Réinitialisation immédiate du compteur d'échecs
+        resetLoginAttempts(ip);
+
+        const secret = getAdminAuthSecret();
+        cookies().set(SESSION_COOKIE, secret, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 30, // 30 jours pour éviter les déconnexions intempestives
+            maxAge: 60 * 60 * 24 * 30, // 30 jours
             path: '/',
         });
         return { success: true };
     }
 
-    // Fix Anti-Brute Force : Délai artificiel en cas d'erreur
-    await new Promise(r => setTimeout(r, 1500));
+    // 3. Échec : Enregistrement de la tentative et calcul du reste
+    const failedStatus = recordFailedAttempt(ip);
 
-    return { error: "Mot de passe incorrect" };
+    // Délai défensif additionnel
+    await new Promise(r => setTimeout(r, 1000));
+
+    if (failedStatus.locked) {
+        return {
+            error: "Mot de passe incorrect. Vous avez atteint 3 tentatives échouées : votre accès est bloqué pendant 1 heure."
+        };
+    }
+
+    return {
+        error: `Mot de passe incorrect. Il vous reste ${failedStatus.remainingAttempts} tentative(s) avant un blocage de 1 heure.`
+    };
 }
 
 export async function logoutAdmin() {
@@ -52,10 +98,15 @@ export async function logoutAdmin() {
 }
 
 export async function isAdminAuthenticated() {
-    // 1. Vérification du cookie de session d'administration
+    // 1. Vérification sécurisée du cookie de session d'administration
     const sessionVal = cookies().get(SESSION_COOKIE)?.value;
-    if (sessionVal === ADMIN_SECRET) {
-        return true;
+    try {
+        const expectedSecret = getAdminAuthSecret();
+        if (sessionVal && verifyPasswordTimingSafe(sessionVal, expectedSecret)) {
+            return true;
+        }
+    } catch {
+        // En cas d'erreur de secret
     }
 
     // 2. Fallback session Supabase Auth (pour les profils administrateur)
