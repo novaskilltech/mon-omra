@@ -73,4 +73,12 @@ describe('Auth Protection & Anti-Brute Force Utilities', () => {
         expect(formatRemainingTimeFr(45 * 60 * 1000)).toBe('45 minute(s)');
         expect(formatRemainingTimeFr(30 * 1000)).toBe('1 minute(s)');
     });
+
+    it('validates active session secret properly', async () => {
+        const { isValidSessionSecret, getAdminAuthSecret } = await import('../authProtection');
+        const currentSecret = getAdminAuthSecret();
+        expect(isValidSessionSecret(currentSecret)).toBe(true);
+        expect(isValidSessionSecret('invalid_short')).toBe(false);
+        expect(isValidSessionSecret(null)).toBe(false);
+    });
 });

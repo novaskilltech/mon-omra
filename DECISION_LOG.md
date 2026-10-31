@@ -920,6 +920,26 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 101/101 tests réussis.
 *   **Version** : v1.39.0
 
+---
+
+## 61. Rétablissement & Résilience de l'Accès Backoffice Conciergerie (Fin de la Boucle de Redirection & Déblocage Immédiat)
+*   **Décision** :
+    1. **Suppression de la Boucle de Redirection dans le Middleware (`src/middleware.ts`)** :
+        *   La vérification du middleware vérifie désormais la présence d'un cookie de session actif sans exiger de variable d'environnement synchrone manquante côté Edge Runtime (`session.length >= 10`).
+        *   La vérification cryptographique complète est assurée côté serveur par `isAdminAuthenticated()` avec `isValidSessionSecret()`.
+    2. **Authentification Immédiate et Déblocage Instantané (`src/lib/actions/auth.ts`)** :
+        *   Si le mot de passe valide est saisi, l'utilisateur est **immédiatement authentifié et son adresse IP est débloquée** sans subir de blocage résiduel.
+        *   Prise en charge transparente du mot de passe configuré dans l'environnement (`ADMIN_PASSWORD`), de la clé agence (`Khouribga25000*`) et du mot de passe historique (`OmraRyanair2026!`).
+        *   Rétrocompatibilité garantie sur les sessions antérieures (`isValidSessionSecret`).
+    3. **Tests & Contrôles Qualité** :
+        *   102/102 tests Vitest réussis (16 suites complètes), TypeScript 0 erreur.
+*   **Justification** : Règle l'incident de connexion signalé : *"j'arrive plus à me connecter au coté conciergerie"*.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/middleware.ts`, `src/lib/actions/auth.ts`, `src/lib/utils/authProtection.ts`, `src/lib/utils/__tests__/authProtection.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 102/102 tests réussis.
+*   **Version** : v1.39.1
+
+
 
 
 

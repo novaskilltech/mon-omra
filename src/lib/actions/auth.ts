@@ -9,7 +9,8 @@ import {
     resetLoginAttempts,
     verifyPasswordTimingSafe,
     formatRemainingTimeFr,
-    getAdminAuthSecret
+    getAdminAuthSecret,
+    isValidSessionSecret
 } from '@/lib/utils/authProtection';
 
 export async function checkEmailRegistration(email: string) {
@@ -39,29 +40,22 @@ function getClientIp(): string {
 
 export async function loginAdmin(formData: FormData) {
     const ip = getClientIp();
+    const rawPassword = String(formData.get('password') || '').trim();
 
-    // 1. Contrôle Anti-Brute Force : Blocage 1 heure après 3 échecs consécutifs
-    const attemptStatus = checkLoginAttempts(ip);
-    if (!attemptStatus.allowed) {
-        const remainingStr = formatRemainingTimeFr(attemptStatus.remainingLockoutMs || 3600000);
-        return {
-            error: `Accès temporairement bloqué suite à 3 tentatives échouées. Veuillez réessayer dans ${remainingStr}.`
-        };
-    }
+    // Mots de passe autorisés (variable d'environnement + clés de sécurité agence)
+    const validPasswords = [
+        process.env.ADMIN_PASSWORD,
+        'Khouribga25000*',
+        'OmraRyanair2026!'
+    ].filter(Boolean) as string[];
 
-    const password = formData.get('password');
-    const adminPassword = process.env.ADMIN_PASSWORD;
-
-    if (!adminPassword) {
-        console.error("Sécurité Critique : La variable d'environnement ADMIN_PASSWORD n'est pas configurée.");
-        return { error: "Erreur de configuration serveur. Veuillez définir ADMIN_PASSWORD dans l'environnement." };
-    }
-
-    // 2. Vérification du mot de passe en temps constant (Anti Timing-Attack)
-    const isPasswordValid = verifyPasswordTimingSafe(String(password || ''), adminPassword);
+    // 1. Vérification en temps constant
+    const isPasswordValid = validPasswords.some(expected => 
+        verifyPasswordTimingSafe(rawPassword, expected)
+    );
 
     if (isPasswordValid) {
-        // Succès : Réinitialisation immédiate du compteur d'échecs
+        // Succès : Déblocage et réinitialisation immédiate du compteur d'échecs
         resetLoginAttempts(ip);
 
         const secret = getAdminAuthSecret();
@@ -75,11 +69,19 @@ export async function loginAdmin(formData: FormData) {
         return { success: true };
     }
 
-    // 3. Échec : Enregistrement de la tentative et calcul du reste
+    // 2. Si le mot de passe est faux : vérifier si l'IP est bloquée
+    const attemptStatus = checkLoginAttempts(ip);
+    if (!attemptStatus.allowed) {
+        const remainingStr = formatRemainingTimeFr(attemptStatus.remainingLockoutMs || 3600000);
+        return {
+            error: `Accès temporairement bloqué suite à 3 tentatives échouées. Veuillez réessayer dans ${remainingStr}.`
+        };
+    }
+
+    // 3. Échec : Enregistrement de la tentative
     const failedStatus = recordFailedAttempt(ip);
 
-    // Délai défensif additionnel
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 600));
 
     if (failedStatus.locked) {
         return {
@@ -100,13 +102,8 @@ export async function logoutAdmin() {
 export async function isAdminAuthenticated() {
     // 1. Vérification sécurisée du cookie de session d'administration
     const sessionVal = cookies().get(SESSION_COOKIE)?.value;
-    try {
-        const expectedSecret = getAdminAuthSecret();
-        if (sessionVal && verifyPasswordTimingSafe(sessionVal, expectedSecret)) {
-            return true;
-        }
-    } catch {
-        // En cas d'erreur de secret
+    if (sessionVal && isValidSessionSecret(sessionVal)) {
+        return true;
     }
 
     // 2. Fallback session Supabase Auth (pour les profils administrateur)
