@@ -8,6 +8,7 @@ import { resolvePilgrimIdByEmail } from './logistics';
 import zlib from 'zlib';
 import crypto from 'crypto';
 import { encryptToken, decryptToken, hashPIN } from '../utils/crypto';
+import { purgePilgrimStorageFiles } from '../utils/storagePurge';
 
 export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?: string }) {
     const isAdmin = await isAdminAuthenticated();
@@ -2663,7 +2664,17 @@ export async function deletePilgrimAction(id: string) {
 
     const supabaseAdmin = createAdminClient();
     try {
-        // 1. Supprimer de la table pilgrims
+        // 1. Droit à l'oubli RGPD (Art. 17) : Purge physique de tous les fichiers d'identité dans Storage
+        // (scans passeports, visas, photos d'identité, justificatifs de paiement)
+        await purgePilgrimStorageFiles(supabaseAdmin, id);
+
+        // 2. Nettoyage des paiements associés
+        await supabaseAdmin
+            .from('payments')
+            .delete()
+            .eq('pilgrim_id', id);
+
+        // 3. Supprimer de la table pilgrims
         const { error: pilgrimError } = await supabaseAdmin
             .from('pilgrims')
             .delete()
@@ -2671,7 +2682,7 @@ export async function deletePilgrimAction(id: string) {
 
         if (pilgrimError) throw pilgrimError;
 
-        // 2. Supprimer de la table profiles
+        // 4. Supprimer de la table profiles
         const { error: profileError } = await supabaseAdmin
             .from('profiles')
             .delete()
@@ -2679,7 +2690,7 @@ export async function deletePilgrimAction(id: string) {
 
         if (profileError) throw profileError;
 
-        // 3. Supprimer de Supabase Auth
+        // 5. Supprimer de Supabase Auth
         const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id);
         if (authError && authError.status !== 404) {
             console.error("Auth delete error:", authError);

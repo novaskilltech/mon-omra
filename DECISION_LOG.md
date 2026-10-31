@@ -896,6 +896,31 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 98/98 tests réussis.
 *   **Version** : v1.38.0
 
+---
+
+## 60. Conformité RGPD P1 (Art. 17 Droit à l'Oubli) : Purge Automatique des Pièces d'Identité dans le Storage
+*   **Décision** :
+    1. **Moteur de Purge Exhaustive du Storage (`src/lib/utils/storagePurge.ts`)** :
+        *   Création de l'utilitaire `purgePilgrimStorageFiles` et `purgeHajjStorageFiles`.
+        *   Traite le bucket sécurisé `pelerin-documents` pour supprimer définitivement :
+            *   Tous les fichiers référencés dans `user_documents` (passeports, visas, photos d'identité, justificatifs vaccinaux).
+            *   Tous les fichiers résidant dans le dossier racine du pèlerin (`${pilgrimId}/*`).
+            *   Tous les justificatifs de paiement associés dans `proofs/${pilgrimId}_*`.
+            *   Nettoyage des lignes orphelines dans la table `user_documents`.
+    2. **Intégration dans les Actions de Suppression (`deletePilgrimAction` & `deleteHajjRequestAction`)** :
+        *   Dans `src/lib/actions/concierge.ts` : la purge des fichiers Storage s'exécute automatiquement avant la suppression des enregistrements dans `payments`, `pilgrims`, `profiles` et `auth.users`.
+        *   Dans `src/lib/actions/hajj.ts` : la purge des documents Storage s'exécute automatiquement avant la suppression dans `hajj_requests`.
+    3. **Tests & Contrôles Qualité** :
+        *   Suite de tests dédiée `src/lib/utils/__tests__/storagePurge.test.ts` simulant l'identification des chemins, le listage des dossiers et l'appel effectif de `.remove(paths)`.
+        *   101/101 tests Vitest réussis (16 suites complètes), compilation TypeScript à 0 erreur.
+*   **Justification** : Répond à la validation du Lot P1 de sécurité/RGPD pour garantir l'absence totale de documents d'identité orphelins non chiffrés suite à la suppression d'un compte pèlerin.
+*   **Impacts** :
+    *   Fichiers créés : `src/lib/utils/storagePurge.ts`, `src/lib/utils/__tests__/storagePurge.test.ts`.
+    *   Fichiers modifiés : `src/lib/actions/concierge.ts`, `src/lib/actions/hajj.ts`, `src/lib/actions/__tests__/hajj.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 101/101 tests réussis.
+*   **Version** : v1.39.0
+
+
 
 
 

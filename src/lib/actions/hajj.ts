@@ -1,7 +1,8 @@
 'use server';
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { isAdminAuthenticated } from './auth';
+import { purgeHajjStorageFiles } from '@/lib/utils/storagePurge';
 
 export interface HajjRequestInput {
     firstName: string;
@@ -143,9 +144,12 @@ export async function deleteHajjRequestAction(id: string) {
     const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) return { error: "Non autorisé" };
 
-    const supabase = createClient();
+    const supabaseAdmin = createAdminClient();
     try {
-        const { error } = await supabase
+        // Purge des éventuels documents Storage attachés au dossier Hajj (RGPD Art. 17)
+        await purgeHajjStorageFiles(supabaseAdmin, id);
+
+        const { error } = await supabaseAdmin
             .from('hajj_requests')
             .delete()
             .eq('id', id);

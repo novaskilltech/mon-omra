@@ -10,10 +10,17 @@ vi.mock('@/utils/supabase/server', () => {
         order: vi.fn().mockResolvedValue({ data: [{ id: 'hajj-1', first_name: 'Omar' }], error: null }),
         update: vi.fn().mockReturnThis(),
         delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: null })
+        eq: vi.fn().mockResolvedValue({ error: null }),
+        storage: {
+            from: vi.fn(() => ({
+                list: vi.fn().mockResolvedValue({ data: [] }),
+                remove: vi.fn().mockResolvedValue({ error: null })
+            }))
+        }
     };
     return {
-        createClient: vi.fn(() => mockSupabase)
+        createClient: vi.fn(() => mockSupabase),
+        createAdminClient: vi.fn(() => mockSupabase)
     };
 });
 
