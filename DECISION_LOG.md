@@ -939,6 +939,22 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 102/102 tests réussis.
 *   **Version** : v1.39.1
 
+---
+
+## 62. Révocation Définitive du Mot de Passe Historique « OmraRyanair2026! »
+*   **Décision** :
+    1. **Suppression dans le Code (`src/lib/actions/auth.ts`)** :
+        *   Retrait formel de `'OmraRyanair2026!'` de la liste des mots de passe autorisés dans `loginAdmin`.
+        *   Seul le mot de passe officiel de l'agence (`ADMIN_PASSWORD` / `Khouribga25000*`) est désormais accepté.
+    2. **Tests & Contrôles Qualité** :
+        *   102/102 tests Vitest réussis (16 suites complètes), compilation TypeScript à 0 erreur.
+*   **Justification** : Répond à l'ordre formel de l'utilisateur : *"OmraRyanair2026Supprime-le."*
+*   **Impacts** :
+    *   Fichiers modifiés : `src/lib/actions/auth.ts`, `DECISION_LOG.md`.
+    *   Tests : 102/102 tests réussis.
+*   **Version** : v1.39.2
+
+
 
 
 

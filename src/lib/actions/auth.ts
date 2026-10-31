@@ -42,11 +42,10 @@ export async function loginAdmin(formData: FormData) {
     const ip = getClientIp();
     const rawPassword = String(formData.get('password') || '').trim();
 
-    // Mots de passe autorisés (variable d'environnement + clés de sécurité agence)
+    // Mots de passe autorisés (variable d'environnement ADMIN_PASSWORD + mot de passe agence)
     const validPasswords = [
         process.env.ADMIN_PASSWORD,
-        'Khouribga25000*',
-        'OmraRyanair2026!'
+        'Khouribga25000*'
     ].filter(Boolean) as string[];
 
     // 1. Vérification en temps constant
