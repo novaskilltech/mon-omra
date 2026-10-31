@@ -846,6 +846,31 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 83/83 tests réussis.
 *   **Version** : v1.36.0
 
+---
+
+## 58. Synchronisation Bidirectionnelle Hajj : Endpoints d'Écriture (PATCH/PUT :id & POST)
+*   **Décision** :
+    1. **Endpoint de Mise à Jour (`PATCH` / `PUT /api/v1/hajj/pilgrims/:id`)** :
+        *   Fichier [`src/app/api/v1/hajj/pilgrims/[id]/route.ts`](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/api/v1/hajj/pilgrims/[id]/route.ts).
+        *   Mise à jour partielle sécurisée par clé API (Bearer / X-API-Key).
+        *   Supporte tous les statuts conciergerie (`PACKS_VALIDES`, `CONFIRMED`, etc.), statuts Nusuk (`VERIFIE`, `NON_VERIFIE`, `EN_ATTENTE_DOCS`), et disponibilité.
+        *   Intégration transparente et idempotente des données de paiement Stripe et conseiller (`statutPaiement`, `montantPaye`, `datePaiement`, `conseiller`, `adminNotes`) via l'utilitaire [`src/lib/utils/hajjMetadata.ts`](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/lib/utils/hajjMetadata.ts) sans dépendance fragile de migration DB.
+        *   Horodatage `updatedAt` retourné en temps réel pour synchronisation différentielle fiable.
+    2. **Endpoint de Création Directe (`POST /api/v1/hajj/pilgrims`)** :
+        *   Fichier [`src/app/api/v1/hajj/pilgrims/route.ts`](file:///c:/Users/P%20C/Documents/OMRA%20APP%20AVEC%20QWEN/src/app/api/v1/hajj/pilgrims/route.ts).
+        *   Permet l'injection directe d'inscriptions depuis le portail de secours ou la plateforme de conciergerie.
+        *   Validation stricte des champs obligatoires (nom/prénom, email, téléphone), valeurs par défaut intelligentes (année 2027+, nationalité, statut initial `PENDING`).
+        *   Retour HTTP 201 Created avec l'identifiant UUID généré et date d'émission.
+    3. **Tests & Contrôles Qualité** :
+        *   92/92 tests Vitest réussis (14 suites complètes), TypeScript 0 erreur.
+*   **Justification** : Répond à la spécification de la conciergerie : *"Activation de la Synchronisation Bidirectionnelle (Écriture & Mise à Jour) des Pèlerins Hajj... PATCH /api/v1/hajj/pilgrims/:id et POST /api/v1/hajj/pilgrims"*.
+*   **Impacts** :
+    *   Fichiers créés : `src/lib/utils/hajjMetadata.ts`, `src/lib/utils/__tests__/hajjMetadata.test.ts`, `src/app/api/v1/hajj/pilgrims/[id]/route.ts`, `src/app/api/v1/hajj/pilgrims/[id]/__tests__/route.test.ts`.
+    *   Fichiers modifiés : `src/app/api/v1/hajj/pilgrims/route.ts`, `src/app/api/v1/hajj/pilgrims/__tests__/route.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 92/92 tests réussis.
+*   **Version** : v1.37.0
+
+
 
 
 
