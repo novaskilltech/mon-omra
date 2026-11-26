@@ -13,6 +13,7 @@ import {
 import { getPublicActiveGroups, getFeaturedGroupAction, requestRegistration } from '@/lib/actions/concierge';
 import { createHajjRequestAction } from '@/lib/actions/hajj';
 import CubeFlyerCarousel from '@/components/CubeFlyerCarousel';
+import FraternitePromoSection from '@/components/FraternitePromoSection';
 import { getPublicFlyers } from '@/lib/actions/flyers';
 import { FlyerOffer } from '@/lib/utils/flyers';
 
@@ -428,6 +429,13 @@ export default function BentoLandingHub() {
                 </div>
 
                 <div className="flex items-center gap-4 flex-wrap">
+                    <a
+                        href="#inscription-fraternite"
+                        className="px-3.5 py-2 rounded-full bg-amber-400/15 border border-amber-400/50 text-[10px] font-black uppercase tracking-wider text-[#FDE68A] hover:bg-amber-400/25 transition-all flex items-center gap-1.5"
+                    >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Omra Fraternité 2027</span>
+                    </a>
                     <Link href="/la-methode" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D8AA4D] hover:text-[#F2CE79] transition-colors flex items-center gap-1.5">
                         <GraduationCap className="w-3.5 h-3.5" />
                         Formation Conciergerie
@@ -466,6 +474,9 @@ export default function BentoLandingHub() {
                     Sélectionnez votre univers ci-dessous pour réserver votre Omra, vous pré-inscrire au Hajj 2027+, vous former ou accéder à votre espace personnalisé.
                 </p>
             </header>
+
+            {/* OFFRE PROMOTIONNELLE EN AVANT : L'OMRA DE LA FRATERNITÉ MUSULMANE (27 JANV. – 10 FÉVR. 2027) */}
+            <FraternitePromoSection />
 
             {/* VITRINE DES 2 EMBLÈMES OFFICIELS HARAMAIN (2 JOUMOUA & 2 OMRA) */}
             <section aria-label="Engagements Séjour Haramain" className="max-w-4xl mx-auto mb-12 grid grid-cols-1 sm:grid-cols-2 gap-6">

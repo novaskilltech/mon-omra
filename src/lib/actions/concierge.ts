@@ -2,7 +2,7 @@
 
 import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { isAdminAuthenticated } from './auth';
 import { resolvePilgrimIdByEmail } from './logistics';
 import zlib from 'zlib';
@@ -10,6 +10,14 @@ import crypto from 'crypto';
 import { encryptToken, decryptToken, hashPIN } from '../utils/crypto';
 import { purgePilgrimStorageFiles } from '../utils/storagePurge';
 import { validateUploadedFile } from '@/types/documents';
+import {
+    FraterniteSubmissionSchema,
+    type FraterniteSubmissionInput,
+    calculateFraterniteQuote,
+    buildFraterniteBackofficeMessage,
+    buildFraterniteWhatsAppUrl,
+    formatEur,
+} from '@/lib/data/fraternite2027';
 
 export async function getPilgrimsList(filters?: { groupId?: string; visaStatus?: string }) {
     const isAdmin = await isAdminAuthenticated();
@@ -1073,6 +1081,234 @@ export async function requestRegistration(data: {
     } catch (e: any) {
         console.error("Error submitting registration request:", e);
         return { error: e.message || "Erreur lors de la soumission de la demande." };
+    }
+}
+
+const fraterniteRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function escapeHtmlSafe(str: string): string {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+export async function submitFraternitePromoRequest(rawData: FraterniteSubmissionInput): Promise<{
+    success?: boolean;
+    whatsappUrl?: string;
+    error?: string;
+}> {
+    try {
+        // 1. Honeypot anti-bot
+        if (rawData.website && rawData.website.trim().length > 0) {
+            return { error: "Requête rejetée." };
+        }
+
+        // 2. Rate limiting par IP (max 5 demandes / 10 minutes)
+        let clientIp = 'local';
+        try {
+            const hdrs = headers();
+            const forwarded = hdrs.get('x-forwarded-for');
+            clientIp = forwarded ? forwarded.split(',')[0].trim() : (hdrs.get('x-real-ip') || 'local');
+        } catch {
+            clientIp = 'local';
+        }
+
+        const now = Date.now();
+        const existingRate = fraterniteRateLimitMap.get(clientIp);
+        if (existingRate && now < existingRate.resetAt) {
+            if (existingRate.count >= 5) {
+                return { error: "Trop de tentatives rapprochées. Veuillez patienter quelques minutes ou nous écrire directement sur WhatsApp." };
+            }
+            existingRate.count += 1;
+        } else {
+            fraterniteRateLimitMap.set(clientIp, { count: 1, resetAt: now + 10 * 60 * 1000 });
+        }
+
+        // 3. Validation stricte Zod
+        const parsed = FraterniteSubmissionSchema.safeParse(rawData);
+        if (!parsed.success) {
+            const firstIssue = parsed.error.issues[0];
+            return { error: firstIssue?.message || "Veuillez vérifier les champs obligatoires du formulaire." };
+        }
+
+        const input = parsed.data;
+        const quote = calculateFraterniteQuote({
+            airportIata: input.airportIata,
+            roomType: input.roomType,
+            pilgrimsCount: input.pilgrimsCount,
+            breakfast: input.breakfast,
+        });
+
+        const backofficeMessage = buildFraterniteBackofficeMessage(input);
+        const whatsappUrl = buildFraterniteWhatsAppUrl(input);
+
+        // 4. Normalisation de l'e-mail (ou génération d'un identifiant technique si e-mail facultatif omis)
+        const rawEmail = input.email ? input.email.trim().toLowerCase() : '';
+        const phoneDigits = input.phone.replace(/\D/g, '').slice(-10) || '0000';
+        const shortId = crypto.randomBytes(3).toString('hex');
+        const dbEmail = rawEmail || `sans-email-${phoneDigits}-${shortId}@fraternite.omrayanair.local`;
+
+        const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+        const db = hasServiceKey ? createAdminClient() : createClient();
+
+        // Vérifier si le client existe déjà dans profiles (information utile pour le backoffice)
+        let isExistingClient = false;
+        if (rawEmail) {
+            const { data: existingProfile } = await db
+                .from('profiles')
+                .select('id')
+                .ilike('email', rawEmail)
+                .maybeSingle();
+            if (existingProfile) {
+                isExistingClient = true;
+            }
+        }
+
+        const finalMessage = isExistingClient
+            ? `[⭐ Client déjà inscrit dans la base OMRAYANAIR]\n${backofficeMessage}`
+            : backofficeMessage;
+
+        // 5. Enregistrement dans registration_requests sans blocage sur doublon d'e-mail
+        let saved = false;
+        if (rawEmail && hasServiceKey) {
+            const { data: existingReq } = await db
+                .from('registration_requests')
+                .select('id, message')
+                .ilike('email', rawEmail)
+                .maybeSingle();
+
+            if (existingReq) {
+                const combinedMessage = existingReq.message
+                    ? `${finalMessage}\n\n--- Historique précédent ---\n${existingReq.message}`.slice(0, 3500)
+                    : finalMessage;
+
+                const { error: updateErr } = await db
+                    .from('registration_requests')
+                    .update({
+                        first_name: input.firstName,
+                        family_name: input.familyName,
+                        gender: input.gender,
+                        phone: input.phone,
+                        message: combinedMessage,
+                        is_former_client: isExistingClient,
+                        status: 'PENDING',
+                    })
+                    .eq('id', existingReq.id);
+
+                if (!updateErr) {
+                    saved = true;
+                }
+            }
+        }
+
+        if (!saved) {
+            const { error: insertErr } = await db
+                .from('registration_requests')
+                .insert({
+                    email: dbEmail,
+                    first_name: input.firstName,
+                    family_name: input.familyName,
+                    gender: input.gender,
+                    phone: input.phone,
+                    message: finalMessage,
+                    is_former_client: isExistingClient,
+                    wants_loyalty_benefits: false,
+                    group_id: null,
+                    status: 'PENDING',
+                });
+
+            if (insertErr) {
+                if (insertErr.code === '23505' && rawEmail.includes('@')) {
+                    const [localPart, domainPart] = rawEmail.split('@');
+                    const taggedEmail = `${localPart}+frat${shortId}@${domainPart}`;
+                    const { error: retryErr } = await db
+                        .from('registration_requests')
+                        .insert({
+                            email: taggedEmail,
+                            first_name: input.firstName,
+                            family_name: input.familyName,
+                            gender: input.gender,
+                            phone: input.phone,
+                            message: finalMessage,
+                            is_former_client: isExistingClient,
+                            wants_loyalty_benefits: false,
+                            group_id: null,
+                            status: 'PENDING',
+                        });
+                    if (retryErr) throw retryErr;
+                } else {
+                    throw insertErr;
+                }
+            }
+        }
+
+        // 6. Notification e-mail agence (si RESEND_API_KEY configuré)
+        const resendKey = process.env.RESEND_API_KEY;
+        if (resendKey) {
+            try {
+                await fetch('https://api.resend.com/emails', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${resendKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        from: 'OMRAYANAIR <onboarding@resend.dev>',
+                        to: 'omrayanair@gmail.com',
+                        subject: `🕋 Préinscription Omra Fraternité 2027 — ${escapeHtmlSafe(quote.departure.city)} (${escapeHtmlSafe(quote.departure.iata)})`,
+                        html: `
+                            <div style="font-family: sans-serif; padding: 20px; color: #1f2937;">
+                                <h2 style="color: #059669; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+                                    Nouvelle Préinscription — Omra de la Fraternité Musulmane (27/01 – 10/02/2027)
+                                </h2>
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold; width: 170px;">Nom complet :</td>
+                                        <td style="padding: 8px 0;">${escapeHtmlSafe(input.firstName)} ${escapeHtmlSafe(input.familyName)} (${input.gender === 'M' ? 'Homme' : 'Femme'})</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">Téléphone / WhatsApp :</td>
+                                        <td style="padding: 8px 0;">${escapeHtmlSafe(input.phone)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">E-mail :</td>
+                                        <td style="padding: 8px 0;">${rawEmail ? escapeHtmlSafe(rawEmail) : 'Non renseigné'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">Départ choisi :</td>
+                                        <td style="padding: 8px 0; font-weight: bold; color: #059669;">${escapeHtmlSafe(quote.departure.city)} (${escapeHtmlSafe(quote.departure.iata)}) — ${escapeHtmlSafe(quote.airline.name)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold;">Total indicatif :</td>
+                                        <td style="padding: 8px 0; font-weight: bold;">${escapeHtmlSafe(formatEur(quote.perPersonEur))}/pers. × ${quote.pilgrimsCount} = ${escapeHtmlSafe(formatEur(quote.totalEur))}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">Détails complets :</td>
+                                        <td style="padding: 8px 0; white-space: pre-wrap;">${escapeHtmlSafe(finalMessage)}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        `,
+                    }),
+                });
+            } catch {
+                // Ne bloque jamais la préinscription en cas d'indisponibilité SMTP/Resend
+            }
+        }
+
+        try {
+            revalidatePath('/backoffice/concierge');
+        } catch {
+            // Ignoré hors contexte requête Next
+        }
+
+        return { success: true, whatsappUrl };
+    } catch (e: any) {
+        console.error("Error in submitFraternitePromoRequest:", e?.code || 'ERR_SUBMIT');
+        return { error: "Une erreur technique est survenue lors de l'enregistrement. Vous pouvez réessayer ou nous écrire sur WhatsApp." };
     }
 }
 

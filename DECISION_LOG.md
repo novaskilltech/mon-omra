@@ -977,6 +977,33 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 105/105 tests réussis.
 *   **Version** : v1.40.0
 
+---
+
+## 64. Intégration en Vedette sur l'Accueil de l'Offre Promotionnelle « L’Omra de la Fraternité Musulmane » (27 janv. – 10 févr. 2027)
+*   **Décision** :
+    1. **Source de Vérité Typée & Tarif Bruxelles Mis à Jour (`src/lib/data/fraternite2027.ts`)** :
+        *   Centralisation intégrale des 23 aéroports de départ (13 pays, 3 continents), des 8 compagnies aériennes, des franchises bagages, des règles visa (`CMN`, `TUN`, autres), du programme en 3 hôtels (*M Makkah by Millennium 4★*, *Zaha Taiba 3★*, *Verta Hotel – Mahbas Al Jinn*), des 8 tuiles de la formule complète et de la FAQ.
+        *   **Mise à jour officielle du tarif Bruxelles (`BRU`) à `1 295 €`** (base quadruple) conformément à l'arbitrage utilisateur (Charleroi `CRL` conservé à `1 195 €`).
+        *   Calculateur de devis unifié client/serveur (`calculateFraterniteQuote`) : suppléments chambre (`Quadruple +0 €`, `Triple +150 €`, `Double +300 €`), `Petit-déjeuner +150 €/pers.`, détection automatique des compagnies à soute payante (`PC`, `XY`) et génération du message WhatsApp vers `+33 7 52 28 08 90`.
+    2. **Double Canal Backoffice Conciergerie + WhatsApp (`submitFraternitePromoRequest` dans `src/lib/actions/concierge.ts`)** :
+        *   Validation stricte Zod + honeypot anti-bot (`website`) + rate limiting par IP (5 demandes / 10 min) + échappement HTML des e-mails Resend.
+        *   Recalcul côté serveur du devis pour garantir l'intégrité des montants enregistrés dans `registration_requests`.
+        *   Gestion sans blocage des prospects sans e-mail (`@fraternite.omrayanair.local` affiché proprement comme *WhatsApp uniquement* dans `src/app/backoffice/concierge/page.tsx` avec badge `🕋 Fraternité 2027`) et des clients déjà connus sans erreur de contrainte `23505`.
+    3. **Habillage Haramain & Option B Mobile-First sur l'Accueil (`src/components/FraternitePromoSection.tsx` & `src/components/BentoLandingHub.tsx`)** :
+        *   Mise en avant immédiate sous le Hero de l'accueil avec illustration SVG de la Kaaba, barre des 4 KPIs, programme 3 étapes et formulaire de préinscription + devis temps réel directement visibles.
+        *   Accordéons fluides pour l'explorateur filtrable des 23 vols (recherche ville/compagnie + filtre par pays + sélection directe vers le formulaire) et pour les détails Formule complète / Bagages / FAQ.
+    4. **Conformité OpenGraph & Twitter Card (`src/app/layout.tsx`, `src/app/page.tsx`, `public/og-image.jpg`)** :
+        *   Génération d'une miniature dédiée haute résolution `1200×630` (`public/og-image.jpg`) et configuration complète `openGraph` + `twitter:card = "summary_large_image"`.
+    5. **Tests & Contrôles Qualité** :
+        *   Nouvelle suite `src/lib/data/__tests__/fraternite2027.test.ts` + tests d'intégration `submitFraternitePromoRequest` dans `src/lib/actions/__tests__/concierge.test.ts`.
+        *   113/113 tests Vitest réussis (17 suites complètes), compilation TypeScript `tsc --noEmit` à 0 erreur.
+*   **Justification** : Répond à la demande utilisateur d'intégrer en avant sur la page d'accueil l'offre *« L’Islam n’a pas de frontières — Omra de la Fraternité Musulmane »* avec tarif Bruxelles à 1 295 €, habillage au thème du site, mode d'affichage Option B et double enregistrement Backoffice + WhatsApp.
+*   **Impacts** :
+    *   Fichiers créés : `src/lib/data/fraternite2027.ts`, `src/lib/data/__tests__/fraternite2027.test.ts`, `src/components/FraternitePromoSection.tsx`, `public/og-image.jpg`.
+    *   Fichiers modifiés : `src/lib/actions/concierge.ts`, `src/lib/actions/__tests__/concierge.test.ts`, `src/components/BentoLandingHub.tsx`, `src/app/backoffice/concierge/page.tsx`, `src/app/layout.tsx`, `src/app/page.tsx`, `DECISION_LOG.md`.
+    *   Tests : 113/113 tests réussis.
+*   **Version** : v1.41.0
+
 
 
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updatePilgrimAction, toggleGroupFeaturedAction, getFeaturedGroupAction, getPilgrimsList, exportAllPilgrimsDataAction } from '../concierge';
+import { updatePilgrimAction, toggleGroupFeaturedAction, getFeaturedGroupAction, getPilgrimsList, exportAllPilgrimsDataAction, submitFraternitePromoRequest } from '../concierge';
 import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { isAdminAuthenticated } from '../auth';
 import { revalidatePath } from 'next/cache';
@@ -439,5 +439,90 @@ describe('exportAllPilgrimsDataAction', () => {
         expect(p2.departure_date).toBe('2026-10-24');
     });
 });
+
+describe('submitFraternitePromoRequest', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('enregistre la préinscription Fraternité 2027 dans registration_requests (même sans e-mail) et retourne le lien WhatsApp', async () => {
+        const mockSupabase = createClient();
+        const insertMock = vi.fn().mockResolvedValue({ error: null });
+
+        mockSupabase.from = vi.fn((table: string) => {
+            if (table === 'registration_requests') {
+                return {
+                    insert: insertMock,
+                    select: vi.fn().mockReturnValue({
+                        ilike: vi.fn().mockReturnValue({
+                            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+                        }),
+                    }),
+                } as any;
+            }
+            return {
+                select: vi.fn().mockReturnValue({
+                    ilike: vi.fn().mockReturnValue({
+                        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+                    }),
+                }),
+            } as any;
+        });
+
+        const res = await submitFraternitePromoRequest({
+            airportIata: 'BRU',
+            roomType: 'QUADRUPLE',
+            pilgrimsCount: 2,
+            breakfast: false,
+            extraBaggage: true,
+            gender: 'M',
+            firstName: 'Youssef',
+            familyName: 'Mansouri',
+            phone: '+32 471 22 33 44',
+            email: '',
+            nationality: 'Belge',
+            visaSituation: 'À vérifier / à obtenir',
+            remarks: 'Départ Bruxelles famille',
+            consent: true,
+            website: '',
+        });
+
+        expect(res.success).toBe(true);
+        expect(res.whatsappUrl).toBeDefined();
+        expect(res.whatsappUrl).toContain('https://wa.me/33752280890?text=');
+        expect(insertMock).toHaveBeenCalledTimes(1);
+
+        const insertedPayload = insertMock.mock.calls[0][0];
+        expect(insertedPayload.first_name).toBe('Youssef');
+        expect(insertedPayload.family_name).toBe('Mansouri');
+        expect(insertedPayload.email).toMatch(/@fraternite\.omrayanair\.local$/);
+        expect(insertedPayload.message).toContain('Bruxelles (BRU)');
+        expect(insertedPayload.message).toContain('2\u202f590'); // 1295 × 2
+    });
+
+    it('rejette immédiatement une soumission contenant le champ honeypot anti-spam', async () => {
+        const res = await submitFraternitePromoRequest({
+            airportIata: 'CDG',
+            roomType: 'QUADRUPLE',
+            pilgrimsCount: 1,
+            breakfast: false,
+            extraBaggage: false,
+            gender: 'F',
+            firstName: 'Bot',
+            familyName: 'Spam',
+            phone: '+33600000000',
+            email: 'bot@spam.com',
+            nationality: 'FR',
+            visaSituation: 'À vérifier / à obtenir',
+            remarks: '',
+            consent: true,
+            website: 'https://spam-link.example',
+        });
+
+        expect(res.success).toBeUndefined();
+        expect(res.error).toBeDefined();
+    });
+});
+
 
 

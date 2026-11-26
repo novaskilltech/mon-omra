@@ -3,9 +3,31 @@ import BentoLandingHub from '@/components/BentoLandingHub';
 import ThemeSelector from '@/components/ThemeSelector';
 
 export const metadata: Metadata = {
-  title: "OMRAYANAIR — Conciergerie Omra Autonome & Voyage Spirituel",
-  description: "Simplifiez votre voyage en Terre Sainte. Réservez votre Omra, pré-inscrivez-vous au Hajj 2027+, suivez la Formation Conciergerie et accédez à votre compagnon spirituel.",
-  keywords: ["omra", "hajj 2027", "conciergerie omra", "formation conciergerie", "voyage spirituel", "omrayanair"],
+  title: "OMRAYANAIR — L’Omra de la Fraternité Musulmane (27 janv. – 10 févr. 2027) & Conciergerie",
+  description: "Offre promotionnelle : L’Islam n’a pas de frontières — Omra de la Fraternité Musulmane du 27 janvier au 10 février 2027 (23 aéroports, 13 pays, dès 1 195 €). Préinscription Omra & Hajj 2027+.",
+  keywords: ["omra", "omra fraternité musulmane", "omra janvier 2027", "omra ramadan 2027", "hajj 2027", "conciergerie omra", "omrayanair"],
+  openGraph: {
+    title: "L’Islam n’a pas de frontières — Omra de la Fraternité Musulmane 2027 | OMRAYANAIR",
+    description: "Du 27 janvier au 10 février 2027 : 23 aéroports, 3 continents, 2 Omras (Chaabane puis Ramadan*), 2 Joumouaa et 14 nuits réservées dès 1 195 €.",
+    url: "https://omrayanair.novaskill.tech",
+    siteName: "OMRAYANAIR",
+    locale: "fr_FR",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "OMRAYANAIR — L'Omra de la Fraternité Musulmane 2027",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "L’Islam n’a pas de frontières — Omra de la Fraternité Musulmane 2027",
+    description: "23 aéroports, 13 pays, 2 Omras (Chaabane & Ramadan*) dès 1 195 €. Calculez votre devis et préinscrivez-vous en ligne.",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function Home() {

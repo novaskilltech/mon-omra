@@ -2353,15 +2353,30 @@ export default function ConciergeDashboard() {
                                     {requests.map((req) => {
                                         const displayPhone = formatDisplayPhone(req.phone);
                                         const whatsappUrl = getWhatsAppUrl(req.phone, `Salam alaykoum ${req.first_name}, c'est l'équipe conciergerie OMRAYANAIR concernant votre demande.`);
+                                        const isPlaceholderEmail = Boolean(req.email && req.email.endsWith('@fraternite.omrayanair.local'));
+                                        const cleanMailto = req.email ? req.email.replace(/\+frat[a-f0-9]+@/i, '@') : '';
+                                        const isFraterniteOffer = Boolean(req.message && req.message.includes('OMRA DE LA FRATERNITÉ MUSULMANE'));
                                         return (
                                             <tr key={req.id} className="border-b border-emerald-500/5 text-main hover:bg-emerald-500/[0.02] transition-colors">
                                                 <td className="py-4">{new Date(req.created_at).toLocaleDateString('fr-FR')}</td>
                                                 <td className="py-4 font-bold uppercase">{req.family_name} {req.first_name}</td>
-                                                <td className="py-4 font-mono text-dim">{req.email}</td>
+                                                <td className="py-4 font-mono text-dim">
+                                                    {isPlaceholderEmail ? (
+                                                        <span className="italic text-dim/60 text-[10px]">WhatsApp uniquement</span>
+                                                    ) : (
+                                                        cleanMailto
+                                                    )}
+                                                </td>
                                                 <td className="py-4 font-medium">{displayPhone || req.phone || '-'}</td>
                                                 <td className="py-4">{req.gender === 'M' ? 'Homme' : 'Femme'}</td>
                                                 <td className="py-4 text-emerald-500 font-bold">
-                                                    {req.groups?.name || <span className="text-dim/40 italic">Tous départs</span>}
+                                                    {req.groups?.name || (isFraterniteOffer ? (
+                                                        <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                                                            🕋 Fraternité 2027
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-dim/40 italic">Tous départs</span>
+                                                    ))}
                                                 </td>
                                                 <td className="py-4">
                                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${req.is_former_client ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-dim'}`}>
@@ -2399,13 +2414,15 @@ export default function ConciergeDashboard() {
                                                             </a>
                                                         </>
                                                     )}
-                                                    <a
-                                                        href={`mailto:${req.email}`}
-                                                        className="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-xl transition-all"
-                                                        title="Envoyer un e-mail"
-                                                    >
-                                                        <Mail className="w-3.5 h-3.5" />
-                                                    </a>
+                                                    {!isPlaceholderEmail && cleanMailto && (
+                                                        <a
+                                                            href={`mailto:${cleanMailto}`}
+                                                            className="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-xl transition-all"
+                                                            title="Envoyer un e-mail"
+                                                        >
+                                                            <Mail className="w-3.5 h-3.5" />
+                                                        </a>
+                                                    )}
                                                     <button
                                                         onClick={() => {
                                                             if (confirm("Marquer cette demande comme traitée ? (Ses données seront conservées et archivées dans votre base de données)")) {
