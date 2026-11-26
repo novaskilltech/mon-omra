@@ -100,7 +100,7 @@ export function getGroupInquiryWhatsAppUrl(group: { name: string; departure_date
  * Génère le lien WhatsApp d'urgence concernant les annulations de vols Transavia
  */
 export function getTransaviaAlertWhatsAppUrl(): string {
-    const msg = "Bonjour, je vous contacte suite au Flash Info concernant l'annulation des vols Transavia (Lyon, Marseille, Paris-Orly du 16 oct. au 9 nov.). Pouvez-vous me renseigner sur la situation de mon vol ?";
+    const msg = "Bonjour, je vous contacte suite au Flash Info concernant l'annulation des vols Transavia (Lyon, Marseille, Paris-Orly jusqu'au 31/12 inclus). Pouvez-vous me renseigner sur la situation de mon vol ?";
     return getWhatsAppUrl(AGENCY_WHATSAPP_PHONE, msg, 'france');
 }
 

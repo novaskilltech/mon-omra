@@ -11,7 +11,7 @@ export default function FlashInfoBanner() {
 
     useEffect(() => {
         setIsMounted(true);
-        const storedDismissed = sessionStorage.getItem('omrayanair-transavia-alert-dismissed');
+        const storedDismissed = sessionStorage.getItem('omrayanair-transavia-alert-dismissed-31dec');
         if (storedDismissed === 'true') {
             setIsDismissed(true);
         }
@@ -19,12 +19,12 @@ export default function FlashInfoBanner() {
 
     const handleDismiss = () => {
         setIsDismissed(true);
-        sessionStorage.setItem('omrayanair-transavia-alert-dismissed', 'true');
+        sessionStorage.setItem('omrayanair-transavia-alert-dismissed-31dec', 'true');
     };
 
     const handleRestore = () => {
         setIsDismissed(false);
-        sessionStorage.removeItem('omrayanair-transavia-alert-dismissed');
+        sessionStorage.removeItem('omrayanair-transavia-alert-dismissed-31dec');
     };
 
     if (!isMounted) return null;
@@ -49,7 +49,7 @@ export default function FlashInfoBanner() {
 
                                 <div className="text-xs sm:text-sm text-zinc-100 font-medium leading-snug">
                                     <span className="font-bold text-white">Annulation de tous les vols Transavia</span>{' '}
-                                    <span className="text-amber-300 font-semibold">(16 oct. — 09 nov. inclus)</span>{' '}
+                                    <span className="text-amber-300 font-semibold">(jusqu&apos;au 31/12 inclus)</span>{' '}
                                     <span className="text-zinc-300 hidden md:inline">au départ de</span>{' '}
                                     <span className="font-bold text-white hidden md:inline">Lyon, Marseille et Paris-Orly</span>.
                                 </div>
@@ -64,7 +64,7 @@ export default function FlashInfoBanner() {
 
                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-950/70 border border-amber-500/40 text-amber-300 font-semibold">
                                     <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                                    <span>Novembre : <strong className="text-amber-200">Modifications en cours</strong></span>
+                                    <span>Nov. &amp; Déc. : <strong className="text-amber-200">Modifications en cours</strong></span>
                                 </div>
                             </div>
 
@@ -158,7 +158,7 @@ export default function FlashInfoBanner() {
                                     <span>Périmètre des perturbations aériennes</span>
                                 </div>
                                 <p>
-                                    La compagnie <strong>Transavia</strong> a procédé à l&apos;annulation de l&apos;ensemble de ses vols programmés du <strong>16 octobre au 9 novembre inclus</strong>.
+                                    La compagnie <strong>Transavia</strong> a procédé à l&apos;annulation de l&apos;ensemble de ses vols programmés <strong>jusqu&apos;au 31/12 inclus</strong> (depuis le 16 octobre).
                                 </p>
                                 <p className="text-zinc-400 text-xs">
                                     Aéroports concernés : <strong>Lyon-Saint Exupéry (LYS)</strong>, <strong>Marseille-Provence (MRS)</strong> et <strong>Paris-Orly (ORY)</strong>. Les vols assurés par les autres compagnies partenaires ne sont pas impactés.
@@ -180,10 +180,10 @@ export default function FlashInfoBanner() {
                                 <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 space-y-1.5">
                                     <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
                                         <Clock className="w-4 h-4" />
-                                        <span>Départs de Novembre</span>
+                                        <span>Départs de Novembre &amp; Décembre</span>
                                     </div>
                                     <p className="text-xs text-zinc-200">
-                                        <strong>Modifications en cours.</strong> Notre cellule logistique procède activement aux réacheminements et confirme chaque dossier par ordre de date de départ.
+                                        <strong>Modifications en cours.</strong> Notre cellule logistique procède activement aux réacheminements jusqu&apos;au 31/12 et confirme chaque dossier par ordre de date de départ.
                                     </p>
                                 </div>
                             </div>

@@ -1004,6 +1004,22 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 113/113 tests réussis.
 *   **Version** : v1.41.0
 
+---
+
+## 65. Mise à Jour du Bandeau Flash Info Transavia : Annulations Prolongées Jusqu'au 31/12 Inclus
+*   **Décision** :
+    1. **Bandeau & Modale d'Information (`src/components/FlashInfoBanner.tsx`)** :
+        *   Mise à jour de la période d'annulation des vols Transavia (Lyon, Marseille, Paris-Orly) à **`(jusqu'au 31/12 inclus)`**.
+        *   Mise à jour du badge opérationnel et de la modale de suivi à **`Nov. & Déc. : Modifications en cours`** (*Départs de Novembre & Décembre*).
+        *   Renouvellement de la clé `sessionStorage` (`omrayanair-transavia-alert-dismissed-31dec`) afin que les visiteurs ayant fermé l'ancienne alerte prennent connaissance de la prolongation au 31/12.
+    2. **Message d'Assistance WhatsApp (`src/lib/utils/phone.ts` & `src/lib/utils/__tests__/phone.test.ts`)** :
+        *   Alignement du message pré-rempli `getTransaviaAlertWhatsAppUrl` sur **`jusqu'au 31/12 inclus`** et mise à jour du test unitaire associé.
+*   **Justification** : Instruction directe de l'utilisateur : *"modifie le message les annulations sont jusqu'au 31/12"*.
+*   **Impacts** :
+    *   Fichiers modifiés : `src/components/FlashInfoBanner.tsx`, `src/lib/utils/phone.ts`, `src/lib/utils/__tests__/phone.test.ts`, `DECISION_LOG.md`.
+    *   Tests : 113/113 tests réussis.
+*   **Version** : v1.41.1
+
 
 
 

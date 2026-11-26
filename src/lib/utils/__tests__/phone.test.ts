@@ -56,8 +56,7 @@ describe('Phone formatting utilities for WhatsApp', () => {
         expect(decoded).toContain('Lyon');
         expect(decoded).toContain('Marseille');
         expect(decoded).toContain('Paris-Orly');
-        expect(decoded).toContain('16 oct.');
-        expect(decoded).toContain('9 nov.');
+        expect(decoded).toContain('31/12');
     });
 });
 
