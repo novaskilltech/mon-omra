@@ -247,20 +247,22 @@ export default function FraternitePromoSection() {
                             </div>
 
                             {/* Price & CTAs */}
-                            <div className="pt-3 flex flex-col sm:flex-row sm:items-end justify-between gap-5 border-t border-white/10">
+                            <div className="pt-4 space-y-4 border-t border-white/10">
                                 <div>
                                     <span className="text-[10px] font-black uppercase tracking-widest text-amber-200/80 block">
                                         Tarif promotionnel d’appel
                                     </span>
-                                    <div className="text-3xl sm:text-4xl font-black text-[#FDE68A] tracking-tight leading-none mt-1">
-                                        À partir de 1 195 €
+                                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-1">
+                                        <div className="text-3xl sm:text-4xl font-black text-[#FDE68A] tracking-tight leading-none whitespace-nowrap">
+                                            À partir de 1&nbsp;195&nbsp;€
+                                        </div>
+                                        <span className="text-xs sm:text-sm text-emerald-100/85 font-medium whitespace-nowrap">
+                                            • Par personne en chambre quadruple
+                                        </span>
                                     </div>
-                                    <span className="text-xs text-emerald-100/80 font-medium mt-1 block">
-                                        Par personne en chambre quadruple
-                                    </span>
                                 </div>
 
-                                <div className="flex flex-wrap gap-3">
+                                <div className="flex flex-wrap items-center gap-3">
                                     <button
                                         type="button"
                                         onClick={scrollToForm}
@@ -397,7 +399,7 @@ export default function FraternitePromoSection() {
                                     Comparer les 23 aéroports, compagnies, horaires &amp; tarifs
                                 </span>
                                 <span className="text-xs text-dim block mt-0.5">
-                                    France, Belgique (Bruxelles 1 295 €, Charleroi 1 195 €), Espagne, Italie, Maroc, Algérie, Tunisie, Sénégal, Côte d’Ivoire, Canada, USA, UK, Pays-Bas
+                                    France, Belgique (Bruxelles 1&nbsp;295&nbsp;€, Charleroi 1&nbsp;195&nbsp;€), Espagne, Italie, Maroc, Algérie, Tunisie, Sénégal, Côte d’Ivoire, Canada, USA, UK, Pays-Bas
                                 </span>
                             </div>
                         </div>
@@ -941,7 +943,7 @@ export default function FraternitePromoSection() {
                         <div aria-live="polite" className="p-4 rounded-2xl bg-black/30 border border-amber-400/30 space-y-3">
                             <div>
                                 <span className="text-xs text-emerald-100/80 block">Tarif indicatif par personne</span>
-                                <strong className="text-3xl font-black text-[#FDE68A] leading-tight block">
+                                <strong className="text-3xl font-black text-[#FDE68A] leading-tight block whitespace-nowrap">
                                     {formatEur(quote.perPersonEur)}
                                 </strong>
                             </div>
@@ -950,7 +952,7 @@ export default function FraternitePromoSection() {
                                 <span className="text-xs text-emerald-100/80 block">
                                     Total estimé du groupe ({quote.validCount ? `${quote.pilgrimsCount} pèlerin${quote.pilgrimsCount > 1 ? 's' : ''}` : '—'})
                                 </span>
-                                <strong className="text-3xl font-black text-emerald-300 leading-tight block">
+                                <strong className="text-3xl font-black text-emerald-300 leading-tight block whitespace-nowrap">
                                     {quote.validCount ? formatEur(quote.totalEur) : '—'}
                                 </strong>
                             </div>

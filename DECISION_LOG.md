@@ -1020,6 +1020,18 @@ Ce document répertorie l'ensemble des décisions d'architecture, de conception 
     *   Tests : 113/113 tests réussis.
 *   **Version** : v1.41.1
 
+---
+
+## 66. Alignement Monoligne du Tarif Promotionnel « À partir de 1 195 € » sur l'Accueil
+*   **Décision** :
+    1. **Alignement Typographique & Anti-Césure (`src/components/FraternitePromoSection.tsx`)** :
+        *   Ajout d'espaces insécables (`&nbsp;`) et de `whitespace-nowrap` sur `À partir de 1 195 €`, les montants du résumé de devis et les tarifs du sous-titre accordéon afin d'interdire toute coupure de nombre sur deux lignes (`1` / `195 €`).
+        *   Séparation verticale propre entre la ligne de tarif alignée sur sa baseline (`items-baseline`) et la rangée des boutons d'action pour supprimer la compression horizontale sur écrans intermédiaires.
+*   **Justification** : Correction UI demandée sur capture d'écran (*"aligne le tarif"*).
+*   **Impacts** :
+    *   Fichiers modifiés : `src/components/FraternitePromoSection.tsx`, `DECISION_LOG.md`.
+*   **Version** : v1.41.2
+
 
 
 
